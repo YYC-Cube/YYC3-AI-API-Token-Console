@@ -122,7 +122,7 @@ complexity: advanced
 ## 四、已修复问题清单 | Issues Resolved
 
 | # | 问题 | 位置 | 严重度 | 修复动作 |
-|---| ---- | ---- | ------ | -------- |
+| --- | ---- | ---- | ------ | -------- |
 | 1 | package.json 命名违规 `@figma/my-make-file` | `package.json` | 🔴 P0 | → `yyc3-ai-api-token-console@0.1.0`，对齐团队 `yyc3-` 前缀标准 |
 | 2 | Issue 模板位置错误（GitHub 无法识别） | `.github/*.yml` | 🔴 P0 | 迁移至 `.github/ISSUE_TEMPLATE/` |
 | 3 | 缺失 LICENSE（README 徽章指向死链） | 仓根 | 🔴 P0 | 新增 Apache-2.0 全文 |
@@ -174,11 +174,12 @@ complexity: advanced
 
 ### Phase 2 · 质量纵深（近期 1-2 迭代）
 
-- [ ] **P0** 生成并入库 `pnpm-lock.yaml`（CI 冻结安装前置条件）
-- [ ] **P1** 测试依赖迁移 devDependencies（vitest/jsdom/testing-library/coverage-v8/axe-core）
-- [ ] **P1** 引入 ESLint 9 flat config + eslint-plugin-react-hooks（补齐 Lint 门禁）
+- [x] **P0** 生成并入库 `pnpm-lock.yaml`（CI 冻结安装前置条件）— ✅ 2026-09-18
+- [x] **P1** 测试依赖迁移 devDependencies（vitest/jsdom/testing-library/coverage-v8/axe-core）— ✅ 2026-09-18
+- [x] **P1** 引入 ESLint 9 flat config + eslint-plugin-react-hooks（补齐 Lint 门禁，0 errors 达成）— ✅ 2026-09-18
 - [ ] **P1** CORS 按网段收敛（`ALLOW_ORIGIN` 环境变量化）
-- [ ] **P2** Codecov 接入（替换静态 Coverage 徽章为动态真实数据）
+- [x] **P2** Codecov 接入（替换静态 Coverage 徽章为动态真实数据）— ✅ 2026-09-18
+- [x] **P2** GitHub Pages 自动部署（main CI 全绿 → token.yyc3.vip，CNAME 构建时注入）— ✅ 2026-09-18
 - [ ] **P2** `labels.yml` 自动同步 CI job（PR 校验标签合规）
 
 ### Phase 3 · 智能演进（中期）
@@ -216,11 +217,26 @@ complexity: advanced
 
 > **「文档讲 why、代码讲 how」的双轮驱动已形成完整闭环**：标规文档定义标准（五维/五高/五标/五化），模版闭环提供工程蓝本（CI/文档/发布/标签），开发者文档实例化落地（本套 8 篇），代码层 140+ 测试与四阶段流水线刚性守护。项目已达到**可发布基线**，唯一 P0 阻断项为 pnpm-lock.yaml 缺失——执行 `pnpm install` 后即闭环。
 
-### 7.3 TOP 3 行动项（下次会话起点）
+### 7.3 TOP 3 行动项（2026-09-18 第二轮已完成）
 
-1. **[P0]** `pnpm install` 生成 `pnpm-lock.yaml` 并验证 CI 全绿 — 10 分钟
-2. **[P1]** 测试依赖迁移 devDependencies + 复跑 build 验证产物无回归 — 30 分钟
-3. **[P1]** ESLint 9 flat config 接入（`eslint@9` + `typescript-eslint` + `react-hooks`），并入 ci.yml typecheck job — 1 小时
+1. **[P0]** ~~`pnpm install` 生成 `pnpm-lock.yaml`~~ ✅ 已完成并入库
+2. **[P1]** ~~测试依赖迁移 devDependencies~~ ✅ 已完成（生产依赖瘦身）
+3. **[P1]** ~~ESLint 9 flat config 接入~~ ✅ 已完成（0 errors 达成，lint 并入 ci.yml 五阶段门禁）
+
+### 7.4 第二轮增量交付（2026-09-18）
+
+| 交付 | 说明 |
+| ---- | ---- |
+| GitHub Pages 自动部署 | `pages.yml`：main CI 全绿 → `vite build --base=/` → deploy-pages@v4 → **<https://token.yyc3.vip**（CNAME> 构建时注入） |
+| Codecov 动态徽章 | ci.yml 上报 lcov + `codecov.yml` 80% 目标；README Coverage 徽章替换为动态数据源 |
+| CI 五阶段 | Typecheck → **Lint（新增，0 errors）** → Test(80%+Codecov) → Security → Build |
+| 存量 lint 错误清零 | 61 errors → 0（App.tsx rest 参数化 / 表达式语句改写 / 转义清理 / Node globals 块） |
+
+**新 TOP 3 行动项（下次会话起点）**
+
+1. **[P1]** CORS 按网段收敛（`deploy/server.mjs` `ALLOW_ORIGIN` 环境变量化）— 30 分钟
+2. **[P2]** `labels.yml` 自动同步 CI job + PR 标签合规校验 — 1 小时
+3. **[P2]** 首次 Pages 部署后验证 token.yyc3.vip PWA 安装链路（manifest/图标/离线）— 30 分钟
 
 ---
 

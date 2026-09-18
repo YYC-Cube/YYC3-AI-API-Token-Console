@@ -1,0 +1,23 @@
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+ignore:
+  - "deploy/**"
+  - "scripts/**"
+  - "docs/**"
+  - "public/**"
+  - "src/app/ci/**"
+  - "src/imports/**"

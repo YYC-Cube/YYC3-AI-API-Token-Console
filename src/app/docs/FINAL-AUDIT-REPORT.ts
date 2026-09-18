@@ -107,7 +107,7 @@ export const CHAPTER_AUDITS: ChapterAudit[] = [
     score: 100,
     evidence: [
       "CLITerminal: yyc3 status/node/model/alerts/patrol/report/config 命令集",
-      "IntegratedTerminal: VS Code 风格, Ctrl+\` 全局快捷键切换",
+      "IntegratedTerminal: VS Code 风格, Ctrl+` 全局快捷键切换",
       "IDEPanel: VS Code 侧边栏模拟 (节点状态/告警/日志/常用命令)",
       "useTerminal Hook: 命令解析 + 自动补全 + 输出格式化",
       "已注册 /terminal + /ide 两条路由",
@@ -141,7 +141,7 @@ export const CHAPTER_AUDITS: ChapterAudit[] = [
       "AISuggestionPanel + PatternAnalyzer + ActionRecommender",
       "useAISuggestion Hook: 异常模式检测 + 操作建议 + 置信度评分",
       "CommandPalette: Cmd/Ctrl+K 全局搜索, 13 项导航命令",
-      "useKeyboardShortcuts: 8 组快捷键全部实现 (⌘K/⇧A/⇧P/⇧O/⇧L/⇧F/Ctrl+\`/Esc)",
+      "useKeyboardShortcuts: 8 组快捷键全部实现 (⌘K/⇧A/⇧P/⇧O/⇧L/⇧F/Ctrl+`/Esc)",
       "SHORTCUT_LIST 常量导出, 供帮助面板展示",
     ],
     gaps: [],
@@ -251,32 +251,32 @@ export const EXTENSION_AUDITS: ExtensionAudit[] = [
   {
     category: "1. 安全功能增强",
     items: [
-      { feature: "CSP 检测",           status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
-      { feature: "Cookie 安全检查",    status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
-      { feature: "敏感信息泄漏检测",   status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
+      { feature: "CSP 检测", status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
+      { feature: "Cookie 安全检查", status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
+      { feature: "敏感信息泄漏检测", status: "DONE", component: "SecurityMonitor (安全检测 Tab)" },
     ],
   },
   {
     category: "2. 性能监控增强",
     items: [
-      { feature: "资源加载分析",       status: "DONE", component: "SecurityMonitor (性能监控 Tab)" },
-      { feature: "内存泄漏检测",       status: "DONE", component: "SecurityMonitor (性能监控 Tab)" },
+      { feature: "资源加载分析", status: "DONE", component: "SecurityMonitor (性能监控 Tab)" },
+      { feature: "内存泄漏检测", status: "DONE", component: "SecurityMonitor (性能监控 Tab)" },
       { feature: "用户���验指标 (FID/INP/CLS/TTFB/LCP)", status: "DONE", component: "SecurityMonitor (性能监控 Tab)" },
     ],
   },
   {
     category: "3. 系统诊断增强",
     items: [
-      { feature: "设备能力检测",       status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
-      { feature: "网络质量监控",       status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
-      { feature: "浏览器兼容性报告",   status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
+      { feature: "设备能力检测", status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
+      { feature: "网络质量监控", status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
+      { feature: "浏览器兼容性报告", status: "DONE", component: "SecurityMonitor (系统诊断 Tab)" },
     ],
   },
   {
     category: "4. 数据持久化增强",
     items: [
       { feature: "数据同步 (多标签/导入导出/备份)", status: "DONE", component: "SecurityMonitor (数据管理 Tab)" },
-      { feature: "数据清理工具",       status: "DONE", component: "SecurityMonitor (数据管理 Tab)" },
+      { feature: "数据清理工具", status: "DONE", component: "SecurityMonitor (数据管理 Tab)" },
     ],
   },
   {
@@ -284,15 +284,15 @@ export const EXTENSION_AUDITS: ExtensionAudit[] = [
     items: [
       { feature: "智能告警规则 (自定义阈值/聚合去重/升级机制)", status: "DONE", component: "AlertRulesPanel (/alerts)" },
       { feature: "WebSocket 实时推送", status: "DONE", component: "useAlertRules + useWebSocketData" },
-      { feature: "浏览器通知",         status: "DONE", component: "usePushNotifications" },
+      { feature: "浏览器通知", status: "DONE", component: "usePushNotifications" },
     ],
   },
   {
     category: "6. 报表与导出功能",
     items: [
       { feature: "性能报表生成 (趋势/对比/汇总)", status: "DONE", component: "ReportExporter (/reports)" },
-      { feature: "多格式导出 (JSON/CSV/Print)",  status: "DONE", component: "useReportExporter" },
-      { feature: "安全审计报告",      status: "DONE", component: "ReportExporter (安全审计类型)" },
+      { feature: "多格式导出 (JSON/CSV/Print)", status: "DONE", component: "useReportExporter" },
+      { feature: "安全审计报告", status: "DONE", component: "ReportExporter (安全审计类型)" },
     ],
   },
   {
@@ -300,7 +300,7 @@ export const EXTENSION_AUDITS: ExtensionAudit[] = [
     items: [
       { feature: "智能问题诊断 (模式识别/异常分析/解决方案)", status: "DONE", component: "AIDiagnostics (/ai-diagnosis)" },
       { feature: "预测性维护 (趋势预测/风险评估)", status: "DONE", component: "AIDiagnostics (趋势预测 Tab)" },
-      { feature: "性能优化建议",      status: "DONE", component: "AIDiagnostics (解决方案 Tab)" },
+      { feature: "性能优化建议", status: "DONE", component: "AIDiagnostics (解决方案 Tab)" },
     ],
   },
 ];

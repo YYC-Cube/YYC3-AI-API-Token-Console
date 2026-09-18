@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RouterProvider } from "react-router";
-import { router } from "./routes";
-import { Login } from "./components/Login";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { installGlobalErrorListeners } from "./lib/error-handler";
-import { supabase, ghostSignIn, isGhostMode } from "./lib/supabaseClient";
+import { Login } from "./components/Login";
+import { I18nContext, useI18nProvider } from "./hooks/useI18n";
 import { useYYC3Head } from "./hooks/useYYC3Head";
-import { useI18nProvider, I18nContext } from "./hooks/useI18n";
 import { AuthContext } from "./lib/authContext";
+import { installGlobalErrorListeners } from "./lib/error-handler";
 import { isFigmaPlatformError } from "./lib/figma-error-filter";
-import type { UserRole, AppSession } from "./types";
+import { ghostSignIn, isGhostMode, supabase } from "./lib/supabaseClient";
+import { router } from "./routes";
+import type { AppSession, UserRole } from "./types";
 
 // ────────────────────────────────────────────────────────────────
 // RF-003: Figma 平台 iframe 通信错误静默拦截
@@ -46,7 +46,8 @@ if (typeof window !== "undefined") {
 
   // Layer 0: legacy window.onerror — return true to fully swallow the error
   const _prevOnerror = window.onerror;
-  window.onerror = function (message, source, _lineno, _colno, error) {
+  window.onerror = function (...args) {
+    const [message, source, _lineno, _colno, error] = args as Parameters<OnErrorEventHandlerNonNull>;
     const name = error?.name || error?.constructor?.name || "";
     const msg = String(message || "");
     const src = String(source || "");
@@ -55,7 +56,7 @@ if (typeof window !== "undefined") {
       return true; // suppress completely
     }
     if (typeof _prevOnerror === "function") {
-      return (_prevOnerror as any).apply(this, arguments);
+      return (_prevOnerror as any).apply(this, args);
     }
     return false;
   };
@@ -78,7 +79,7 @@ if (typeof window !== "undefined") {
       joined.includes("setupmessagechannel") ||
       (joined.includes("figma") && joined.includes("abort"))
     ) {
-      return; // suppress silently
+      return; // suppress silently (Figma platform noise)
     }
     // Suppress Recharts internal duplicate null key warnings (React 18 uses console.error)
     // Recharts v2.x renderGraphicChild always returns [element, null] for every

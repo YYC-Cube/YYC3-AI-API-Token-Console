@@ -23,7 +23,7 @@ import { render, screen } from "@testing-library/react";
 // ── Mocks ──
 
 const mockNavigate = vi.fn();
-let mockPathname = "/";
+const mockPathname = "/";
 
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,

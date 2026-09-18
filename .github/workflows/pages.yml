@@ -1,0 +1,85 @@
+# ============================================================================
+#  YYC³ GitHub Pages 自动部署 — YYC3-AI-API-Token-Console
+#  生产的门禁全绿后 → vite build (VITE_BASE=/) → 部署 Pages
+#  自定义域名: token.yyc3.vip (CNAME 文件自动随 dist 发布)
+#
+#  前置要求 (一次性, 仓库 Settings → Pages):
+#    Source: GitHub Actions
+#    Custom domain: token.yyc3.vip  (或由本工作流 CNAME 文件自动绑定)
+# ============================================================================
+name: YYC³ Pages Deploy
+
+on:
+  # main 分支 CI 全绿后自动部署
+  workflow_run:
+    workflows: ["YYC³ CI"]
+    types: [completed]
+    branches: [main]
+  # 支持手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 单实例部署：新部署排队，不取消进行中的部署（避免 Pages 状态不一致）
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "11"
+
+jobs:
+  build:
+    name: "📦 Build for Pages"
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 自定义域名根路径部署 — CNAME 先行，确保产物包含域名文件
+      - name: Add CNAME for custom domain
+        run: echo "token.yyc3.vip" > public/CNAME
+
+      # VITE_BASE=/ : token.yyc3.vip 为根路径托管，无需子路径前缀
+      - name: Build (VITE_BASE=/)
+        run: pnpm exec vite build --base=/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: "🚀 Deploy to Pages (token.yyc3.vip)"
+    environment:
+      name: github-pages
+      url: https://token.yyc3.vip
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

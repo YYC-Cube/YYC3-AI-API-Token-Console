@@ -7,6 +7,27 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Added 新增
+
+- **GitHub Pages 自动部署**: `pages.yml` 工作流 — main CI 全绿后自动构建部署至 **<https://token.yyc3.vip**（自定义域名根路径> + CNAME 构建时注入）
+  GitHub Pages auto-deploy: auto build & deploy on green main CI to token.yyc3.vip
+- **Codecov 覆盖率看板**: ci.yml 上报 `coverage/lcov.info`，`codecov.yml` 项目级 80% 目标；README 覆盖率徽章升级为动态真实数据
+  Codecov dashboard: coverage upload + project-level 80% target + dynamic badge
+
+### Changed 变更
+
+- **CI 五阶段流水线**: 新增 Lint 门禁（ESLint 9 flat config，0 errors 门槛），test/security job 依赖 [typecheck, lint]
+  CI pipeline extended to five stages with a new Lint gate (ESLint 9, zero-errors)
+- **测试依赖迁移 devDependencies**: vitest / jsdom / testing-library / coverage-v8 / axe-core 全部移出生产依赖，生产依赖瘦身
+  Test tooling moved to devDependencies, slimming production deps
+
+### Fixed 修复
+
+- ESLint 接入治理存量错误 61 → 0：App.tsx `arguments` → rest 参数、DataEditorTables/ArchitectureAudit 表达式语句、FINAL-AUDIT-REPORT 冗余转义、Node 脚本 globals 配置
+  Fixed all pre-existing lint errors (61 → 0) via targeted refactors
+
+---
+
 ### 计划 Planned
 
 - `v0.2.0`: 推理矩阵多主机调度视图（M4 Max + iMac + NAS 拓扑可视化）

@@ -3,7 +3,8 @@
 #  对标团队规范《模版闭环》.github/workflows/ci.yml + 项目 Vite 工具链适配
 #
 #  触发: push 到 main/develop · 所有 PR
-#  阶段: 🔍 Typecheck → 🧪 Test(80% 门槛) → 🛡️ Security Scan → 📦 Build
+#  阶段: 🔍 Typecheck → 🧹 Lint → 🧪 Test(80% 门槛+Codecov) → 🛡️ Security Scan → 📦 Build
+#  下游: pages.yml (CI 全绿后自动部署 GitHub Pages → token.yyc3.vip)
 # ============================================================================
 
 name: YYC³ CI
@@ -55,13 +56,40 @@ jobs:
         run: pnpm typecheck
 
   # ============================================================
+  # 1b. ESLint 静态检查 (0 errors 门槛)
+  # ============================================================
+  lint:
+    name: "🧹 Lint · eslint 0-errors"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint (gate: 0 errors)
+        run: pnpm lint
+
+  # ============================================================
   # 2. 单元测试 + 覆盖率 (80% 门槛)
   # ============================================================
   unit-test:
     name: "🧪 Unit Test · vitest + coverage"
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: typecheck
+    needs: [typecheck, lint]
     steps:
       - uses: actions/checkout@v4
 
@@ -84,6 +112,13 @@ jobs:
 
       - name: Run coverage check (gate ≥ 80%)
         run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: Upload test results
         if: always()
@@ -115,7 +150,7 @@ jobs:
     name: "🛡️ Security Scan · gitleaks"
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: typecheck
+    needs: [typecheck, lint]
     steps:
       - uses: actions/checkout@v4
         with:

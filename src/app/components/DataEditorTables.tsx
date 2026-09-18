@@ -5,15 +5,21 @@
  * 从 DataEditorPanel 拆分，避免单文件过大
  */
 
-import React, { useMemo, useState, useCallback } from "react";
 import {
-  Edit3, Check, X, Trash2, AlertTriangle,
-  ArrowUpDown, ChevronUp, ChevronDown,
-  CheckSquare, Square,
+  AlertTriangle,
+  ArrowUpDown,
+  Check,
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  Square,
+  Trash2,
+  X,
 } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import type { Agent, Model, NodeStatusRecord, NodeStatusType } from "../types";
 import { GlassCard } from "./GlassCard";
-import { toast } from "sonner";
-import type { Model, NodeStatusRecord, Agent, NodeStatusType } from "../types";
 
 const toastStyle = {
   background: "rgba(8, 25, 55, 0.95)",
@@ -141,7 +147,11 @@ export function ModelTable({ models, editingId, editDraft, errors, onStartEdit, 
 
   const toggleSelect = (id: string) => setSelectedIds((prev) => {
     const next = new Set(prev);
-    next.has(id) ? next.delete(id) : next.add(id);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
     return next;
   });
   const toggleAll = () => setSelectedIds((prev) => prev.size === sorted.length ? new Set() : new Set(sorted.map((m) => m.id)));
@@ -232,7 +242,7 @@ export function NodeTable({ nodes, editingId, editDraft, onStartEdit, onSave, on
 
   const sorted = useMemo(() => sortItems(nodes, sortField, sortDir), [nodes, sortField, sortDir]);
 
-  const toggleSelect = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleSelect = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) { n.delete(id); } else { n.add(id); } return n; });
   const toggleAll = () => setSelectedIds((prev) => prev.size === sorted.length ? new Set() : new Set(sorted.map((n) => n.id)));
 
   const statusColor = (s: string) => s === "active" ? "#00ff88" : s === "warning" ? "#ffaa00" : "#ff3366";
@@ -322,7 +332,7 @@ export function AgentTable({ agents, editingId, editDraft, onStartEdit, onSave, 
 
   const sorted = useMemo(() => sortItems(agents, sortField, sortDir), [agents, sortField, sortDir]);
 
-  const toggleSelect = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleSelect = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) { n.delete(id); } else { n.add(id); } return n; });
   const toggleAll = () => setSelectedIds((prev) => prev.size === sorted.length ? new Set() : new Set(sorted.map((a) => a.id)));
 
   return (

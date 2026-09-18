@@ -10,6 +10,8 @@ for (const d of fs.readdirSync(dir)) {
       const v = JSON.parse(fs.readFileSync(pj, "utf8")).version;
       if (v.startsWith("19.")) console.log("CONSUMER:", d);
     }
-  } catch { }
+  } catch {
+    // ignore: 依赖目录读取失败不阻断扫描
+  }
 }
 console.log("scan done");

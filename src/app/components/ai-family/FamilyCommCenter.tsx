@@ -233,7 +233,7 @@ export function FamilyCommCenter() {
 
   // Filter & search messages
   const filteredMessages = useMemo(() => {
-    let result = messages.filter(msg => {
+    const result = messages.filter(msg => {
       if (filterMember !== "all") {
         if (msg.from !== filterMember && msg.to !== filterMember && msg.to !== "all") return false;
       }

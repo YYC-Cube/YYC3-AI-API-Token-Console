@@ -37,7 +37,7 @@ vi.mock("../hooks/useModelProvider", () => ({
 
 // Mock useSettingsStore — AI 配置全局数据源
 const mockUpdateValue = vi.fn();
-let mockSettingsValues = {
+const mockSettingsValues = {
   aiApiKey: "",
   aiBaseUrl: "https://api.openai.com/v1",
   aiModel: "ollama-live-qwen2.5:7b",

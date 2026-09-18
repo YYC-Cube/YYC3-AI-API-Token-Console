@@ -15,11 +15,11 @@ import { render, screen } from "@testing-library/react";
 import { axe } from "vitest-axe";
 
 // Mock figma:asset imports — 返回占位 URL
-vi.mock("../components/YYC3LogoSvg", () => {
-  const React = require("react");
+vi.mock("../components/YYC3LogoSvg", async () => {
+  const { createElement } = await import("react");
   return {
     YYC3LogoSvg: ({ size = 40, className = "", style }: any) =>
-      React.createElement("img", {
+      createElement("img", {
         src: "/mock-logo.png",
         alt: "YYC³ Logo",
         width: size,
