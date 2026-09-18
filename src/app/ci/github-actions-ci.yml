@@ -1,0 +1,136 @@
+# ============================================================================
+#  YYC³ CI Pipeline
+#  YYC³ 本地多端推理矩阵数据库数据看盘 - 持续集成
+# ============================================================================
+#
+#  使用方式:
+#    将此文件复制到 .github/workflows/ci.yml 即可启用 GitHub Actions CI
+#
+#  触发条件:
+#    - push 到 main/develop 分支
+#    - 所有 Pull Request
+#
+#  阶段:
+#    1. test  → Vitest 单元测试 + 覆盖率报告 (80% 门槛)
+#    2. build → Vite 生产构建 (依赖 test 通过)
+#
+# ============================================================================
+
+name: YYC³ CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+  # ============================================================
+  # 1. 测试 + 覆盖率
+  # ============================================================
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # --------------------------------------------------------
+      # 单元测试 + JUnit 报告
+      # --------------------------------------------------------
+      - name: Run tests (JUnit output)
+        run: pnpm test:ci
+        continue-on-error: false
+
+      # --------------------------------------------------------
+      # 覆盖率报告 (80% 门槛)
+      # --------------------------------------------------------
+      - name: Run coverage check
+        run: pnpm test:coverage
+        continue-on-error: false
+
+      # --------------------------------------------------------
+      # 上传 Artifacts
+      # --------------------------------------------------------
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      # --------------------------------------------------------
+      # PR 覆盖率自动评论 (仅 PR 触发)
+      # --------------------------------------------------------
+      - name: PR coverage summary
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: coverage/coverage-summary.json
+          json-final-path: coverage/coverage-final.json
+
+  # ============================================================
+  # 2. 构建验证
+  # ============================================================
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 7

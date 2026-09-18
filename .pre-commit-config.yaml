@@ -1,0 +1,46 @@
+# YYC³ Pre-commit Gates · 提交前三闸
+# 项目: YYC3-AI-API-Token-Console (Vite + React + TypeScript + Vitest)
+# 安装 Install:  pip install pre-commit && pre-commit install
+# 手动全跑 Run all:  pre-commit run --all-files
+repos:
+  # ── 基础卫生 Basic hygiene ──────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.(png|jpg|jpeg|gif|ico)$
+      - id: end-of-file-fixer
+        exclude: \.(png|jpg|jpeg|gif|ico)$
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+
+  # ── Gate 1 · 静态检查 Lint (gitleaks) ───────────────────
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.1
+    hooks:
+      - id: gitleaks
+
+  # ── Gate 2 · Mermaid 代码块保护（文档站点/渲染依赖）─────
+  - repo: local
+    hooks:
+      - id: docs-mermaid-check
+        name: verify mermaid fences balanced
+        entry: python3 scripts/check_mermaid.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # ── Gate 3 · 前端门禁（typecheck 与 CI 同款）────────────
+  # 说明: 轻量本地闸仅做类型检查；vitest 由 CI 承载，避免提交延迟。
+  # Note: local gate runs typecheck only; vitest is CI-side to keep commits fast.
+  - repo: local
+    hooks:
+      - id: frontend-typecheck
+        name: tsc --noEmit (strict)
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+        types_or: [ts, tsx]

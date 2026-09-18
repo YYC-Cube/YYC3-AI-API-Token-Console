@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  YYC³ Dashboard — macOS LaunchAgent (开机自启)
+
+  安装:
+    cp ~/Cloudpivotintellimatrix/deploy/com.yyc3.dashboard.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.yyc3.dashboard.plist
+
+  管理:
+    launchctl kickstart -k gui/$(id -u)/com.yyc3.dashboard   # 重启
+    launchctl bootout gui/$(id -u)/com.yyc3.dashboard         # 卸载
+
+  日志:
+    tail -f /Volumes/Cache/nginx-logs/yyc3-node.log
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yyc3.dashboard</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/yanyu/Cloudpivotintellimatrix/deploy/server.mjs</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/yanyu/Cloudpivotintellimatrix</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PORT</key>
+        <string>3118</string>
+        <key>HOST</key>
+        <string>0.0.0.0</string>
+        <key>OLLAMA_HOST</key>
+        <string>127.0.0.1</string>
+        <key>OLLAMA_PORT</key>
+        <string>11434</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Volumes/Cache/nginx-logs/yyc3-node.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Volumes/Cache/nginx-logs/yyc3-node-err.log</string>
+</dict>
+</plist>

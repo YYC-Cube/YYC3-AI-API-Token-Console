@@ -1,0 +1,53 @@
+# ============================================================================
+#  YYC³ Git Ignore — YYC3-AI-API-Token-Console
+#  五标体系 · 标准化：统一忽略策略，防敏感信息与构建产物入库
+# ============================================================================
+
+# ── 依赖与构建 Dependencies & Build ─────────────────────────
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# ── 框架缓存 Framework caches ───────────────────────────────
+.next/
+.nuxt/
+.vite/
+.turbo/
+.output/
+
+# ── 环境变量 Environment（密钥零硬编码 · gitleaks 兜底）─────
+.env
+.env.*
+!.env.example
+
+# ── 编辑器与系统 Editor & OS ────────────────────────────────
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+.trae/
+*.swp
+
+# ── 日志与临时文件 Logs & temp ──────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.cache/
+tmp/
+
+# ── 历史一次性维护脚本（不入库）────────────────────────────
+/patch_aidev.py
+/patch_app_pkg.py
+/restore_pkg.py
+/docs/YYC3-APP-HUB.html
+/docs/YYC3-AI-Family-Token-Console-主题设计
+
+# ── Python 工具链（模版闭环脚本本地运行产物）───────────────
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.ruff_cache/

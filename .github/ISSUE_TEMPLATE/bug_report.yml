@@ -1,0 +1,51 @@
+name: 🐛 Bug 报告
+description: 报告缺陷或回归问题 Report a defect or regression
+labels: ["bug", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请先搜索现有 Issue 避免重复。Thanks for reporting! Please search existing issues first.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述 | Description
+      description: 清晰描述问题现象与预期行为 Clear description of bug vs expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤 | Steps to Reproduce
+      placeholder: |
+        1. 访问页面...
+        2. 点击...
+        3. 观察到...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度 | Severity
+      options:
+        - "P0 - 阻塞核心功能 Blocks core function"
+        - "P1 - 主要功能受损 Major feature broken"
+        - "P2 - 一般缺陷 Normal defect"
+        - "P3 - 轻微问题 Minor issue"
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 环境信息 | Environment
+      placeholder: "macOS 15 / Node 22 / pnpm 11 / Chrome 130"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志/截图 | Logs & Screenshots
+      render: shell

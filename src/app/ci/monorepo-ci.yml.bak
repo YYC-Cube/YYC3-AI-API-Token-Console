@@ -1,0 +1,145 @@
+# ============================================================================
+#  YYC³ CI Pipeline — YYC³-AI-Family-Token-Console
+#  对标团队规范《模版闭环》.github/workflows/ci.yml + Monorepo pnpm 适配
+#
+#  触发: push 到 main/develop · 所有 PR
+#  阶段: 🔍 Typecheck → 🧪 Test → 🛡️ Security Scan → 📦 Build
+# ============================================================================
+
+name: YYC³ CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "11"
+
+jobs:
+  # ============================================================
+  # 1. 类型检查
+  # ============================================================
+  typecheck:
+    name: "🔍 Typecheck · tsc --noEmit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check (workspace)
+        run: pnpm type-check
+
+  # ============================================================
+  # 2. 单元测试
+  # ============================================================
+  unit-test:
+    name: "🧪 Unit Test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/
+            coverage/
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ============================================================
+  # 3. 安全扫描 (gitleaks 密钥泄露检测)
+  # ============================================================
+  security-scan:
+    name: "🛡️ Security Scan · gitleaks"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # 4. 生产构建验证
+  # ============================================================
+  build:
+    name: "📦 Build"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [unit-test, security-scan]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            apps/*/.next/
+            apps/*/dist/
+            packages/*/dist/
+          retention-days: 7
+          if-no-files-found: ignore

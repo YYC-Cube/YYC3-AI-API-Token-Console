@@ -1,0 +1,45 @@
+name: ✨ 功能请求
+description: 提出新功能或增强建议 Propose a new feature or enhancement
+labels: ["feature", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢建议！请描述价值与场景。Thanks for the suggestion! Please describe the value and use case.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题 | Problem
+      description: 当前什么场景下存在痛点 What pain point does this address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望方案 | Desired Solution
+      description: 期望的行为与验收标准 Expected behavior & acceptance criteria
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 建议优先级 | Suggested Priority
+      options:
+        - "P0 - 立即需要 Needed now"
+        - "P1 - 高价值 High value"
+        - "P2 - 锦上添花 Nice to have"
+        - "P3 - 远期规划 Future"
+
+  - type: checkboxes
+    id: align
+    attributes:
+      label: 五高对齐 | Five-High Alignment
+      options:
+        - label: 高可用 High Availability
+        - label: 高性能 High Performance
+        - label: 高安全 High Security
+        - label: 高可扩展 High Scalability
+        - label: 高智能 High Intelligence

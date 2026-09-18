@@ -1,0 +1,83 @@
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Suites 4 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/__tests__/InlineEditableTable.test.tsx [ src/app/__tests__/InlineEditableTable.test.tsx ]
+Error: [vitest] There was an error when mocking a module. If you are using "vi.mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://vitest.dev/api/vi.html#vi-mock
+ ❯ src/app/components/InlineEditableTable.tsx:20:1
+     18|   Undo2, ChevronDown, ChevronUp, Trash2, CheckSquare, Square,
+     19| } from "lucide-react";
+     20| import { toast } from "sonner";
+       | ^
+     21| import { idbGetAll, idbPut, idbDelete as idbDeleteRecord, idbClear as idbCle…
+     22| import type { ChangeType, EditableCellChange, CommittedChange } from "../typ…
+
+Caused by: ReferenceError: Cannot access 'mockToast' before initialization
+ ❯ src/app/__tests__/InlineEditableTable.test.tsx:38:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/app/__tests__/YYC3Logo.test.tsx [ src/app/__tests__/YYC3Logo.test.tsx ]
+Error: Failed to resolve import "vitest-axe" from "src/app/__tests__/YYC3Logo.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/yanyu/Documents/YYC3-CloudPivot-Intelli-Matrix/src/app/__tests__/YYC3Logo.test.tsx:15:0
+  26 |  const __vi_import_0__ = await import("react/jsx-dev-runtime");
+  27 |  const __vi_import_1__ = await import("@testing-library/react");
+  28 |  const __vi_import_2__ = await import("vitest-axe");
+     |                                       ^
+  29 |  const __vi_import_3__ = await import("../components/YYC3Logo");
+  30 |  
+ ❯ TransformPluginContext._formatLog node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28999:43
+ ❯ TransformPluginContext.error node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28996:14
+ ❯ normalizeUrl node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27119:18
+ ❯ node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27177:32
+ ❯ TransformPluginContext.transform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27145:4
+ ❯ EnvironmentPluginContainer.transform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28797:14
+ ❯ loadAndTransform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:22670:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/app/__tests__/a11y-audit.test.tsx [ src/app/__tests__/a11y-audit.test.tsx ]
+Error: Failed to resolve import "vitest-axe" from "src/app/__tests__/a11y-audit.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/yanyu/Documents/YYC3-CloudPivot-Intelli-Matrix/src/app/__tests__/a11y-audit.test.tsx:16:0
+  20 |  const __vi_import_0__ = await import("react/jsx-dev-runtime");
+  21 |  const __vi_import_1__ = await import("@testing-library/react");
+  22 |  const __vi_import_2__ = await import("vitest-axe");
+     |                                       ^
+  23 |  const __vi_import_3__ = await import("../components/GlassCard");
+  24 |  const __vi_import_4__ = await import("../components/LanguageSwitcher");
+ ❯ TransformPluginContext._formatLog node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28999:43
+ ❯ TransformPluginContext.error node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28996:14
+ ❯ normalizeUrl node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27119:18
+ ❯ node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27177:32
+ ❯ TransformPluginContext.transform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:27145:4
+ ❯ EnvironmentPluginContainer.transform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:28797:14
+ ❯ loadAndTransform node_modules/.pnpm/vite@7.3.1_@types+node@20.19.35_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:22670:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/app/__tests__/useLocalDatabase.test.ts [ src/app/__tests__/useLocalDatabase.test.ts ]
+Error: [vitest] There was an error when mocking a module. If you are using "vi.mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://vitest.dev/api/vi.html#vi-mock
+ ❯ src/app/hooks/useLocalDatabase.ts:28:1
+     26| 
+     27| import { useState, useCallback, useRef, useEffect } from "react";
+     28| import { toast } from "sonner";
+       | ^
+     29| import { idbGetAll, idbPut, idbPutMany, idbDelete, idbClear } from "../lib/y…
+     30| import { getAPIConfig } from "../lib/api-config";
+
+Caused by: ReferenceError: Cannot access 'mockToast' before initialization
+ ❯ src/app/__tests__/useLocalDatabase.test.ts:42:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed | 109 passed | 1 skipped (114)
+      Tests  1836 passed | 22 skipped (1858)
+   Start at  04:56:48
+   Duration  14.99s (transform 1.92s, setup 13.85s, import 4.57s, tests 46.47s, environment 43.48s)
+
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+ ELIFECYCLE  Test failed. See above for more details.
+
+(TraeAI-8) ~/Documents/YYC3-CloudPivot-Intelli-Matrix [1] $ 
