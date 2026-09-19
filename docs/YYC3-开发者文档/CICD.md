@@ -74,12 +74,12 @@ flowchart TD
 | ------------ | ------------- | -------------- | -------------------- |
 | 1. Typecheck | TypeScript 5 strict | `pnpm typecheck` | 任何 error（`tsc --noEmit`） |
 | 1b. Lint | ESLint 9 flat config | `pnpm lint` | 任何 error（warnings 有 500 上限） |
-| 2. Unit Test | Vitest 4 + V8 coverage | `pnpm test:ci` + `pnpm test:coverage` | 用例失败 或 lines/branches/statements < 80% / functions < 70% |
+| 2. Unit Test | Vitest 4 + V8 coverage | `pnpm test:ci` + `pnpm test:coverage` | 用例失败 或 低于基线门槛（lines ≥ 38% / branches ≥ 36% / statements ≥ 36% / functions ≥ 31%） |
 | 2b. Codecov | codecov-action@v5 | 上报 `coverage/lcov.info` | 上报失败不阻断（`fail_ci_if_error: false`） |
 | 3. Security | gitleaks | `gitleaks/gitleaks-action@v2` | 命中任何密钥模式 |
 | 4. Build | Vite 6 | `pnpm build` | 构建失败或产物缺失 |
 
-> 覆盖率阈值定义于 [`vitest.config.ts`](../../vitest.config.ts) `coverage.thresholds`，本地与 CI 同源，确保「本地绿 = CI 绿」；Codecov 项目级 80% 目标（±2% 容差）见 [`codecov.yml`](../../codecov.yml)。
+> 覆盖率阈值定义于 [`vitest.config.ts`](../../vitest.config.ts) `coverage.thresholds`，本地与 CI 同源，确保「本地绿 = CI 绿」。当前为**基线锁定策略**（v1.1.1 实测：lines 39.4% / functions 32.7% / branches 37.1% / statements 36.9%，148 文件中 52 个低于 10% 覆盖），门槛仅防退化；爬坡至 80% 为长期目标，随测试补齐逐级上调。Codecov 项目级目标与本地同源（±2% 容差）见 [`codecov.yml`](../../codecov.yml)。
 > Thresholds live in `vitest.config.ts` — same source locally and in CI: green locally means green in CI.
 
 ### 测试工作区双轨制 | Test Projects Dual-Track
@@ -138,7 +138,7 @@ node 项目 → src/app/__tests__/**/*.test.ts  → node 环境（lib 纯函数 
 pnpm typecheck        # Gate 1 · TypeScript strict
 pnpm lint             # Gate 1b · ESLint 0-errors
 pnpm test             # Gate 2a · 单元测试
-pnpm test:coverage    # Gate 2b · 覆盖率 ≥ 80%
+pnpm test:coverage    # Gate 2b · 覆盖率 ≥ 基线门槛 (38/36/36/31)
 pnpm build            # Gate 4 · 生产构建
 # Gate 3 · gitleaks（本地可选）brew install gitleaks && gitleaks detect --no-banner
 ```

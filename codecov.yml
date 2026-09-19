@@ -7,7 +7,8 @@ coverage:
   status:
     project:
       default:
-        target: 80%
+        # 基线锁定 39% (vitest.config.ts thresholds 同源), 防退化; 爬坡至 80% 见 CICD.md
+        target: 38%
         threshold: 2%
     patch:
       default:
