@@ -1,0 +1,92 @@
+[
+  {
+    "id": "zhipu",
+    "label": "Z.ai",
+    "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+    "authType": "api-key",
+    "models": ["glm-4-flash", "glm-4-plus", "glm-4-air", "glm-4-airx", "glm-4-long", "glm-4v-plus"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "zhipu-plan",
+    "label": "Z.ai-plan",
+    "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+    "authType": "api-key",
+    "models": ["glm-4-plan", "glm-4-plan-plus"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "kimi-cn",
+    "label": "Kimi-CN",
+    "baseUrl": "https://api.moonshot.cn/v1",
+    "authType": "bearer",
+    "models": ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "kimi-global",
+    "label": "Kimi-Global",
+    "baseUrl": "https://api.moonshot.ai/v1",
+    "authType": "bearer",
+    "models": ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "deepseek",
+    "label": "DeepSeek",
+    "baseUrl": "https://api.deepseek.com/v1",
+    "authType": "bearer",
+    "models": ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "volcengine",
+    "label": "火山引擎",
+    "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+    "authType": "bearer",
+    "models": ["doubao-pro-32k", "doubao-pro-128k", "doubao-lite-32k"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "volcengine-plan",
+    "label": "火山引擎 Plan",
+    "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+    "authType": "bearer",
+    "models": ["doubao-plan-pro", "doubao-plan-lite"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "openai",
+    "label": "OpenAI",
+    "baseUrl": "https://api.openai.com/v1",
+    "authType": "bearer",
+    "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "ollama",
+    "label": "Ollama (本地)",
+    "baseUrl": "http://localhost:11434",
+    "authType": "none",
+    "models": [],
+    "requiresApiKey": false,
+    "isLocal": true,
+    "isBuiltin": true
+  }
+]

@@ -5,12 +5,14 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ============================================================
-// Vitest 4 配置
+// Vitest 4 配置 — 测试分级门禁 (Phase 2 / Task 2.3)
 // ============================================================
-// Vitest 4 已移除 environmentMatchGlobs / test.alias (顶层),
-// 统一迁移至 projects 工作区模式:
-//   - dom 项目:   .test.tsx → jsdom (React 组件测试)
-//   - node 项目:  .test.ts  → node  (纯函数测试)
+// Vitest 4 projects 工作区模式 + ragflow 式分级 (L1 借鉴, YYC³ 自有配置):
+//   - unit 项目 (CI 默认):        *.test.tsx → jsdom | *.test.ts → node
+//       红线: 零外部依赖, 网络/WS/IndexedDB 一律 mock 或 stub
+//   - integration 项目 (显式开启): *.integration.test.ts → node
+//       需 YYC3_TEST_INTEGRATION=1 环境变量, 避免无环境时误跑
+//   - e2e: 未接入 (test:e2e 显式报错提示)
 // ============================================================
 
 const alias = { "@": path.resolve(__dirname, "./src") };
@@ -22,8 +24,9 @@ export default defineConfig({
     projects: [
       {
         test: {
-          name: "dom",
-          include: ["src/app/__tests__/**/*.test.{tsx,jsx}"],
+          name: "unit-dom",
+          include: ["src/app/__tests__/*.test.{tsx,jsx}"],
+          exclude: ["src/app/__tests__/**/*.integration.*"],
           environment: "jsdom",
           setupFiles: ["src/app/__tests__/setup.ts"],
         },
@@ -31,9 +34,20 @@ export default defineConfig({
       },
       {
         test: {
-          name: "node",
-          include: ["src/app/__tests__/**/*.test.{ts,js}"],
+          name: "unit-node",
+          include: ["src/app/__tests__/*.test.{ts,js}"],
+          exclude: ["src/app/__tests__/**/*.integration.*"],
           environment: "node",
+        },
+        resolve: { alias },
+      },
+      {
+        test: {
+          name: "integration",
+          include: ["src/app/__tests__/**/*.integration.test.{ts,tsx}"],
+          environment: "node",
+          // 双保险: 未显式开启环境变量时整项目跳过 (CI 默认不跑)
+          ...(process.env.YYC3_TEST_INTEGRATION === "1" ? {} : { enabled: false }),
         },
         resolve: { alias },
       },

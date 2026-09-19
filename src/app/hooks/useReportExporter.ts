@@ -5,7 +5,7 @@
  * Supports JSON, CSV (Excel), and printable HTML (PDF via print dialog)
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { usePersistedList } from "./usePersistedState";
 
 // ============================================================
@@ -13,9 +13,12 @@ import { usePersistedList } from "./usePersistedState";
 // ============================================================
 
 import type {
-  ExportReportType, ExportFormat, TimeRange,
-  ReportMetric, PerformanceSnapshot, SecuritySnapshot,
+  ExportFormat,
+  ExportReportType,
+  PerformanceSnapshot,
   ReportData, ReportHistoryEntry,
+  SecuritySnapshot,
+  TimeRange
 } from "../types";
 
 // RF-011: Re-export 已移除
@@ -139,11 +142,15 @@ function exportPrintable(data: ReportData) {
   const win = window.open("", "_blank");
   if (!win) return;
 
+  // HTML 输出前转义 — 数据将来接入动态来源时防注入 (规范: 协同开发文档 §6.6)
+  const esc = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
+
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>YYC³ ${data.title}</title>
+  <title>YYC³ ${esc(data.title)}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; color: #1a1a2e; background: #fff; }
@@ -199,7 +206,7 @@ function exportPrintable(data: ReportData) {
   </table>
 
   <h2>优化建议</h2>
-  ${data.recommendations.map((r) => `<div class="recommendation">${r}</div>`).join("")}
+  ${data.recommendations.map((r) => `<div class="recommendation">${esc(r)}</div>`).join("")}
 
   <div class="footer">
     YYC³ CloudPivot Intelli-Matrix — 自动生成报告 — ${new Date().toISOString().slice(0, 10)}
@@ -210,7 +217,12 @@ function exportPrintable(data: ReportData) {
   </div>
 </body>
 </html>`;
-  win.document.write(html);
+
+  // 规范: 禁止 document.write (同步解析阻塞 + XSS 面) — 改 Blob URL 一次性写入 (ast-grep 守护)
+  const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  win.location.href = url;
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
   win.document.close();
 }
 

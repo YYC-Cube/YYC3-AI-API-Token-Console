@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- YYC³ SPA 404 回退页 (Phase 3 / Task 3.6)                      -->
+    <!-- GitHub Pages 对 SPA 深链返回 404 时经此页回退至 index.html。  -->
+    <!-- 精细化约定 (open-webui 模式, L2 重实现):                       -->
+    <!--   1. 静态资源 (.js/.css/图标) 缺失时【不回退】, 真实 404 直出 — -->
+    <!--      防止掩盖资源加载错误 (部署不一致时静默白屏难排查)         -->
+    <!--   2. 本页自身零外部依赖 — 回退链路不可能再次 404               -->
+    <!--   3. 深链经 ?yyc3_fallback= 查询参数传递, App.tsx 启动时还原    -->
+    <!--      (直接 replace 回原路径会再次触发 Pages 404 → 死循环)      -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <title>YYC³ · 页面跳转中</title>
+    <script>
+      (function () {
+        var path = window.location.pathname;
+        // 静态资源与数据文件: 不回退, 维持真实 404 (浏览器控制台可见)
+        if (/\.[a-zA-Z0-9]+$/.test(path) && !/\/$/.test(path)) {
+          document.title = "404 · 资源不存在";
+          document.body.innerHTML =
+            '<pre style="font:14px/1.6 monospace;padding:24px">404: ' +
+            decodeURIComponent(path) +
+            " 不存在 (静态资源不做 SPA 回退, 请检查部署产物)</pre>";
+          return;
+        }
+        // 页面路径: 深链编码后经查询参数回 SPA 入口 (防 Pages 404 循环)
+        var target =
+          window.location.origin +
+          "/?yyc3_fallback=" +
+          encodeURIComponent(path + (window.location.hash || "")) +
+          (window.location.search || "").replace(/^\?/, "&");
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

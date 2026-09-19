@@ -3,7 +3,8 @@
 #  对标团队规范《模版闭环》.github/workflows/ci.yml + 项目 Vite 工具链适配
 #
 #  触发: push 到 main/develop · 所有 PR
-#  阶段: 🔍 Typecheck → 🧹 Lint → 🧪 Test(80% 门槛+Codecov) → 🛡️ Security Scan → 📦 Build
+#  阶段: 🔍 Typecheck → 🧹 Lint(含分层边界) → 🧪 Test(unit 分级+基线) → 🛡️ Security Scan
+#        → 📦 Build(+工程纪律: ast-grep/体量/knip + 产物零密钥)
 #  下游: pages.yml (CI 全绿后自动部署 GitHub Pages → token.yyc3.vip)
 # ============================================================================
 
@@ -108,6 +109,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests (JUnit output)
+        # Task 2.3 (Phase 2) — 测试分级门禁: CI 默认只跑 unit 档 (零外部依赖)
+        # integration 档需 YYC3_TEST_INTEGRATION=1 显式开启, e2e 未接入
         run: pnpm test:ci
 
       - name: Run coverage check (gate ≥ 80%)
@@ -191,6 +194,20 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # ── 工程纪律守护 (Phase 2/3) — 全部绿色后置, 与五阶段门禁协同 ──
+      # import 边界 (Task 3.1) 已并入 Lint 阶段 eslint boundaries 规则, 此处不重复
+      - name: "Discipline: ast-grep structural rules"
+        # Task 3.7 — 6 条反模式规则 (裸 WebSocket/document.write/innerHTML/隐式 eval/process.env/硬编码密钥)
+        run: pnpm astgrep
+
+      - name: "Discipline: file size baseline (Facade+Siblings §6.6)"
+        # Task 2.2 — 超阈值告警 + 基线文件只减不增 (增长即失败)
+        run: pnpm size:check
+
+      - name: "Discipline: knip dead-code baseline"
+        # Task 2.4 — 基线比对门禁: 新死代码禁止引入, 存量收敛后季度下调
+        run: node scripts/knip-check.mjs
 
       - name: "Assert: build artifacts contain no secrets"
         # Task 1.5 (Phase 1) — 构建产物零密钥断言, 命中即失败 (协同开发文档 §6.5)

@@ -667,6 +667,96 @@ CI 构建后必须断言产物零密钥，防止密钥经构建产物泄露：
 - 落点: `.github/workflows/ci.yml` Build 阶段后置步骤
 - 命中即失败，禁止绕过
 
+### 6.6 Facade+Siblings 拆分规范（工程纪律 · Phase 2）
+
+> 出处: [`docs/YYC3-可借鉴项实施规划-上游解耦版.md`](../../YYC3-可借鉴项实施规划-上游解耦版.md) §Phase 2 / Task 2.2
+> 思想来源: 上游「Facade + Siblings / 阶段文件拆分」模式（L0 思想借鉴，YYC³ 自有条款）
+
+#### 6.6.1 拆分触发阈值（较上游收紧 25%，适配 YYC³ 规模）
+
+| 指标 | 阈值 | 动作 |
+| ---- | ---- | ---- |
+| 文件行数 | **>1500 行** | 触发拆分评审（CI 告警） |
+| 单函数行数 | **>250 行** | 触发拆分评审 |
+| 圈复杂度（单函数） | **>25** | 触发拆分评审 |
+| if/elif 分支名字梯子 | **≥4 个连续分支仅按名字分派** | 改策略表/映射对象 |
+
+**现状基线（2026-09-20 盘点，超标存量按「只减不增」管理）**：
+`types/index.ts`（1781 行）· `SystemSettings.tsx`（1373 行）· `ServiceConnectionTest.tsx`（1265 行）· `AIFamilyDesignDoc.tsx`（1217 行）· `DataEditorPanel.tsx`（1188 行）。超标文件**禁止再增长**——任何 PR 使其行数增加即告警，新逻辑一律放新 sibling 文件。
+
+#### 6.6.2 拆分模式
+
+```
+上帝文件 Foo.tsx (1781 行)
+    ↓ 拆为
+Foo.tsx                  ← Facade: 路由挂载点 + 对外导出不变 (≤300 行)
+foo/
+  ├─ foo-types.ts        ← 类型定义
+  ├─ foo-constants.ts    ← 常量/静态配置
+  ├─ FooSectionA.tsx     ← Sibling: 独立区块组件
+  ├─ FooSectionB.tsx
+  └─ useFooState.ts      ← 状态逻辑 Hook (遵守 hooks 分层)
+```
+
+铁律：
+
+1. **Facade 对外接口不变** — 路由表/消费方 import 路径零改动
+2. **Sibling 之间禁止相互 import** — 只允许 import Facade 公共层或独立模块
+3. 拆分 PR 单独提交，全量门禁通过后合入
+
+#### 6.6.3 CI 超限告警（非阻断）
+
+- 落点: `.github/workflows/ci.yml` Build 阶段（行数盘点步骤）
+- 行为: 超阈值输出 `::warning`；**基线文件行数增长**输出 `::error` 并失败（只减不增）
+- 基线文件清单随拆分进度季度更新，清零一个移出一个
+
+### 6.7 import 分层契约（架构防腐 · Phase 3 / Task 3.1）
+
+> 借鉴 dify「import-linter 分层契约」（L1 等价实现），落点 [`eslint.config.js`](../../../eslint.config.js) boundaries 段
+
+| 契约 | 规则 |
+| ---- | ---- |
+| 分层方向 | `components → hooks → lib → types`（唯一下游），`main/routes/app` 为组合根不受限 |
+| 违规处置 | CI Lint 阶段阻断（error），违反即无法合入 |
+| 例外清单 | **只减不增** — 行内 `eslint-disable-next-line boundaries/element-types` 豁免 + 注释「盘点日期 + 消除计划」；移除豁免任意 PR 可做 |
+| 现有豁免 | `useWebSocketData → stores`（节点数据写回，Phase 3 拆分时消除） |
+
+### 6.8 ast-grep 结构化守护（Phase 3 / Task 3.7）
+
+> 借鉴 dify「ast-grep AST 守护」（L1），规则库 YYC³ 自研，落点 [`scripts/ast-grep/`](../../../scripts/ast-grep/sgconfig.yml)
+
+| # | 规则 | 级别 | 反模式 → 替代 |
+| - | ---- | ---- | -------------- |
+| 1 | `no-bare-websocket` | error | 裸 `new WebSocket()` → 经 `globalThis` 解析（`lib/network-utils.ts` 唯一出口） |
+| 2 | `no-document-write` | error | `document.write()` → Blob URL 一次性写入 |
+| 3 | `no-innerhtml-assignment` | error | `.innerHTML =` → React JSX 渲染或先转义 |
+| 4 | `no-string-timer` | warning | `setTimeout("code()")` 隐式 eval → 传函数引用 |
+| 5 | `no-process-env-in-src` | warning | `process.env` 直读 → `import.meta.env` / `lib/env-config.ts` |
+| 6 | `no-hardcoded-secret-literal` | error | 硬编码密钥字面量 → 环境变量/用户输入 |
+
+- 本地运行: `pnpm astgrep`；CI Build 阶段阻断
+- 新规则提案: 在 `scripts/ast-grep/rules/` 增加 YAML + 提供正反例，PR 评审通过后生效
+
+### 6.9 Footprint Ladder 六档评审表（Phase 3 / Task 3.2）
+
+> 思想来源: hermes-agent「Footprint Ladder 能力阶梯评审」（L0），YYC³ 自有条款。
+> 新功能 PR 必须在模板「实现档位」字段标注档位，连续 10 个 PR 均有标注后成为固化流程。
+
+| 档位 | 实现方式 | 适用场景 | 成本 |
+| ---- | -------- | -------- | ---- |
+| **L1 声明** | 纯配置/JSON/常量（零逻辑） | 提供商接入、路由注册、文案 | 极低 |
+| **L2 纯函数** | lib 层纯函数 + 单测 | 转换/计算/格式化 | 低 |
+| **L3 Hook** | hooks 层状态逻辑 + 组件薄壳 | 有状态的领域逻辑 | 中 |
+| **L4 组件** | 新组件（≤300 行，遵守 §6.6） | 独立 UI 区块 | 中 |
+| **L5 组合** | 多组件 + 路由 + 状态编排 | 完整功能页 | 高 |
+| **L6 基建** | 工具链/CI/存储层变更 | 横切能力 | 按需评审 |
+
+**评审三问**（新功能 PR 描述中回答）：
+
+1. 本需求用第几档解决？能否用更低档？（Footprint Ladder 降档优先）
+2. 能力归属会话还是进程？（会话表面原则：用户态能力不进全局 env/单例）
+3. 新增文件/函数预期行数？（对照 §6.6 阈值，超预期需拆分预案）
+
 ---
 
 ## 七、责任与承诺框架

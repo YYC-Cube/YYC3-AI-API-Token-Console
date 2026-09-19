@@ -5,6 +5,8 @@ packages:
 
 # ── 依赖构建脚本白名单（strictDepBuilds 拦截未声明 postinstall）──────────
 allowBuilds:
+  # @ast-grep/cli — postinstall 下载平台二进制 (官方 npm 分发模式, Phase 3 / Task 3.7 接入; 复核: 2026-03)
+  "@ast-grep/cli": true
   "@tailwindcss/oxide": true
   esbuild: true
 

@@ -1,0 +1,16 @@
+id: no-string-timer
+language: tsx
+severity: warning
+message: >
+  禁止字符串形式 setTimeout/setInterval("code()") — 隐式 eval (CSP unsafe-eval 冲突)。
+  替代: 传函数引用 setTimeout(() => { ... }, delay)。
+note: YYC³ 结构化守护规则库 #4 — 协同开发文档 §6.8
+files:
+  - "src/**"
+rule:
+  any:
+    - pattern: setTimeout($STR, $$$REST)
+    - pattern: setInterval($STR, $$$REST)
+constraints:
+  STR:
+    kind: string

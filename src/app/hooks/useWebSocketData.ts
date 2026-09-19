@@ -36,6 +36,9 @@ import type {
 } from "../types";
 
 import { getAPIConfig } from "../lib/api-config";
+// 分层例外 (只减不增清单): hooks → stores — 节点数据写回 dashboard-store,
+// 2026-09-20 盘点既有, 随 Phase 3 拆分消除; 清除后同步收紧 eslint.config.js 例外清单
+// eslint-disable-next-line boundaries/element-types
 import { nodeStore } from "../stores/dashboard-stores";
 
 // ============================================================

@@ -479,7 +479,10 @@ export function ServiceConnectionTest() {
 
     try {
       const start = Date.now();
-      const ws = new WebSocket(wsEndpoint);
+      // 规范: WebSocket 统一经 globalThis 解析 (测试环境可 stub, 禁止裸 new WebSocket)
+      const WSImpl = (globalThis as any).WebSocket;
+      if (typeof WSImpl !== "function") throw new Error("WebSocket 不可用");
+      const ws = new WSImpl(wsEndpoint);
       const connected = await new Promise<boolean>((resolve) => {
         const timer = setTimeout(() => { ws.close(); resolve(false); }, 5000);
         ws.onopen = () => { clearTimeout(timer); ws.close(); resolve(true); };

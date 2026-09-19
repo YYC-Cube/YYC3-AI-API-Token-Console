@@ -10,9 +10,8 @@
  * - 完整 i18n 支持
  */
 
-import React from "react";
-import { useNavigate, useLocation } from "react-router";
-import { Home, ArrowLeft, AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
 import { useI18n } from "../hooks/useI18n";
 
 export function NotFound() {

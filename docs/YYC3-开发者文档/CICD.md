@@ -80,6 +80,16 @@ flowchart TD
 | 4. Build | Vite 6 | `pnpm build` | 构建失败或产物缺失 |
 
 > 覆盖率阈值定义于 [`vitest.config.ts`](../../vitest.config.ts) `coverage.thresholds`，本地与 CI 同源，确保「本地绿 = CI 绿」。当前为**基线锁定策略**（v1.1.1 实测：lines 39.4% / functions 32.7% / branches 37.1% / statements 36.9%，148 文件中 52 个低于 10% 覆盖），门槛仅防退化；爬坡至 80% 为长期目标，随测试补齐逐级上调。Codecov 项目级目标与本地同源（±2% 容差）见 [`codecov.yml`](../../codecov.yml)。
+
+### 覆盖率爬坡机制（Phase 2 / Task 2.5）
+
+| 要素 | 约定 |
+| ---- | ---- |
+| 节奏 | 基线（38/31/36/36）起步，**每月 +2%**，thresholds 与 codecov.yml 同步同源上调 |
+| 主攻方向 | 核心链路优先：`useWebSocketData` / `useBigModelSDK` / `lib/batch/`（checkpoint）/ `useModelProvider` |
+| 红线 | 新增代码不得拉低整体基线；unit 档（零外部依赖）优先补测 |
+| 复核 | 每月初执行：跑 `pnpm test:coverage` 实测 → 若月增幅未达 +2% 则维持现基线并记录原因 → 达标则四处同步上调（vitest thresholds ×4 + codecov target） |
+| 验收 | 连续 3 个月达标爬坡后，评估将「补测核心链路」纳入功能 PR 的 Definition of Done |
 > Thresholds live in `vitest.config.ts` — same source locally and in CI: green locally means green in CI.
 
 ### 测试工作区双轨制 | Test Projects Dual-Track

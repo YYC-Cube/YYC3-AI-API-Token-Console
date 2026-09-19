@@ -1,0 +1,5 @@
+# YYC³ ast-grep 结构化守护配置 (Phase 3 / Task 3.7)
+# 规范: docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md §6.8
+# 思想来源: dify「ast-grep AST 守护」(L1 借鉴, 规则库 YYC³ 自研)
+ruleDirs:
+  - rules

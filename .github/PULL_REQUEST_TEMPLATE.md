@@ -12,14 +12,27 @@
 - [ ] 🔧 CI/工具链 CI / tooling (`ci`)
 - [ ] 💥 破坏性变更 Breaking change (`breaking-change`)
 
+## 🪜 实现档位 | Footprint Ladder (协同开发文档 §6.9)
+
+<!-- 新功能必填, 其余类型可标 N/A -->
+
+- [ ] N/A (非新功能)
+- [ ] L1 声明 (纯配置/JSON, 零逻辑)
+- [ ] L2 纯函数 (lib 层 + 单测)
+- [ ] L3 Hook (状态逻辑 + 组件薄壳)
+- [ ] L4 组件 (≤300 行)
+- [ ] L5 组合 (功能页编排)
+- [ ] L6 基建 (工具链/CI/存储)
+
 ## 📝 变更说明 | Description
 
 <!-- 一句话概括 what & why -->
 
 ## ✅ 自检清单 | Self-Check (YYC³ 质量门禁)
 
-- [ ] `pnpm type-check` 通过 (0 errors)
-- [ ] `pnpm test` 通过
+- [ ] `pnpm typecheck` 通过 (0 errors)
+- [ ] `pnpm lint` 通过 (0 errors, 含 import 分层边界 §6.7)
+- [ ] `pnpm test:unit` 通过 (测试分级: unit 零外部依赖)
 - [ ] `pnpm build` 通过
 - [ ] 无硬编码密钥 / Token (`gitleaks` 将自动扫描)
 - [ ] 敏感配置走环境变量 `${ENV_VAR}` 而非明文

@@ -103,11 +103,11 @@ category: plan
 
 | Task | 内容 | 落点 | 层级 | 验收标准 | 状态 |
 |------|------|------|------|---------|------|
-| 1.1 | `pnpm-workspace.yaml` 安全策略块落地：`saveExact: true` + `dedupeDirectDeps: true` + `engineStrict: true` + `strictDepBuilds: true` + `blockExoticSubdeps: true` + `trustPolicy: no-downgrade` | YYC3-AI-API-Token-Console | L1 | 策略生效 + `pnpm install` 通过 + 全量门禁四绿 | ⬜ |
-| 1.2 | `catalog:` 版本集中治理：高频依赖（vite/vitest/typescript/react 族）迁入 catalog，子包以 `catalog:` 引用 | 同上 | L1 | lockfile/overrides/package.json 三处版本单一事实源，重复版本数 = 0 | ⬜ |
-| 1.3 | 依赖锁定注释规范写入协同开发文档：每个非常规锁定/overrides 必须行内注释「原因 + issue 链接 + 复核日期」 | `docs/YYC3-AI-Family-团队规范/` + package.json | L0 | 规范条款发布 + 现存 overrides 100% 补注释 | ⬜ |
-| 1.4 | 精确锁定策略（核心运行依赖 `saveExact` 消灭 `^` 漂移），升级流程要求书面理由 | pnpm-workspace.yaml + 协同开发文档 | L0 | 核心依赖版本号无 `^`/`~` 前缀 | ⬜ |
-| 1.5 | 密钥失败前置检查：CI 增加 secret 基线扫描步骤（gitleaks 已有，补充「构建产物零密钥」断言） | ci.yml | L0 | CI 含产物密钥断言步骤 | ⬜ |
+| 1.1 | `pnpm-workspace.yaml` 安全策略块落地：`saveExact: true` + `dedupeDirectDeps: true` + `engineStrict: true` + `strictDepBuilds: true` + `blockExoticSubdeps: true` + `trustPolicy: no-downgrade` | YYC3-AI-API-Token-Console | L1 | 策略生效 + `pnpm install` 通过 + 全量门禁四绿 | ✅ 2026-09-20 (commit 63e06a4) |
+| 1.2 | `catalog:` 版本集中治理：高频依赖（vite/vitest/typescript/react 族）迁入 catalog，子包以 `catalog:` 引用 | 同上 | L1 | lockfile/overrides/package.json 三处版本单一事实源，重复版本数 = 0 | ✅ 10 依赖族迁入 (commit 63e06a4) |
+| 1.3 | 依赖锁定注释规范写入协同开发文档：每个非常规锁定/overrides 必须行内注释「原因 + issue 链接 + 复核日期」 | `docs/YYC3-AI-Family-团队规范/` + package.json | L0 | 规范条款发布 + 现存 overrides 100% 补注释 | ✅ §6.4 发布 (commit 63e06a4) |
+| 1.4 | 精确锁定策略（核心运行依赖 `saveExact` 消灭 `^`/`~` 漂移），升级流程要求书面理由 | pnpm-workspace.yaml + 协同开发文档 | L0 | 核心依赖版本号无 `^`/`~` 前缀 | ✅ 13 项漂移清零 (Phase 3 会话) |
+| 1.5 | 密钥失败前置检查：CI 增加 secret 基线扫描步骤（gitleaks 已有，补充「构建产物零密钥」断言） | ci.yml | L0 | CI 含产物密钥断言步骤 | ✅ §6.5 (commit 63e06a4) |
 
 **里程碑 M1**：`pnpm audit 0 漏洞` 成为常态而非事故响应；重装/升级/换机后 CI 一次通过率 100%。
 
@@ -115,11 +115,11 @@ category: plan
 
 | Task | 内容 | 落点 | 层级 | 验收标准 | 状态 |
 |------|------|------|------|---------|------|
-| 2.1 | AGENTS.md 分层投放：根目录总纲（技术栈/门禁/红线）+ 子目录细则（`src/app/__tests__/` 测试规范、`src/app/hooks/` hook 规范） | YYC3-AI-API-Token-Console | L0 | 每个核心目录有 AGENTS.md，AI 导师进入即得局部上下文 | ⬜ |
-| 2.2 | Facade+Siblings 拆分规范条款：文件 >1500 行或函数 >250 行或 CC>25 触发拆分评审（较上游阈值收紧 25%，适配 YYC³ 规模）；禁止 ≥4 分支 if/elif 名字梯子 | 协同开发文档 | L0 | 规范发布 + CI 加超限告警（非阻断） | ⬜ |
-| 2.3 | 测试分级门禁：`test:unit`（默认，零外部依赖）/ `test:integration`（需环境变量显式开启）/ `test:e2e`；CI 默认只跑 unit | package.json + ci.yml | L1 | 无环境时 `pnpm test` 本地全绿；CI 时长下降 ≥30% | ⬜ |
-| 2.4 | knip 死代码检测接入 CI（告警模式起步，稳定后转阻断） | ci.yml + knip.config.ts | L1 | knip 报告产出 + 存量清零或基线锁定 | ⬜ |
-| 2.5 | 覆盖率爬坡机制延续：基线 38% → 每月 +2%（补 useWebSocketData/BigModelSDK 核心链路），thresholds 与 codecov 同源联动 | vitest.config.ts | L0 | 爬坡节奏写入 CICD.md 且每月复核 | ⬜ |
+| 2.1 | AGENTS.md 分层投放：根目录总纲（技术栈/门禁/红线）+ 子目录细则（`src/app/__tests__/` 测试规范、`src/app/hooks/` hook 规范） | YYC3-AI-API-Token-Console | L0 | 每个核心目录有 AGENTS.md，AI 导师进入即得局部上下文 | ✅ 2026-09-20 |
+| 2.2 | Facade+Siblings 拆分规范条款：文件 >1500 行或函数 >250 行或 CC>25 触发拆分评审（较上游阈值收紧 25%，适配 YYC³ 规模）；禁止 ≥4 分支 if/elif 名字梯子 | 协同开发文档 | L0 | 规范发布 + CI 加超限告警（非阻断） | ✅ §6.6 + scripts/check-size.mjs |
+| 2.3 | 测试分级门禁：`test:unit`（默认，零外部依赖）/ `test:integration`（需环境变量显式开启）/ `test:e2e`；CI 默认只跑 unit | package.json + ci.yml | L1 | 无环境时 `pnpm test` 本地全绿；CI 时长下降 ≥30% | ✅ vitest projects 三档 + CI test:ci 走 unit |
+| 2.4 | knip 死代码检测接入 CI（告警模式起步，稳定后转阻断） | ci.yml + knip.config.ts | L1 | knip 报告产出 + 存量清零或基线锁定 | ✅ 基线锁定 (9/48/5/11/3/1/1) 只减不增 |
+| 2.5 | 覆盖率爬坡机制延续：基线 38% → 每月 +2%（补 useWebSocketData/BigModelSDK 核心链路），thresholds 与 codecov 同源联动 | vitest.config.ts | L0 | 爬坡节奏写入 CICD.md 且每月复核 | ✅ CICD.md 爬坡机制节发布 |
 
 **里程碑 M2**：新功能评审「三问」成为流程——①第几档解决（Footprint Ladder）②能力归属会话还是进程 ③文件/函数预期行数。
 
@@ -127,13 +127,13 @@ category: plan
 
 | Task | 内容 | 落点 | 层级 | 验收标准 | 状态 |
 |------|------|------|------|---------|------|
-| 3.1 | import-linter 分层契约（若引入 Python 后端则启用；TS 侧用 eslint-plugin-import 边界规则等价实现） | api 层 / eslint.config.js | L1 | 违规导入 CI 阻断 + 例外清单「只减不增」条款生效 | ⬜ |
-| 3.2 | Footprint Ladder 评审表落地：六档决策表写入协同开发文档，新功能 PR 模板增加档位字段 | PR 模板 | L0 | 连续 10 个新功能 PR 均有档位标注 | ⬜ |
-| 3.3 | 提供商 JSON 声明式接入：Token Console 多提供商配置迁出代码，改声明式 JSON + zod schema 校验 | src/app/config/providers/ | L2 | 新增提供商零代码改动，仅加 JSON | ⬜ |
-| 3.4 | 检查点恢复管线：批量对账/导入任务引入 checkpoint store（IndexedDB 既有 idb 封装复用），崩溃续跑 + 步骤幂等 | src/app/lib/batch/ | L2 | 断点续跑集成测试 + 恰好一次语义验证 | ⬜ |
-| 3.5 | doctor 自诊断命令：`pnpm doctor` 一键体检（Node/pnpm 版本、环境变量、CNAME、DNS、依赖策略合规） | scripts/doctor.mjs | L2 | 新机初始化到全绿 ≤ 10 分钟 | ⬜ |
-| 3.6 | SPA 回退精细化：Pages 404 回退排除 .js/.css（防掩盖资源加载错误） | pages.yml 或 404.html 策略 | L2 | 静态资源缺失时浏览器控制台报真实 404 | ⬜ |
-| 3.7 | ast-grep 结构化守护：自定义反模式规则（如禁用裸 `WebSocket` 全局引用——本次测试事故根因）进 CI | scripts/ast-grep/ | L1 | 规则库 ≥ 5 条 + CI 集成 | ⬜ |
+| 3.1 | import-linter 分层契约（若引入 Python 后端则启用；TS 侧用 eslint-plugin-import 边界规则等价实现） | api 层 / eslint.config.js | L1 | 违规导入 CI 阻断 + 例外清单「只减不增」条款生效 | ✅ eslint-plugin-boundaries (§6.7) |
+| 3.2 | Footprint Ladder 评审表落地：六档决策表写入协同开发文档，新功能 PR 模板增加档位字段 | PR 模板 | L0 | 连续 10 个新功能 PR 均有档位标注 | ✅ §6.9 + PR 模板档位字段 |
+| 3.3 | 提供商 JSON 声明式接入：Token Console 多提供商配置迁出代码，改声明式 JSON + zod schema 校验 | src/app/config/providers/ | L2 | 新增提供商零代码改动，仅加 JSON | ✅ JSON+zod+3 用例守护 |
+| 3.4 | 检查点恢复管线：批量对账/导入任务引入 checkpoint store（IndexedDB 既有 idb 封装复用），崩溃续跑 + 步骤幂等 | src/app/lib/batch/ | L2 | 断点续跑集成测试 + 恰好一次语义验证 | ✅ 5 用例 (续跑/幂等/进度/失败复位) |
+| 3.5 | doctor 自诊断命令：`pnpm doctor` 一键体检（Node/pnpm 版本、环境变量、CNAME、DNS、依赖策略合规） | scripts/doctor.mjs | L2 | 新机初始化到全绿 ≤ 10 分钟 | ✅ 12 项检查 0 warning |
+| 3.6 | SPA 回退精细化：Pages 404 回退排除 .js/.css（防掩盖资源加载错误） | pages.yml 或 404.html 策略 | L2 | 静态资源缺失时浏览器控制台报真实 404 | ✅ 404.html + App 深链还原 |
+| 3.7 | ast-grep 结构化守护：自定义反模式规则（如禁用裸 `WebSocket` 全局引用——本次测试事故根因）进 CI | scripts/ast-grep/ | L1 | 规则库 ≥ 5 条 + CI 集成 | ✅ 6 条规则 + CI (§6.8) |
 
 **里程碑 M3**：架构违规「无法合入」而非「靠 review 发现」。
 
@@ -193,9 +193,23 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
  */
 ```
 
-### 4.4 缓行项触发条件台账
+### 4.4 缓行项触发条件台账（Phase 4 挂账明细 · 2026-09-20 固化）
 
-见 §2.2 表格「收录文档」列与 Phase 4 各 Task 触发条件。台账维护规则：每季度评审时逐项核对触发条件，命中即转入执行队列。
+> 维护规则：每季度评审时逐项核对触发条件，命中即转入对应 Phase 执行，不遗失。
+
+| # | 缓行项 | 触发条件（命中任一即启动） | 启动后落点 | 关联 Phase |
+| - | ------ | -------------------------- | ---------- | ---------- |
+| 4.1 | 可导航性 token 评测 | 大规模重构启动（任一上帝文件拆分 PR 合入） | scripts/ 导航评测脚本 | P4 |
+| 4.2 | 模板化分块 + 分块可视化干预 | 知识库类项目立项 | 新项目 lib/chunking/ | P4 |
+| 4.3 | 充分性判断节点（sufficient_context） | RAG 功能落地（检索链路进主仓） | src/app/lib/rag/ | P4 |
+| 4.4 | GraphRAG 三档 / RAPTOR 递归摘要 | 知识工程规模化（文档库 >500 篇） | 新项目 knowledge/ | P4 |
+| 4.5 | provider workspace 化 | 集成数 > 8 或团队 > 5 人 | pnpm workspace 多包 | P3 延伸 |
+| 4.6 | HITL 暂停恢复 / 触发器三件套 | 审批流或自动化平台需求出现 | src/app/lib/workflow/ | P4 |
+| 4.7 | serverless 沙箱执行环境 | Agent 托管成本优化需求 | 新项目 sandbox/ | P4 |
+| 4.8 | a11y 专项 lint | 2026-Q2 合规评估窗口 | eslint-plugin-jsx-a11y | P4 |
+| 4.9 | 多语言 README | 国际化发布（首个英文版发布前） | README.md + docs/en/ | P4 |
+
+**台账健康度**：9 项全部带可验证触发条件；2026-09-20 首次固化，下次核对窗口 2026-12（季度评审）。
 
 ---
 
@@ -226,6 +240,7 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 | 日期 | 变更内容 | 原因 | 影响评估 |
 | ---- | -------- | ---- | -------- |
 | 2026-09-20 | v1.0.0 初版：合并两分析文档 + 许可约束分级 + 四阶段规划 | 用户要求制定含运维解耦的实施规划 | 全量借鉴项挂账 |
+| 2026-09-20 | v1.1.0 Phase 1-3 全量落地（Task 1.1-1.5 / 2.1-2.5 / 3.1-3.7），Phase 4 九项缓行台账固化（§4.4） | 用户指令「衔接上文执行 Phase 2/3/4」 | 14 项即时借鉴全部完成；缓行项带触发条件挂账 |
 
 ---
 

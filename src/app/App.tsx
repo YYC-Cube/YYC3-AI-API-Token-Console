@@ -121,6 +121,27 @@ export default function App() {
   // 注入 YYC3 品牌 <head> 标签 (favicon / manifest / theme-color / title)
   useYYC3Head();
 
+  // SPA 404 回退还原 (Task 3.6): 404.html 将 Pages 深链 404 编码为 ?yyc3_fallback=
+  // 查询参数回 SPA 入口; 此处在路由挂载前还原地址栏并跳转原始路径 (防 404 循环)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fallback = params.get("yyc3_fallback");
+      if (fallback && fallback.startsWith("/")) {
+        params.delete("yyc3_fallback");
+        const qs = params.toString();
+        window.history.replaceState(
+          null,
+          "",
+          window.location.origin + "/" + (qs ? "?" + qs : "")
+        );
+        router.navigate(fallback);
+      }
+    } catch {
+      /* URL 解析异常时忽略, 正常进入首页 */
+    }
+  }, []);
+
   // 安装全局错误监听器（仅一次）
   useEffect(() => {
     installGlobalErrorListeners();

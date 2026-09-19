@@ -20,103 +20,25 @@ import type {
   OllamaTagsResponse,
 } from "../types";
 import { getOllamaTagsUrl } from "../lib/ollama-url";
+import { builtinProvidersSchema } from "../config/providers/provider-schema";
+import builtinProvidersJson from "../config/providers/builtin-providers.json";
 
 // ============================================================
-// 内置服务商默认值 (仅首次初始化时写入 localStorage)
+// 内置服务商 — 声明式 JSON 单一事实源 (Phase 3 / Task 3.3)
 // ============================================================
+// 新增/调整提供商: 编辑 src/app/config/providers/builtin-providers.json
+// → schema 校验 (__tests__/provider-schema.test.ts) 自动守护, 零代码改动。
+// 设计思想: 声明式提供商接入 (ragflow 模式, L2 重实现为 YYC³ 原创代码)
 
-const BUILTIN_PROVIDERS: ModelProviderDef[] = [
-  {
-    id: "zhipu",
-    label: "Z.ai",
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
-    authType: "api-key",
-    models: ["glm-4-flash", "glm-4-plus", "glm-4-air", "glm-4-airx", "glm-4-long", "glm-4v-plus"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "zhipu-plan",
-    label: "Z.ai-plan",
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
-    authType: "api-key",
-    models: ["glm-4-plan", "glm-4-plan-plus"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "kimi-cn",
-    label: "Kimi-CN",
-    baseUrl: "https://api.moonshot.cn/v1",
-    authType: "bearer",
-    models: ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "kimi-global",
-    label: "Kimi-Global",
-    baseUrl: "https://api.moonshot.ai/v1",
-    authType: "bearer",
-    models: ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "deepseek",
-    label: "DeepSeek",
-    baseUrl: "https://api.deepseek.com/v1",
-    authType: "bearer",
-    models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "volcengine",
-    label: "火山引擎",
-    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
-    authType: "bearer",
-    models: ["doubao-pro-32k", "doubao-pro-128k", "doubao-lite-32k"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "volcengine-plan",
-    label: "火山引擎 Plan",
-    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
-    authType: "bearer",
-    models: ["doubao-plan-pro", "doubao-plan-lite"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "openai",
-    label: "OpenAI",
-    baseUrl: "https://api.openai.com/v1",
-    authType: "bearer",
-    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "ollama",
-    label: "Ollama (本地)",
-    baseUrl: "http://localhost:11434",
-    authType: "none",
-    models: [],  // 运行时从 /api/tags 自动获取
-    requiresApiKey: false,
-    isLocal: true,
-    isBuiltin: true,
-  },
-];
+const BUILTIN_PROVIDERS: ModelProviderDef[] = (() => {
+  const parsed = builtinProvidersSchema.safeParse(builtinProvidersJson);
+  if (!parsed.success) {
+    // 构建期数据经测试守护, 运行时防御性兜底: 解析失败则视为无内置提供商
+    console.error("[useModelProvider] builtin-providers.json 校验失败:", parsed.error.issues);
+    return [];
+  }
+  return parsed.data as ModelProviderDef[];
+})();
 
 // ============================================================
 // Storage Keys
