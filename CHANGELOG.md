@@ -7,6 +7,11 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Security 安全
+
+- **CORS 网段收敛（首轮遗留 P1 闭环）**: `deploy/server.mjs` 由「全放行 `*`」改为**默认仅同源**（不回 CORS 头），经 `ALLOW_ORIGIN`（精确来源白名单）/ `ALLOW_ORIGIN_CIDR`（IPv4 网段，如 `192.168.3.0/24`）按需放行；`ALLOW_ORIGIN="*"` 显式恢复旧行为（仅限可信内网）。启动横幅显示当前 CORS 模式；运行时验证 9 项场景全绿（默认拒绝/CIDR 命中与拒绝/域名拒绝/协议端口不匹配拒绝/通配/非法条目跳过）
+  CORS convergence: same-origin by default; opt-in allowlist (`ALLOW_ORIGIN`) and IPv4 CIDR (`ALLOW_ORIGIN_CIDR`); `*` restores legacy wildcard; startup banner shows active mode; 9 runtime scenarios verified
+
 ### Added 新增
 
 - **文档三合一（v2.0.0）**: 深度分析 + 实施规划 + Phase 2-4 总结合并为[全量落地实施总结与衔接报告](./docs/YYC3-全量落地实施总结与衔接报告.md)（单一事实源：27 项借鉴项全景处置标记 + 五维得分刷新至 94 + 跨会话衔接指南）；原文档 4 份移入 `docs/archive/`

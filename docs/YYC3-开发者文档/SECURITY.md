@@ -79,8 +79,8 @@ flowchart LR
   Secrets via env vars only; zero hardcoding (enforced by gitleaks gate)
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` 等接入均走 `.env`（已 gitignore，`!.env.example` 白名单模板）
   Supabase and alike go through `.env` (gitignored, `.env.example` whitelisted)
-- 内网部署 CORS 策略需按网段收敛（`deploy/server.mjs` 默认全放行仅限可信内网）
-  Converge CORS by subnet for LAN deploy; wildcard in `server.mjs` is trusted-LAN-only
+- CORS 网段收敛已落地（2026-09-20）：`deploy/server.mjs` **默认仅同源**（不回 CORS 头），经 `ALLOW_ORIGIN`（精确白名单）/ `ALLOW_ORIGIN_CIDR`（IPv4 网段，如 `192.168.3.0/24`）按需放行；`ALLOW_ORIGIN="*"` 与旧全放行等价，仅限可信内网。示例见 [.env.example](../../.env.example)
+  CORS convergence shipped: same-origin by default; opt-in via `ALLOW_ORIGIN` / `ALLOW_ORIGIN_CIDR`; `*` equals legacy wildcard (trusted LAN only)
 - 依赖锁定（pnpm-lock.yaml）+ 每周自动化漏洞扫描
   Pinned deps + weekly automated scans
 - 文件管理/终端组件操作本地主机文件系统时遵循最小权限原则
