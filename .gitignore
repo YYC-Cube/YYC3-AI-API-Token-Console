@@ -65,3 +65,6 @@ __pycache__/
 .venv/
 .mypy_cache/
 .ruff_cache/
+
+# 会话临时文件
+.git-commit-msg.tmp
