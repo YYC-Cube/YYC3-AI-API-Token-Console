@@ -192,6 +192,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: "Assert: build artifacts contain no secrets"
+        # Task 1.5 (Phase 1) — 构建产物零密钥断言, 命中即失败 (协同开发文档 §6.5)
+        # 占位符豁免: sk-xxxx…(x 连续) 为源码文档示例, 非真实密钥
+        run: |
+          echo "Scanning dist/ for secret patterns..."
+          PATTERNS='BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|sk-[A-Za-z0-9-]{39,}|sk-ant-[A-Za-z0-9-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}'
+          MATCHES=$(grep -rInE "$PATTERNS" dist/ 2>/dev/null | grep -vE "sk-x{10,}" || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error::Secret pattern detected in build artifacts!"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✓ Build artifacts clean (no secret patterns in dist/)"
+
       - name: Upload build output
         uses: actions/upload-artifact@v4
         with:

@@ -1,10 +1,31 @@
+# YYC³ 供应链安全策略 — 借鉴 dify pnpm 治理模式（L1 配置重写，YYC³ 自有注释）
+# 规范出处: docs/YYC3-可借鉴项实施规划-上游解耦版.md Phase 1
 packages:
-  - '.'
+  - "."
+
+# ── 依赖构建脚本白名单（strictDepBuilds 拦截未声明 postinstall）──────────
 allowBuilds:
-  '@tailwindcss/oxide': true
+  "@tailwindcss/oxide": true
   esbuild: true
-overrides:
+
+# ── 版本单一事实源（catalog:）— 高频依赖集中治理，子包以 'catalog:' 引用 ──
+catalog:
   vite: 6.4.3
+  vitest: ^4.0.18
+  "@vitest/coverage-v8": ^4.0.18
+  typescript-eslint: ^8.70.0
+  "@eslint/js": ^9.39.5
+  eslint: ^9.39.5
+  "@tailwindcss/oxide": 4.1.12
+  "@tailwindcss/vite": 4.1.12
+  tailwindcss: 4.1.12
+  "@vitejs/plugin-react": 4.7.0
+
+# ── 兼容性 overrides — 每条必须注释「原因 + 复核日期」（Task 1.3 规范）─────
+overrides:
+  # vite 经 catalog 统一收敛 (GHSA 修复: 6.4.3 含 server.fs.deny bypass 系列补丁; 复核: 2026-12)
+  vite: "catalog:"
+
 supportedArchitectures:
   os:
     - darwin
@@ -15,3 +36,27 @@ supportedArchitectures:
   libc:
     - glibc
     - musl
+
+# ── 供应链防投毒策略（Task 1.1）──────────────────────────────────────────
+# 精确锁定: 新增依赖保存为精确版本 (消灭 ^ 漂移, 升级须走书面理由流程 — 协同开发文档 §依赖治理)
+saveExact: true
+# 直接依赖去重: 同一依赖多版本声明时安装期收敛为单版本
+dedupeDirectDeps: true
+# 引擎严格: Node/pnpm 版本不满足 engines 字段即失败
+engineStrict: true
+# 严格依赖构建: 依赖的安装期脚本必须先经 allowBuilds 白名单声明, 否则拒绝执行
+strictDepBuilds: true
+# 阻断异种子依赖: 禁止安装声明的直接依赖被解析为不同 registry 的别名包 (防 typosquatting 投毒)
+blockExoticSubdeps: true
+# 信任策略: 禁止降级安装 (防供应链降级攻击; 已知安全的历史锁定版白名单见 trustPolicyExclude)
+trustPolicy: no-downgrade
+# 白名单: 存量锁定版本经核实为「历史上曾发布后回撤重发」的常见版本, 非投毒 (同 dify trustPolicyExclude 模式)
+trustPolicyExclude:
+  # semver 6.3.1 — 2019 年发布, 生态核心包, 无接管迹象 (复核: 2026-09)
+  - semver@6.3.1
+  # undici-types 6.21.0 — Node 官方 @types/undici 伴生类型包, 锁定于 @types/node 传递依赖 (复核: 2026-09)
+  - undici-types@6.21.0
+# 运行前校验: pnpm run 前若 lockfile 与 manifest 不一致自动补 install (防「本地装了但没锁」)
+verifyDepsBeforeRun: install
+# 乐观重复安装: lockfile 满足时跳过全量解析 (策略生效后安装提速)
+optimisticRepeatInstall: true

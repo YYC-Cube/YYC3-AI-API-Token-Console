@@ -4,6 +4,36 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@eslint/js':
+      specifier: ^9.39.5
+      version: 9.39.5
+    '@tailwindcss/oxide':
+      specifier: 4.1.12
+      version: 4.1.12
+    '@tailwindcss/vite':
+      specifier: 4.1.12
+      version: 4.1.12
+    '@vitejs/plugin-react':
+      specifier: 4.7.0
+      version: 4.7.0
+    '@vitest/coverage-v8':
+      specifier: ^4.0.18
+      version: 4.1.11
+    eslint:
+      specifier: ^9.39.5
+      version: 9.39.5
+    tailwindcss:
+      specifier: 4.1.12
+      version: 4.1.12
+    typescript-eslint:
+      specifier: ^8.70.0
+      version: 8.70.0
+    vitest:
+      specifier: ^4.0.18
+      version: 4.1.11
+
 overrides:
   vite: 6.4.3
 
@@ -220,13 +250,13 @@ importers:
         version: 1.1.2(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@eslint/js':
-        specifier: ^9.39.5
+        specifier: 'catalog:'
         version: 9.39.5
       '@tailwindcss/oxide':
-        specifier: 4.1.12
+        specifier: 'catalog:'
         version: 4.1.12
       '@tailwindcss/vite':
-        specifier: 4.1.12
+        specifier: 'catalog:'
         version: 4.1.12(vite@6.4.3(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1))
       '@testing-library/jest-dom':
         specifier: ^6.9.1
@@ -247,16 +277,16 @@ importers:
         specifier: 18.3.7
         version: 18.3.7(@types/react@18.3.31)
       '@vitejs/plugin-react':
-        specifier: 4.7.0
+        specifier: 'catalog:'
         version: 4.7.0(vite@6.4.3(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1))
       '@vitest/coverage-v8':
-        specifier: ^4.0.18
+        specifier: 'catalog:'
         version: 4.1.11(vitest@4.1.11)
       axe-core:
         specifier: ^4.11.1
         version: 4.13.0
       eslint:
-        specifier: ^9.39.5
+        specifier: 'catalog:'
         version: 9.39.5(jiti@2.7.0)
       eslint-plugin-react-hooks:
         specifier: ^5.2.0
@@ -271,16 +301,16 @@ importers:
         specifier: ^28.1.0
         version: 28.1.0
       tailwindcss:
-        specifier: 4.1.12
+        specifier: 'catalog:'
         version: 4.1.12
       typescript-eslint:
-        specifier: ^8.70.0
+        specifier: 'catalog:'
         version: 8.70.0(eslint@9.39.5(jiti@2.7.0))(typescript@6.0.3)
       vite:
         specifier: 6.4.3
         version: 6.4.3(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)
       vitest:
-        specifier: ^4.0.18
+        specifier: 'catalog:'
         version: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0)(vite@6.4.3(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1))
       vitest-axe:
         specifier: ^0.1.0
