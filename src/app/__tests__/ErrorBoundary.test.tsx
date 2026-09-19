@@ -84,8 +84,9 @@ describe("ErrorBoundary", () => {
         </ErrorBoundary>
       );
       expect(screen.getByText("系统异常")).toBeInTheDocument();
+      // 以源码文案为准: 品牌名已迭代为 CP-IM
       expect(
-        screen.getByText("YYC³ 捕获到一个运行时错误")
+        screen.getByText("CP-IM 捕获到一个运行时错误")
       ).toBeInTheDocument();
     });
 

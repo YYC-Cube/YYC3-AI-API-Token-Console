@@ -103,8 +103,8 @@ describe("PatrolHistory", () => {
       const items = screen.getAllByRole("button").filter((b) =>
         b.getAttribute("data-testid")?.startsWith("history-")
       );
-      // 30min, 60min, 2h, 6h, 25h are within 7 days
-      expect(items.length).toBe(5);
+      // 30min, 60min, 2h, 6h, 25h, 3d 全部在 7 天内 (共 6 条)
+      expect(items.length).toBe(6);
     });
   });
 

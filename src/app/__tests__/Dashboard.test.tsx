@@ -185,9 +185,10 @@ describe("Dashboard", () => {
 
     it("应渲染饼图图例项", () => {
       renderDashboard();
-      expect(screen.getByText("LLaMA-70B")).toBeInTheDocument();
-      expect(screen.getByText("Qwen-72B")).toBeInTheDocument();
-      expect(screen.getByText("DeepSeek-V3")).toBeInTheDocument();
+      // 模型名同时出现于图例与节点卡片 → 用 getAllBy 覆盖多实例场景
+      expect(screen.getAllByText("LLaMA-70B").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Qwen-72B").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("DeepSeek-V3").length).toBeGreaterThan(0);
     });
   });
 

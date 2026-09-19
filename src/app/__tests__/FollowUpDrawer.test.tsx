@@ -92,7 +92,8 @@ describe("FollowUpDrawer", () => {
       render(
         <FollowUpDrawer item={mockItem} isOpen={true} onClose={onClose} />
       );
-      expect(screen.getByText("#AL-0032")).toBeInTheDocument();
+      // 告警 ID 同时出现于时间线事件与头部徽标 → getAllBy
+      expect(screen.getAllByText("#AL-0032").length).toBeGreaterThan(0);
     });
 
     it("应渲染指标值", () => {

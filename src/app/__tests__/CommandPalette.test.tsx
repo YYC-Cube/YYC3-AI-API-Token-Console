@@ -88,7 +88,8 @@ describe("CommandPalette", () => {
       render(<CommandPalette isOpen={true} onClose={onClose} />);
       fireEvent.click(screen.getByTestId("shortcuts-toggle"));
       expect(screen.getByText("快速搜索")).toBeInTheDocument();
-      expect(screen.getByText("操作中心")).toBeInTheDocument();
+      // "操作中心" 同时出现于命令列表项与快捷键面板 → getAllBy
+      expect(screen.getAllByText("操作中心").length).toBeGreaterThan(0);
     });
   });
 

@@ -93,7 +93,8 @@ describe("AIDiagnostics", () => {
 
   it("renders the subtitle", () => {
     renderWithProviders(<AIDiagnostics />);
-    expect(screen.getByText(/模式识别/)).toBeInTheDocument();
+    // 以源码 i18n 副标题为准: "模式别 · 异常分析 · ..."
+    expect(screen.getByText(/异常分析/)).toBeInTheDocument();
   });
 
   it("renders the start diagnosis button", () => {

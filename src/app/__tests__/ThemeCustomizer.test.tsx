@@ -131,7 +131,8 @@ describe("ThemeCustomizer", () => {
 
     it("应渲染副标题", () => {
       render(<ThemeCustomizer />);
-      expect(screen.getByText(/OKLch/)).toBeInTheDocument();
+      // "OKLch" 同时出现于副标题与第 5 节手风琴标题 → getAllBy
+      expect(screen.getAllByText(/OKLch/).length).toBeGreaterThan(0);
     });
 
     it("应渲染重置按钮", () => {
@@ -275,8 +276,9 @@ describe("ThemeCustomizer", () => {
       // "自然绿" 在下拉 + 预览面板中均存在
       expect(screen.getAllByText("自然绿").length).toBeGreaterThanOrEqual(1);
       // 下拉列表内只剩 1 个预设按钮
+      // 注意: 搜索输入框 class 含 absolute inset-0, 不能用 [class*='absolute'] 选下拉容器
       const dropdownContainer = screen.getByPlaceholderText(/搜索设计系统/).closest("[class*='relative']")!;
-      const dropdown = dropdownContainer.querySelector("[class*='absolute']")!;
+      const dropdown = dropdownContainer.querySelector("[class*='z-50']")!;
       const buttons = dropdown.querySelectorAll("button");
       expect(buttons.length).toBe(1);
     });

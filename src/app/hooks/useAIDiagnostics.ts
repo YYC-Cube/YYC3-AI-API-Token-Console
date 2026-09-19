@@ -219,6 +219,7 @@ export function useAIDiagnostics(opts: DiagnosticsOptions = {}) {
       setSession(newSession);
       prependHistory(
         { id: sessionId, time: Date.now(), patterns: patterns.length, actions: actions.length },
+        10,
       );
       setStatus("complete");
     }, 1800);

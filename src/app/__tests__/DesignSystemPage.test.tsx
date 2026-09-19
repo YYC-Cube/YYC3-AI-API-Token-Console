@@ -45,7 +45,8 @@ function renderPage() {
 describe("DesignSystemPage", () => {
   it("应渲染页面标题", () => {
     renderPage();
-    expect(screen.getByText("YYC³ Design System")).toBeInTheDocument();
+    // i18n mock 为 t(key) => key, 标题渲染为键名
+    expect(screen.getByText("designSystem.title")).toBeInTheDocument();
   });
 
   it("应有主容器", () => {

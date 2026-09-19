@@ -101,9 +101,10 @@ describe("UserManagement", () => {
 
     it("应渲染角色标签", () => {
       render(<UserManagement />);
-      expect(screen.getByText("超级管理员")).toBeInTheDocument();
-      expect(screen.getByText("运维工程师")).toBeInTheDocument();
-      expect(screen.getByText("开发者")).toBeInTheDocument();
+      // 角色名同时出现于角色徽标与角色筛选器等处 → getAllBy
+      expect(screen.getAllByText("超级管理员").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("运维工程师").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("开发者").length).toBeGreaterThan(0);
     });
 
     it("应渲染添加用户按钮", () => {

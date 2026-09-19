@@ -240,6 +240,7 @@ export function useReportExporter() {
       setReport(data);
       prependReport(
         { id: data.id, type: data.type, time: data.generatedAt, range: timeRange },
+        10,
       );
       setIsGenerating(false);
     }, 1500);

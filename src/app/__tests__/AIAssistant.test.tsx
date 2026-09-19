@@ -16,9 +16,8 @@
  */
 
 // @vitest-environment jsdom
-import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../components/YYC3LogoSvg", () => ({
   YYC3LogoSvg: () => <div data-testid="yyc3-logo-svg" />,
@@ -152,10 +151,8 @@ describe("AIAssistant", () => {
       openChat();
       const input = screen.getByPlaceholderText(/输入指令/);
       fireEvent.change(input, { target: { value: "查看集群状态" } });
-      const sendBtn = screen.getByRole("button", { name: "" });
-      // The send button should not be disabled
-      // We find it by looking for the Send icon button
-      const allBtns = screen.getAllByRole("button");
+      // 多按钮无名(图标按钮)场景 → 用 getAllBy 取最后一个(发送按钮位于消息区末尾)
+      const allBtns = screen.getAllByRole("button", { name: "" });
       const lastBtn = allBtns[allBtns.length - 1];
       expect(lastBtn).not.toBeDisabled();
     });
@@ -278,9 +275,9 @@ describe("AIAssistant", () => {
 
     it("应渲染模型选择按钮", () => {
       openSettings();
-      // Models come from useModelProvider mock
-      expect(screen.getByText("qwen2.5:7b")).toBeInTheDocument();
-      expect(screen.getByText("codegeex4:latest")).toBeInTheDocument();
+      // Models come from useModelProvider mock; 模型名同时出现于当前模型徽标与选项列表 → getAllBy
+      expect(screen.getAllByText("qwen2.5:7b").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("codegeex4:latest").length).toBeGreaterThan(0);
     });
 
     it("点击模型应调用 updateValue", () => {

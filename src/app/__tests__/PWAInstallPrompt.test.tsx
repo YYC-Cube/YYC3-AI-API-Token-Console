@@ -45,7 +45,8 @@ describe("PWAInstallPrompt", () => {
       });
 
       render(<PWAInstallPrompt />);
-      expect(screen.getByText("安装 YYC3 Dashboard")).toBeInTheDocument();
+      // 以源码文案为准: 品牌名已迭代为 CP-IM CloudPivot
+      expect(screen.getByText("安装 CP-IM CloudPivot")).toBeInTheDocument();
     });
 
     it("已安装时不应显示", () => {

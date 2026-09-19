@@ -97,9 +97,12 @@ export function usePersistedList<T extends { id: string }>(
     await idbClear(store);
   }, [store]);
 
-  /** 追加一条到开头 (最新在前) */
-  const prepend = useCallback(async (item: T) => {
-    setItems((prev) => [item, ...prev]);
+  /** 追加一条到开头 (最新在前); max 可选上限, 超出时裁掉尾部旧条目 */
+  const prepend = useCallback(async (item: T, max?: number) => {
+    setItems((prev) => {
+      const next = [item, ...prev];
+      return max != null && next.length > max ? next.slice(0, max) : next;
+    });
     await idbPut(store, item);
   }, [store]);
 

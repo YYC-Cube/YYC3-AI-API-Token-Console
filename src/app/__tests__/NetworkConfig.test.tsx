@@ -218,7 +218,7 @@ describe("NetworkConfig", () => {
   describe("测试连接", () => {
     it("点击测试连接应调用 testConnection", async () => {
       render(<NetworkConfig {...defaultProps} />);
-      fireEvent.click(screen.getByText("测��连接"));
+      fireEvent.click(screen.getByText("测试连接"));
       await waitFor(() => expect(mockTestConnection).toHaveBeenCalled());
     });
 

@@ -40,7 +40,8 @@ describe("QuickActionGrid", () => {
       render(<QuickActionGrid actions={mockActions} isExecuting={null} onExecute={onExecute} />);
       expect(screen.getByText("重启节点")).toBeInTheDocument();
       expect(screen.getByText("部署模型")).toBeInTheDocument();
-      expect(screen.getByText("清理缓存")).toBeInTheDocument();
+      // label 与 description 同文案("清理缓存")导致重复 → getAllBy
+      expect(screen.getAllByText("清理缓存").length).toBeGreaterThan(0);
       expect(screen.getByText("批量重启")).toBeInTheDocument();
     });
 

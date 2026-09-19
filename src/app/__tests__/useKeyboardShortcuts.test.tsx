@@ -47,9 +47,10 @@ describe("useKeyboardShortcuts", () => {
   });
 
   describe("快捷键列表", () => {
-    it("应返回 7 个快捷键", () => {
+    it("应返回 8 个快捷键", () => {
+      // 以源码 SHORTCUT_LIST 实际数量为准 (新增 escape)
       renderHook(() => useKeyboardShortcuts());
-      expect(SHORTCUT_LIST.length).toBe(7);
+      expect(SHORTCUT_LIST.length).toBe(8);
     });
 
     it("应包含操作中心快捷键", () => {

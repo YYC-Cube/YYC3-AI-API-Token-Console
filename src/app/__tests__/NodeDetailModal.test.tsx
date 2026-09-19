@@ -284,7 +284,8 @@ describe("NodeDetailModal", () => {
       fireEvent.click(screen.getByTestId("restart-node-btn"));
       fireEvent.click(screen.getByTestId("restart-confirm-btn"));
 
-      expect(screen.getByText("重启中...")).toBeInTheDocument();
+      // "重启中..." 同时出现于状态徽标与重启按钮文案 → getAllBy
+      expect(screen.getAllByText("重启中...").length).toBeGreaterThan(0);
     });
 
     it("重启中按钮应被禁用", () => {

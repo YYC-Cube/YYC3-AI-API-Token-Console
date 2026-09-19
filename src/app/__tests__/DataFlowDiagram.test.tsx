@@ -10,11 +10,10 @@
  * - data-testid
  */
 
-import React from "react";
-import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { DataFlowDiagram } from "../components/DataFlowDiagram";
-import { DATA_FLOW_NODES, DATA_FLOW_EDGES } from "../hooks/useServiceLoop";
+import { DATA_FLOW_EDGES, DATA_FLOW_NODES } from "../hooks/useServiceLoop";
 
 describe("DataFlowDiagram", () => {
   describe("节点渲染", () => {
@@ -28,10 +27,11 @@ describe("DataFlowDiagram", () => {
 
     it("应渲染节点标签", () => {
       render(<DataFlowDiagram nodes={DATA_FLOW_NODES} edges={DATA_FLOW_EDGES} />);
-      expect(screen.getByText("本地设备")).toBeInTheDocument();
-      expect(screen.getByText("本地存储")).toBeInTheDocument();
-      expect(screen.getByText("YYC³ Dashboard")).toBeInTheDocument();
-      expect(screen.getByText("终端集成")).toBeInTheDocument();
+      // 节点标签与数据源徽标同文案重复渲染 → 全部用 getAllBy
+      expect(screen.getAllByText("本地设备").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("本地存储").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("YYC³ Dashboard").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("终端集成").length).toBeGreaterThan(0);
     });
 
     it("应渲染子标签", () => {

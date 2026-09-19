@@ -198,12 +198,13 @@ describe("network-utils", () => {
     });
 
     it("超时时应返回超时错误", async () => {
-      const MockWS = vi.fn().mockImplementation(() => ({
-        onopen: null,
-        onerror: null,
-        onclose: null,
-        close: vi.fn(),
-      }));
+      // 必须用 function 形式 — 箭头函数不可 new, 构造调用落入 catch 返回构造错误
+      const MockWS = vi.fn(function (this: any) {
+        this.onopen = null;
+        this.onerror = null;
+        this.onclose = null;
+        this.close = vi.fn();
+      });
       vi.stubGlobal("WebSocket", MockWS);
 
       const result = await testWebSocketConnection("ws://slow:9999/ws", 50);
@@ -214,15 +215,13 @@ describe("network-utils", () => {
     });
 
     it("连接成功时应返回成功结果和延迟", async () => {
-      const MockWS = vi.fn().mockImplementation(() => {
-        const ws = {
-          onopen: null as any,
-          onerror: null as any,
-          onclose: null as any,
-          close: vi.fn(),
-        };
-        setTimeout(() => ws.onopen?.(), 5);
-        return ws;
+      // 必须用 function 形式 — 箭头函数不可 new, 构造调用落入 catch 返回构造错误
+      const MockWS = vi.fn(function (this: any) {
+        this.onopen = null;
+        this.onerror = null;
+        this.onclose = null;
+        this.close = vi.fn();
+        setTimeout(() => this.onopen?.(), 5);
       });
       vi.stubGlobal("WebSocket", MockWS);
 

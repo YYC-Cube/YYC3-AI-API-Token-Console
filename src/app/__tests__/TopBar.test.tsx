@@ -14,9 +14,9 @@
  */
 
 // @vitest-environment jsdom
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockNavigate = vi.fn();
 let mockPathname = "/";
@@ -151,8 +151,9 @@ describe("TopBar", () => {
     it("用户菜单应包含导航项", () => {
       render(<TopBar {...defaultProps} />);
       fireEvent.click(screen.getByText("AD").closest("button")!);
-      expect(screen.getByText("nav.userMgmt")).toBeInTheDocument();
-      expect(screen.getByText("nav.settings")).toBeInTheDocument();
+      // i18n 键名同时出现于菜单项与移动端面板 → getAllBy
+      expect(screen.getAllByText("nav.userMgmt").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("nav.settings").length).toBeGreaterThan(0);
     });
 
     it("点击登出应调用 onLogout", () => {

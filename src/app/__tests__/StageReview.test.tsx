@@ -177,7 +177,8 @@ describe("StageReview", () => {
       render(<StageReview />);
       const completed = CHAPTER_REVIEWS.filter((c) => c.status === "completed").length;
       const pct = Math.round((completed / CHAPTER_REVIEWS.length) * 100);
-      expect(screen.getByText(`${pct}%`)).toBeInTheDocument();
+      // 百分比同时出现于总进度条与各阶段状态 → getAllBy
+      expect(screen.getAllByText(`${pct}%`).length).toBeGreaterThan(0);
     });
 
     it("应显示 x/10 章完成", () => {

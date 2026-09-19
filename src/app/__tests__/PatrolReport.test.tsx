@@ -12,9 +12,8 @@
  * - 空检查数据提示
  */
 
-import React from "react";
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { PatrolReport } from "../components/PatrolReport";
 import type { PatrolResult } from "../types";
 
@@ -88,7 +87,8 @@ describe("PatrolReport", () => {
 
     it("应显示警告数量 badge", () => {
       render(<PatrolReport result={mockResult} />);
-      expect(screen.getByText("1")).toBeInTheDocument();
+      // "1" 同时出现于警告徽标与分类计数等处 → getAllBy
+      expect(screen.getAllByText("1").length).toBeGreaterThan(0);
     });
   });
 
@@ -107,7 +107,8 @@ describe("PatrolReport", () => {
     it("应显示每个分类的检查项数量", () => {
       render(<PatrolReport result={mockResult} />);
       expect(screen.getByText("(3)")).toBeInTheDocument(); // 节点健康: 3
-      expect(screen.getByText("(1)")).toBeInTheDocument(); // 存储: 1 or 网络: 1
+      // "(1)" 同时匹配存储与网络两个分类 → getAllBy
+      expect(screen.getAllByText("(1)").length).toBe(2); // 存储: 1, 网络: 1
     });
   });
 

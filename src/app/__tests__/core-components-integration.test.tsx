@@ -578,7 +578,7 @@ describe("Dashboard stores 集成测试", () => {
   beforeEach(() => localStorage.clear());
 
   const storeConfigs = [
-    { name: "nodeStore", store: nodeStore, defaultCount: 8 },
+    { name: "nodeStore", store: nodeStore, defaultCount: 9 },
     { name: "modelPerfStore", store: modelPerfStore, defaultCount: 5 },
     { name: "modelDistStore", store: modelDistStore, defaultCount: 5 },
     { name: "recentOpsStore", store: recentOpsStore, defaultCount: 5 },

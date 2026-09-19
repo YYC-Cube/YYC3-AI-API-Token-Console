@@ -12,10 +12,9 @@
  * - 加载状态
  */
 
-import React from "react";
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { Login } from "../components/Login";
 
 // Mock supabaseClient
@@ -46,7 +45,8 @@ describe("Login", () => {
     it("应渲染登录表单", () => {
       render(<Login onLoginSuccess={mockOnLoginSuccess} />);
 
-      expect(screen.getByText("YYC³")).toBeInTheDocument();
+      // 品牌标题已迭代为 "YYC³ CP-IM" (源码为准)
+      expect(screen.getByText("YYC³ CP-IM")).toBeInTheDocument();
       expect(screen.getByText("登录邮箱")).toBeInTheDocument();
       expect(screen.getByText("密码")).toBeInTheDocument();
       expect(screen.getByText("登 录")).toBeInTheDocument();
@@ -73,8 +73,9 @@ describe("Login", () => {
 
     it("应显示品牌标语", () => {
       render(<Login onLoginSuccess={mockOnLoginSuccess} />);
+      // 品牌标语已迭代为 "CloudPivot Intelli-Matrix · 数据看盘" (源码为准)
       expect(
-        screen.getByText(/本地多端推理矩阵数据库/)
+        screen.getByText(/CloudPivot Intelli-Matrix/)
       ).toBeInTheDocument();
     });
   });
@@ -188,7 +189,7 @@ describe("Login", () => {
   describe("加载状态", () => {
     it("提交后按钮应显示加载状态", async () => {
       // 永不 resolve，保持加载
-      mockSignIn.mockReturnValue(new Promise(() => {}));
+      mockSignIn.mockReturnValue(new Promise(() => { }));
 
       render(<Login onLoginSuccess={mockOnLoginSuccess} />);
 

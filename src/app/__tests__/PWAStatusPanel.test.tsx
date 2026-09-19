@@ -85,7 +85,8 @@ describe("PWAStatusPanel", () => {
 
     it("应渲染 SW 版本", () => {
       renderPanel();
-      expect(screen.getByText(/v1\.4\.2/)).toBeInTheDocument();
+      // 版本号同时出现于 SW 状态行与缓存版本行 → getAllBy
+      expect(screen.getAllByText(/v1\.4\.2/).length).toBeGreaterThan(0);
     });
 
     it("应渲染在线状态", () => {

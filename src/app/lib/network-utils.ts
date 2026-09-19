@@ -122,7 +122,10 @@ export function testWebSocketConnection(
     }, timeoutMs);
 
     try {
-      const ws = new WebSocket(url);
+      // 显式经 globalThis 解析 — node 测试环境经 vi.stubGlobal 注入, 浏览器取原生实现
+      const WSImpl = (globalThis as any).WebSocket;
+      if (typeof WSImpl !== "function") throw new Error("WebSocket 不可用");
+      const ws = new WSImpl(url);
 
       ws.onopen = () => {
         if (!resolved) {
@@ -143,7 +146,7 @@ export function testWebSocketConnection(
         }
       };
 
-      ws.onclose = (event) => {
+      ws.onclose = (event: { reason?: string }) => {
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);

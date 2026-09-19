@@ -113,11 +113,10 @@ describe("useAlertRules", () => {
       });
     });
 
-    const createdId = `rule-${String(Date.now()).slice(-6)}`;
-    // New rule appended via upsert (not prepended)
+    // 测试重建 id 的 Date.now() 可能与 createRule 内部时间跨毫秒不一致 → 按 name 查找更稳健
+    const created = result.current.rules.find((r) => r.name === "Test Rule");
+    expect(created).toBeDefined();
     expect(result.current.rules.length).toBe(initialCount + 1);
-    const created = result.current.rules.find((r) => r.id === createdId);
-    expect(created?.name).toBe("Test Rule");
     expect(created?.triggerCount).toBe(0);
     expect(created?.lastTriggered).toBeNull();
     // isCreating should be reset
