@@ -1,5 +1,5 @@
 # YYC³ 供应链安全策略 — 借鉴 dify pnpm 治理模式（L1 配置重写，YYC³ 自有注释）
-# 规范出处: docs/YYC3-可借鉴项实施规划-上游解耦版.md Phase 1
+# 规范出处: docs/YYC3-全量落地实施总结与衔接报告.md §3.1 (Phase 1)
 packages:
   - "."
 

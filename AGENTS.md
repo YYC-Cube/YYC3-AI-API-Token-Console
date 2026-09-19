@@ -32,7 +32,7 @@ node scripts/knip-check.mjs  # 死代码基线门禁
 
 ## 红线（绝对禁止）
 
-1. **零上游代码级依赖** — 本仓库借鉴四大 AI 项目（open-webui/hermes-agent/dify/ragflow）的思想与模式，但禁止 submodule / 依赖包 / 未声明复制。出处: [`docs/YYC3-可借鉴项实施规划-上游解耦版.md`](docs/YYC3-可借鉴项实施规划-上游解耦版.md)
+1. **零上游代码级依赖** — 本仓库借鉴四大 AI 项目（open-webui/hermes-agent/dify/ragflow）的思想与模式，但禁止 submodule / 依赖包 / 未声明复制。出处: [`docs/YYC3-全量落地实施总结与衔接报告.md`](docs/YYC3-全量落地实施总结与衔接报告.md) §2
 2. **零硬编码密钥** — 敏感配置走环境变量；CI 有 gitleaks + 构建产物零密钥断言。
 3. **禁止裸 `new WebSocket(...)`** — 必须经 `globalThis` 解析（测试环境 stub 依赖此约定），ast-grep 规则强制。
 4. **依赖版本铁律** — 精确锁定（无 `^`/`~`），高频工具族走 catalog；overrides 必带「原因+复核日期」注释。
@@ -65,7 +65,7 @@ components → hooks → lib → types
 ## 工作流（YYC³ PDCA+）
 
 1. 读上下文（本文件 + 目标目录 AGENTS.md + 相关源码）
-2. 更新/查阅 [`docs/YYC3-可借鉴项实施规划-上游解耦版.md`](docs/YYC3-可借鉴项实施规划-上游解耦版.md) 任务状态（协作条款全文见本地 `docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md`，不入远程库）
+2. 更新/查阅 [`docs/YYC3-全量落地实施总结与衔接报告.md`](docs/YYC3-全量落地实施总结与衔接报告.md)（分析+规划+交付单一事实源；协作条款全文见本地 `docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md`，不入远程库）
 3. 实施 → 跑门禁 → 提交（Conventional Commits，中文描述）
 4. 会话结束前沉淀总结报告至 `docs/`
 

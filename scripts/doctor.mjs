@@ -81,7 +81,7 @@ check("关键文件齐备", () => {
     "knip.config.ts",
     "public/CNAME",
     "scripts/ast-grep/sgconfig.yml",
-    "docs/YYC3-可借鉴项实施规划-上游解耦版.md",
+    "docs/YYC3-全量落地实施总结与衔接报告.md",
   ];
   const missing = required.filter((f) => !existsSync(f));
   if (missing.length) fail(`缺失: ${missing.join(", ")}`);

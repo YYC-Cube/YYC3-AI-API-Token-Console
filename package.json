@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit-dom --project unit-node",
     "test:integration": "YYC3_TEST_INTEGRATION=1 vitest run --project integration",
-    "test:e2e": "echo 'e2e 工具链未接入 — 见 docs/YYC3-可借鉴项实施规划-上游解耦版.md Phase 2 / Task 2.3' && exit 1",
+    "test:e2e": "echo 'e2e 工具链未接入 — 见 docs/YYC3-全量落地实施总结与衔接报告.md §3.2 Task 2.3' && exit 1",
     "test:coverage": "vitest run --coverage",
     "test:ci": "pnpm test:unit --reporter=junit --outputFile=test-results/junit.xml",
     "knip": "knip",

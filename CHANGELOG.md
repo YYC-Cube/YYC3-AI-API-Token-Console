@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **文档三合一（v2.0.0）**: 深度分析 + 实施规划 + Phase 2-4 总结合并为[全量落地实施总结与衔接报告](./docs/YYC3-全量落地实施总结与衔接报告.md)（单一事实源：27 项借鉴项全景处置标记 + 五维得分刷新至 94 + 跨会话衔接指南）；原文档 4 份移入 `docs/archive/`
+  Documentation consolidation: analysis + planning + delivery merged into single source of truth; originals archived
+
 - **工程纪律体系（可借鉴项 Phase 2）**: AGENTS.md 分层投放（根/`__tests__`/`hooks`）· Facade+Siblings 拆分规范（§6.6 + 体量门禁基线只减不增）· 测试分级门禁（unit/integration/e2e 三档，CI 默认只跑 unit）· knip 死代码基线锁定 · 覆盖率月度爬坡机制（基线 38/31/36/36，+2%/月）
   Engineering discipline: layered AGENTS.md · Facade+Siblings splitting spec · tiered test gates · knip baseline · monthly coverage ramp
 - **架构防腐体系（可借鉴项 Phase 3）**: eslint-plugin-boundaries import 分层契约（§6.7）· Footprint Ladder 六档评审表 + PR 模板档位字段（§6.9）· providers 声明式接入（JSON + zod，9 提供商）· checkpoint 恢复管线（崩溃续跑/步骤幂等，5 用例）· `pnpm doctor` 12 项自诊断 · SPA 404 回退精细化（静态资源不回退 + 深链还原）· ast-grep 结构化守护 6 条规则（§6.8）
@@ -17,7 +20,7 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
   Phase 4 backlog: 9 deferred items with trigger conditions, quarterly review
 - **依赖治理补完**: 13 个 `^` 漂移依赖精确锁定（@codemirror 全套/react-swipeable 等），doctor 零漂移
   Dependency pinning: 13 caret-drifted deps locked exact
-- **实施总结报告**: [Phase 2-4 全量落地实施总结报告](./docs/YYC3-Phase2-4全量落地实施总结报告.md)
+- **实施总结报告**: [全量落地实施总结与衔接报告](./docs/YYC3-全量落地实施总结与衔接报告.md)（v2.0.0，含 Phase 2-4 交付记录）
   Implementation summary report for Phase 2-4 rollout
 
 ### Changed 变更
