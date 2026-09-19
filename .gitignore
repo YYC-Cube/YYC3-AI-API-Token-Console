@@ -45,6 +45,9 @@ tmp/
 /docs/YYC3-APP-HUB.html
 /docs/YYC3-AI-Family-Token-Console-主题设计
 
+# ── 设计资产（导航截图, 本地参考, 不入库）──────────────────
+public/一级导航-*/
+
 # ── Python 工具链（模版闭环脚本本地运行产物）───────────────
 __pycache__/
 *.pyc
