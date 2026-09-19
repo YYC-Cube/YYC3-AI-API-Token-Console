@@ -31,13 +31,13 @@ complexity: advanced
 
 ## 📋 目录
 
-- [一、审计范围与方法](#一审计范围与方法)
-- [二、五维驱动现状评估](#二五维驱动现状评估)
-- [三、五高架构成熟度](#三五高架构成熟度)
-- [四、已修复问题清单](#四已修复问题清单)
-- [五、风险与待确认项](#五风险与待确认项)
-- [六、演进路线图](#六演进路线图)
-- [七、总结与结论](#七总结与结论)
+- [一、审计范围与方法](#一审计范围与方法--scope--methodology)
+- [二、五维驱动现状评估](#二五维驱动现状评估--five-dimensional-assessment)
+- [三、五高架构成熟度](#三五高架构成熟度--five-high-maturity)
+- [四、已修复问题清单](#四已修复问题清单--issues-resolved)
+- [五、风险与待确认项](#五风险与待确认项--risks--open-items)
+- [六、演进路线图](#六演进路线图--evolution-roadmap)
+- [七、总结与结论](#七总结与结论--summary--conclusion)
 
 ---
 
@@ -122,7 +122,7 @@ complexity: advanced
 ## 四、已修复问题清单 | Issues Resolved
 
 | # | 问题 | 位置 | 严重度 | 修复动作 |
-| --- | ---- | ---- | ------ | -------- |
+|---| ---- | ---- | ------ | -------- |
 | 1 | package.json 命名违规 `@figma/my-make-file` | `package.json` | 🔴 P0 | → `yyc3-ai-api-token-console@0.1.0`，对齐团队 `yyc3-` 前缀标准 |
 | 2 | Issue 模板位置错误（GitHub 无法识别） | `.github/*.yml` | 🔴 P0 | 迁移至 `.github/ISSUE_TEMPLATE/` |
 | 3 | 缺失 LICENSE（README 徽章指向死链） | 仓根 | 🔴 P0 | 新增 Apache-2.0 全文 |
@@ -227,7 +227,7 @@ complexity: advanced
 
 | 交付 | 说明 |
 | ---- | ---- |
-| GitHub Pages 自动部署 | `pages.yml`：main CI 全绿 → `vite build --base=/` → deploy-pages@v4 → **<https://token.yyc3.vip**（CNAME> 构建时注入） |
+| GitHub Pages 自动部署 | `pages.yml`：main CI 全绿 → `vite build --base=/` → deploy-pages@v4 → **https://token.yyc3.vip**（CNAME 构建时注入） |
 | Codecov 动态徽章 | ci.yml 上报 lcov + `codecov.yml` 80% 目标；README Coverage 徽章替换为动态数据源 |
 | CI 五阶段 | Typecheck → **Lint（新增，0 errors）** → Test(80%+Codecov) → Security → Build |
 | 存量 lint 错误清零 | 61 errors → 0（App.tsx rest 参数化 / 表达式语句改写 / 转义清理 / Node globals 块） |

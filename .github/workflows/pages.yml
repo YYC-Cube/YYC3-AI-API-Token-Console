@@ -55,12 +55,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 自定义域名根路径部署 — CNAME 先行，确保产物包含域名文件
-      - name: Add CNAME for custom domain
-        run: echo "token.yyc3.vip" > public/CNAME
+      # CNAME 已入库 (public/CNAME → token.yyc3.vip)，随 public/ 自动拷贝至 dist/
+      # 防御性兜底：文件意外缺失时重建，保证自定义域名绑定不中断
+      - name: Ensure CNAME exists
+        run: '[ -f public/CNAME ] || echo "token.yyc3.vip" > public/CNAME'
 
-      # VITE_BASE=/ : token.yyc3.vip 为根路径托管，无需子路径前缀
-      - name: Build (VITE_BASE=/)
+      # 根路径部署：token.yyc3.vip 托管于域名根，--base=/ 与 vite.config.ts 默认值一致
+      - name: Build (base=/)
         run: pnpm exec vite build --base=/
 
       - name: Setup Pages

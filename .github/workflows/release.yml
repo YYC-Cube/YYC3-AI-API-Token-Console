@@ -72,7 +72,9 @@ jobs:
     name: "🚀 GitHub Release"
     runs-on: ubuntu-latest
     needs: release-build
-    environment: production
+    environment:
+      name: production
+      url: https://token.yyc3.vip
     steps:
       - uses: actions/checkout@v4
 

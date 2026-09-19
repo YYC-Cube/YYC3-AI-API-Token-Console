@@ -79,7 +79,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: ESLint (gate: 0 errors)
+      - name: "ESLint (gate: 0 errors)"
         run: pnpm lint
 
   # ============================================================

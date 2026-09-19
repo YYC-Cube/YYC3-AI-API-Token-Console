@@ -85,7 +85,7 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 | 新功能/新文档 Feature/Docs addition | MINOR |
 | 缺陷修复/笔误 Bug fix/Typos | PATCH |
 
-> 发布由 `v*.*.*` 标签自动触发 Release 流水线（见 [RELEASE.md](./YYC3-开发者文档/RELEASE.md)）。
+> 发布由 `v*.*.*` 标签自动触发 Release 流水线（见 [RELEASE.md](./docs/YYC3-开发者文档/RELEASE.md)）。
 > Releases auto-trigger on `v*.*.*` tags (see RELEASE.md).
 
 [Unreleased]: https://github.com/YYC-Cube/YYC3-AI-API-Token-Console/compare/v0.1.0...HEAD
