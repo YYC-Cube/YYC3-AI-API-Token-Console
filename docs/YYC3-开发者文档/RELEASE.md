@@ -67,7 +67,7 @@ sequenceDiagram
   M->>R: git checkout main && git pull
   M->>R: git tag -a v0.1.1 -m "release v0.1.1" && git push origin v0.1.1
   R->>GHA: tag v*.*.* 触发 trigger
-  GHA->>GHA: ① Final gates（typecheck + test cov≥80% + build）
+  GHA->>GHA: ① Final gates（typecheck + lint + test cov≥基线 + build + 纪律三件套）
   GHA->>GHA: ② vite build 生产产物
   GHA->>REL: ③ Changelog + dist 制品上传 upload
   GHA->>M: ④ 成功通知 dev@ / 失败告警 admin@

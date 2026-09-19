@@ -5,9 +5,9 @@
  * 新增提供商只改 builtin-providers.json, 本测试自动守护其合法性。
  */
 
-import { describe, expect, it } from "vitest";
-import builtinProviders from "../config/providers/builtin-providers.json";
+import { describe, it, expect } from "vitest";
 import { builtinProvidersSchema } from "../config/providers/provider-schema";
+import builtinProviders from "../config/providers/builtin-providers.json";
 
 describe("builtin-providers.json 声明式校验", () => {
   it("通过 zod schema 校验 (新增提供商零代码改动的前提)", () => {

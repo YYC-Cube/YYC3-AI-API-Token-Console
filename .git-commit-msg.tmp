@@ -1,0 +1,27 @@
+docs(report): Phase 2-4 实施总结报告 + README 顶图与文档全量对齐 + 本地参考目录解编
+
+新增:
+- docs/YYC3-Phase2-4全量落地实施总结报告.md (交付总览/门禁演进/验证结果/决策记录/遗留衔接)
+
+README:
+- 顶图 yyc3-Family.png (原尺寸) 置于标题上方
+- 质量门禁表对齐十项现状 (五阶段 CI/分级测试/覆盖率爬坡/守护三件套/doctor)
+- 快速开始补架构守护命令; 项目结构/CI 表对齐 Phase 2-4
+
+文档对齐:
+- CICD.md v1.2.0: 五阶段 mermaid + 纪律三件套门禁行 + 测试三档制 + 本地命令
+- ARCHITECTURE.md: 技术栈/目录映射/设计决策对齐 (providers/checkpoint/守护脚本)
+- CONTRIBUTING.md: PR 检查单 + 测试策略三档 + 覆盖率基线表述
+- RELEASE.md: final gates 表述对齐; LABELS.md mod:docs 范围修正
+- 图标展示/CONTRIBUTING 对已排除目录引用改「本地参考」说明
+- CHANGELOG: Unreleased 补 Phase 2-4 全量记录
+- AGENTS.md: 门禁命令/目录导读/用例数对齐 (1965+)
+
+本地参考目录不入远程 (git rm --cached, 本地保留; .gitignore 增补):
+- docs/YYC3-AI-Family-团队规范/ (56 文件)
+- docs/YYC3-Family-Matrix-Guidelines-项目设计/ (9 文件)
+- docs/YYC3-AI-Family-Token-Console-模型网关/YYC3-AI-Family-Token-Console-设计核心/ (5 文件)
+- docs/*-20xxxxxx/ 历史会话工作目录
+(6 个 public/一级导航-* 目录此前已忽略, 无需处理)
+
+修复: check-size.mjs 未使用 import (lint 0 errors)

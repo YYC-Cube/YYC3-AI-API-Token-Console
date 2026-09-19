@@ -1,7 +1,7 @@
 # AGENTS.md — YYC³ AI 导师工作总纲
 
 > 面向 AI 协同开发的结构化上下文。AI 导师进入本仓库请先读本文件，再按子目录细则深入。
-> 团队规范全景: [`docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md`](docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md)
+> 团队规范全景: `docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md`（本地参考，不入远程库；协作条款已收敛至本文件与开发者文档）
 
 ## 项目一句话
 
@@ -14,16 +14,20 @@ YYC³ AI API Token Console — 本地闭环多端推理矩阵数据看盘系统�
 | 构建 | Vite 6 + @vitejs/plugin-react（版本统一在 `pnpm-workspace.yaml` catalog） |
 | UI | React 18 + Tailwind 4 + Radix UI 全家桶 + shadcn/ui + MUI 7 + Recharts + CodeMirror 6 |
 | 路由 | react-router 7（`createBrowserRouter`，SPA + NotFound 兜底） |
-| 测试 | Vitest 4（projects: dom/node）+ Testing Library + @vitest/coverage-v8 |
+| 测试 | Vitest 4（projects: unit-dom/unit-node/integration）+ Testing Library + @vitest/coverage-v8 |
 | 包管理 | pnpm 11（严格供应链策略，见 `pnpm-workspace.yaml`） |
 
 ## 硬性门禁（提交前必过）
 
 ```bash
 pnpm typecheck      # tsc strict, 0 errors
-pnpm lint           # eslint, 0 errors
-pnpm test           # vitest 全量 (当前 1957+ 用例, 覆盖率基线锁定)
+pnpm lint           # eslint 0 errors + import 分层边界 (boundaries)
+pnpm test:unit      # vitest 分级单测 (unit-dom + unit-node, 1965+ 用例)
+pnpm test:coverage  # 覆盖率基线锁定 (38/31/36/36, 月度爬坡)
 pnpm build          # 产物零密钥断言见 CI
+pnpm astgrep        # ast-grep 反模式扫描 (6 条规则)
+pnpm size:check     # 文件体量门禁 (基线只减不增)
+node scripts/knip-check.mjs  # 死代码基线门禁
 ```
 
 ## 红线（绝对禁止）
@@ -50,18 +54,20 @@ components → hooks → lib → types
 
 | 目录 | 职责 | 局部细则 |
 | --- | --- | --- |
-| `src/app/__tests__/` | 全部测试（35+ 文件，~1957 用例） | [该目录 AGENTS.md](src/app/__tests__/AGENTS.md) |
+| `src/app/__tests__/` | 全部测试（116 文件，~1965 用例） | [该目录 AGENTS.md](src/app/__tests__/AGENTS.md) |
 | `src/app/hooks/` | 全局 Hooks（28 个） | [该目录 AGENTS.md](src/app/hooks/AGENTS.md) |
 | `src/app/components/ui/` | shadcn/ui 生成物，**禁手改**（改造走 wrapper） | — |
-| `src/app/lib/` | 纯逻辑层（无 UI 依赖） | — |
-| `docs/` | 团队规范 + 开发者文档 + 会话存档 | — |
+| `src/app/lib/` | 纯逻辑层（无 UI 依赖；`lib/batch/checkpoint.ts` 检查点管线） | — |
+| `src/app/config/providers/` | 提供商声明式配置（JSON + zod，新增提供商零代码改动） | — |
+| `scripts/` | 架构守护脚本（ast-grep / check-size / knip-check / doctor） | — |
+| `docs/` | 开发者文档 + 规划/总结报告（团队规范等本地参考目录不入远程库） | — |
 
 ## 工作流（YYC³ PDCA+）
 
 1. 读上下文（本文件 + 目标目录 AGENTS.md + 相关源码）
-2. 更新/查阅 [`docs/YYC3-可借鉴项实施规划-上游解耦版.md`](docs/YYC3-可借鉴项实施规划-上游解耦版.md) 任务状态
+2. 更新/查阅 [`docs/YYC3-可借鉴项实施规划-上游解耦版.md`](docs/YYC3-可借鉴项实施规划-上游解耦版.md) 任务状态（协作条款全文见本地 `docs/YYC3-AI-Family-团队规范/标规文档/YYC3-团队通用-开发文档.md`，不入远程库）
 3. 实施 → 跑门禁 → 提交（Conventional Commits，中文描述）
-4. 会话结束前沉淀 03-总结文档（协同开发文档 §4.1 检查清单）
+4. 会话结束前沉淀总结报告至 `docs/`
 
 ## 自诊断
 

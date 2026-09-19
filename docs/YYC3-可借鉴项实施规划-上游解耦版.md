@@ -105,7 +105,7 @@ category: plan
 |------|------|------|------|---------|------|
 | 1.1 | `pnpm-workspace.yaml` 安全策略块落地：`saveExact: true` + `dedupeDirectDeps: true` + `engineStrict: true` + `strictDepBuilds: true` + `blockExoticSubdeps: true` + `trustPolicy: no-downgrade` | YYC3-AI-API-Token-Console | L1 | 策略生效 + `pnpm install` 通过 + 全量门禁四绿 | ✅ 2026-09-20 (commit 63e06a4) |
 | 1.2 | `catalog:` 版本集中治理：高频依赖（vite/vitest/typescript/react 族）迁入 catalog，子包以 `catalog:` 引用 | 同上 | L1 | lockfile/overrides/package.json 三处版本单一事实源，重复版本数 = 0 | ✅ 10 依赖族迁入 (commit 63e06a4) |
-| 1.3 | 依赖锁定注释规范写入协同开发文档：每个非常规锁定/overrides 必须行内注释「原因 + issue 链接 + 复核日期」 | `docs/YYC3-AI-Family-团队规范/` + package.json | L0 | 规范条款发布 + 现存 overrides 100% 补注释 | ✅ §6.4 发布 (commit 63e06a4) |
+| 1.3 | 依赖锁定注释规范写入协同开发文档：每个非常规锁定/overrides 必须行内注释「原因 + issue 链接 + 复核日期」 | 协同开发文档 §6.4（本地参考） + package.json | L0 | 规范条款发布 + 现存 overrides 100% 补注释 | ✅ §6.4 发布 (commit 63e06a4) |
 | 1.4 | 精确锁定策略（核心运行依赖 `saveExact` 消灭 `^`/`~` 漂移），升级流程要求书面理由 | pnpm-workspace.yaml + 协同开发文档 | L0 | 核心依赖版本号无 `^`/`~` 前缀 | ✅ 13 项漂移清零 (Phase 3 会话) |
 | 1.5 | 密钥失败前置检查：CI 增加 secret 基线扫描步骤（gitleaks 已有，补充「构建产物零密钥」断言） | ci.yml | L0 | CI 含产物密钥断言步骤 | ✅ §6.5 (commit 63e06a4) |
 

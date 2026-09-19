@@ -9,14 +9,30 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
-- **GitHub Pages 自动部署**: `pages.yml` 工作流 — main CI 全绿后自动构建部署至 **<https://token.yyc3.vip**（自定义域名根路径> + CNAME 构建时注入）
-  GitHub Pages auto-deploy: auto build & deploy on green main CI to token.yyc3.vip
-- **Codecov 覆盖率看板**: ci.yml 上报 `coverage/lcov.info`，`codecov.yml` 项目级 80% 目标；README 覆盖率徽章升级为动态真实数据
-  Codecov dashboard: coverage upload + project-level 80% target + dynamic badge
+- **工程纪律体系（可借鉴项 Phase 2）**: AGENTS.md 分层投放（根/`__tests__`/`hooks`）· Facade+Siblings 拆分规范（§6.6 + 体量门禁基线只减不增）· 测试分级门禁（unit/integration/e2e 三档，CI 默认只跑 unit）· knip 死代码基线锁定 · 覆盖率月度爬坡机制（基线 38/31/36/36，+2%/月）
+  Engineering discipline: layered AGENTS.md · Facade+Siblings splitting spec · tiered test gates · knip baseline · monthly coverage ramp
+- **架构防腐体系（可借鉴项 Phase 3）**: eslint-plugin-boundaries import 分层契约（§6.7）· Footprint Ladder 六档评审表 + PR 模板档位字段（§6.9）· providers 声明式接入（JSON + zod，9 提供商）· checkpoint 恢复管线（崩溃续跑/步骤幂等，5 用例）· `pnpm doctor` 12 项自诊断 · SPA 404 回退精细化（静态资源不回退 + 深链还原）· ast-grep 结构化守护 6 条规则（§6.8）
+  Architecture hygiene: import boundaries · Footprint Ladder review · declarative providers · checkpoint pipeline · doctor self-diagnosis · SPA 404 fallback · 6 ast-grep rules
+- **Phase 4 缓行台账**: 九项智能化储备（token 评测/分块/GraphRAG/HITL 等）带触发条件固化于规划文档 §4.4，季度评审核对
+  Phase 4 backlog: 9 deferred items with trigger conditions, quarterly review
+- **依赖治理补完**: 13 个 `^` 漂移依赖精确锁定（@codemirror 全套/react-swipeable 等），doctor 零漂移
+  Dependency pinning: 13 caret-drifted deps locked exact
+- **实施总结报告**: [Phase 2-4 全量落地实施总结报告](./docs/YYC3-Phase2-4全量落地实施总结报告.md)
+  Implementation summary report for Phase 2-4 rollout
 
 ### Changed 变更
 
-- **CI 五阶段流水线**: 新增 Lint 门禁（ESLint 9 flat config，0 errors 门槛），test/security job 依赖 [typecheck, lint]
+- **CI 五阶段流水线升级**: Lint 并入 import 分层边界；Build 阶段新增纪律三件套（ast-grep 扫描 / 体量门禁 / knip 基线）；test:ci 切换 test:unit 分级档
+  CI pipeline upgraded to five stages with discipline trio in Build; test:ci switched to tiered test:unit
+
+- **GitHub Pages 自动部署**: `pages.yml` 工作流 — main CI 全绿后自动构建部署至 **<https://token.yyc3.vip**（自定义域名根路径> + CNAME 构建时注入）
+  GitHub Pages auto-deploy: auto build & deploy on green main CI to token.yyc3.vip
+- **Codecov 覆盖率看板**: ci.yml 上报 `coverage/lcov.info`，项目级目标与本地 thresholds 同源；README 覆盖率徽章升级为动态真实数据
+  Codecov dashboard: coverage upload + source-aligned target + dynamic badge
+
+### Changed 变更（早期）
+
+- **CI 五阶段流水线（初版）**: 新增 Lint 门禁（ESLint 9 flat config，0 errors 门槛），test/security job 依赖 [typecheck, lint]
   CI pipeline extended to five stages with a new Lint gate (ESLint 9, zero-errors)
 - **测试依赖迁移 devDependencies**: vitest / jsdom / testing-library / coverage-v8 / axe-core 全部移出生产依赖，生产依赖瘦身
   Test tooling moved to devDependencies, slimming production deps

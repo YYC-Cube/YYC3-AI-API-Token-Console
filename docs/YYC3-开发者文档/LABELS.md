@@ -74,7 +74,7 @@ complexity: basic
 | `mod:admin` | 系统管理 Administration | 审计 / 用户 / 安全监控 / PWA / 环境变量 / 系统设置 |
 | `mod:infra` | 基础设施 Infra | workflows / deploy / scripts / 构建配置 |
 | `mod:icons` | 图标体系 Icon System | yyc3-icons / manifest / PWA 图标链路 |
-| `mod:docs` | 开发者文档 Dev docs | docs/YYC3-开发者文档 + 标规文档 |
+| `mod:docs` | 开发者文档 Dev docs | docs/YYC3-开发者文档 + docs/ 根规划与总结报告 |
 
 ### 1.5 社区 | Community
 

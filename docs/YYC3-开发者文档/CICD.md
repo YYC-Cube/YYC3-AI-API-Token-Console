@@ -1,10 +1,10 @@
 ---
 file: CICD.md
-description: YYC3-AI-API-Token-Console CI/CD 流水线详解 — 四阶段门禁与发布触发
+description: YYC3-AI-API-Token-Console CI/CD 流水线详解 — 五阶段门禁与发布触发
 author: YanYuCloudCube Team <admin@0379.email>
-version: v1.0.0
+version: v1.2.0
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-20
 status: stable
 tags: [cicd],[github-actions],[quality-gates],[automation]
 category: technical
@@ -25,7 +25,7 @@ complexity: intermediate
 
 </div>
 
-> 版本 v1.1.0 · 2026-09-18 · 工作流源码 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) · [`release.yml`](../../.github/workflows/release.yml) · [`pages.yml`](../../.github/workflows/pages.yml)
+> 版本 v1.2.0 · 2026-09-20 · 工作流源码 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) · [`release.yml`](../../.github/workflows/release.yml) · [`pages.yml`](../../.github/workflows/pages.yml)
 
 ---
 
@@ -38,11 +38,13 @@ flowchart TD
   T0 -->|"push / pull_request"| TC1["🔍 Typecheck<br/>tsc --noEmit strict"]
   T0 -->|"tag v*.*.*"| RL1["📦 Release Build<br/>gates + vite build"]
   TC1 -->|fail| F1["❌ 告警<br/>dev@ / ops@yanyucloud.com"]
-  TC1 -->|pass| T1["🧪 Unit Test<br/>vitest · coverage ≥ 80%"]
+  TC1 -->|pass| L1["🧹 Lint<br/>eslint 0-errors + boundaries 分层契约"]
+  L1 -->|fail| F1
+  L1 -->|pass| T1["🧪 Unit Test<br/>test:unit 分级 · coverage 基线"]
   T1 -->|fail| F1
   T1 -->|pass| S1["🛡️ Security Scan<br/>gitleaks 密钥扫描"]
   S1 -->|"secret hit"| F1
-  S1 -->|pass| B1["📦 Build<br/>vite production build"]
+  S1 -->|pass| B1["📦 Build + 纪律三件套<br/>vite build + ast-grep + 体量 + knip"]
   B1 --> ART["📤 Artifacts<br/>dist/ · coverage/ · test-results/"]
   RL1 -->|"final gates 全绿"| REL["🚀 GitHub Release<br/>tag + changelog + 制品"]
   ART --> E1["✅ Pipeline Complete"]
@@ -77,7 +79,7 @@ flowchart TD
 | 2. Unit Test | Vitest 4 + V8 coverage | `pnpm test:ci` + `pnpm test:coverage` | 用例失败 或 低于基线门槛（lines ≥ 38% / branches ≥ 36% / statements ≥ 36% / functions ≥ 31%） |
 | 2b. Codecov | codecov-action@v5 | 上报 `coverage/lcov.info` | 上报失败不阻断（`fail_ci_if_error: false`） |
 | 3. Security | gitleaks | `gitleaks/gitleaks-action@v2` | 命中任何密钥模式 |
-| 4. Build | Vite 6 | `pnpm build` | 构建失败或产物缺失 |
+| 4. Build | Vite 6 + 纪律三件套 | `pnpm build` + `astgrep` / `size:check` / `knip-check` | 构建失败 · 反模式命中 · 体量基线增长 · knip 基线增长 |
 
 > 覆盖率阈值定义于 [`vitest.config.ts`](../../vitest.config.ts) `coverage.thresholds`，本地与 CI 同源，确保「本地绿 = CI 绿」。当前为**基线锁定策略**（v1.1.1 实测：lines 39.4% / functions 32.7% / branches 37.1% / statements 36.9%，148 文件中 52 个低于 10% 覆盖），门槛仅防退化；爬坡至 80% 为长期目标，随测试补齐逐级上调。Codecov 项目级目标与本地同源（±2% 容差）见 [`codecov.yml`](../../codecov.yml)。
 
@@ -90,14 +92,18 @@ flowchart TD
 | 红线 | 新增代码不得拉低整体基线；unit 档（零外部依赖）优先补测 |
 | 复核 | 每月初执行：跑 `pnpm test:coverage` 实测 → 若月增幅未达 +2% 则维持现基线并记录原因 → 达标则四处同步上调（vitest thresholds ×4 + codecov target） |
 | 验收 | 连续 3 个月达标爬坡后，评估将「补测核心链路」纳入功能 PR 的 Definition of Done |
+
 > Thresholds live in `vitest.config.ts` — same source locally and in CI: green locally means green in CI.
 
-### 测试工作区双轨制 | Test Projects Dual-Track
+### 测试工作区三档制 | Test Projects Tiers (Phase 2 / Task 2.3)
 
 ```
-dom 项目  → src/app/__tests__/**/*.test.tsx → jsdom + setup.ts（React 组件 / a11y / 集成）
-node 项目 → src/app/__tests__/**/*.test.ts  → node 环境（lib 纯函数 / 类型审计 / i18n 一致性）
+unit-dom 项目       → src/app/__tests__/**/*.test.tsx → jsdom + setup.ts（React 组件 / a11y）
+unit-node 项目      → src/app/__tests__/**/*.test.ts  → node 环境（lib 纯函数 / 类型审计 / i18n 一致性）
+integration 项目    → **/*.integration.test.ts        → 默认禁用, YYC3_TEST_INTEGRATION=1 显式开启
 ```
+
+> CI 默认只跑 `pnpm test:unit`（unit-dom + unit-node 两档，零外部依赖）；integration 档本地按需执行，不阻塞流水线。
 
 ---
 
@@ -146,10 +152,14 @@ node 项目 → src/app/__tests__/**/*.test.ts  → node 环境（lib 纯函数 
 ```bash
 # 与 CI 完全同款（本地绿 = CI 绿）Same gates as CI
 pnpm typecheck        # Gate 1 · TypeScript strict
-pnpm lint             # Gate 1b · ESLint 0-errors
-pnpm test             # Gate 2a · 单元测试
-pnpm test:coverage    # Gate 2b · 覆盖率 ≥ 基线门槛 (38/36/36/31)
+pnpm lint             # Gate 1b · ESLint 0-errors + import 分层边界
+pnpm test:unit        # Gate 2a · 分级单测 (unit-dom + unit-node)
+pnpm test:coverage    # Gate 2b · 覆盖率 ≥ 基线门槛 (38/31/36/36, 月度爬坡)
 pnpm build            # Gate 4 · 生产构建
+pnpm astgrep          # Gate 4 · ast-grep 反模式扫描 (6 条规则)
+pnpm size:check       # Gate 4 · 体量门禁 (基线只减不增)
+node scripts/knip-check.mjs  # Gate 4 · knip 基线门禁
+pnpm doctor           # 环境自诊断 (12 项, 非门禁)
 # Gate 3 · gitleaks（本地可选）brew install gitleaks && gitleaks detect --no-banner
 ```
 

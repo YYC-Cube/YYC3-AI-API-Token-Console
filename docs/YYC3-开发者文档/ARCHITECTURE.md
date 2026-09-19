@@ -50,12 +50,12 @@ complexity: intermediate
 | 图表 Charts | Recharts | 2.15.2 | 钟盘 / 监控可视化 |
 | 编辑器 Editor | CodeMirror 6 | 6.x | SQL/JSON/MD 多语言在线编辑（8 种语言包） |
 | 状态 State | 自研 create-local-store | — | localStorage 持久化 + 跨标签页同步 |
-| 测试 Test | Vitest 4 | 4.0.18 | dom/node 双项目工作区 · 覆盖率 80% 门槛 |
+| 测试 Test | Vitest 4 | 4.0.18 | 三档项目工作区（unit-dom/unit-node/integration）· 覆盖率基线爬坡 |
 | a11y 审计 | axe-core | 4.11.1 | `a11y-audit.test.tsx` 可达性回归 |
 | PWA | manifest + useYYC3Head | — | 13 档图标 · 运行时 head 注入 · CDN 回退 |
 | 部署 Deploy | deploy/server.mjs | Node 22 | 零依赖静态托管 + Ollama 反向代理（:3118） |
 | 包管理 | pnpm | 11.x | workspace 单包模式（`packages: ['.']`） |
-| CI | GitHub Actions | — | 四阶段流水线 + tag 触发发布 |
+| CI | GitHub Actions | — | 五阶段流水线（typecheck→lint→test→scan→build+纪律三件套）+ tag 触发发布 |
 
 ---
 
@@ -150,12 +150,12 @@ graph TD
 | `src/app/components/` | 60+ 业务组件（六域页面 + 通用） | `Dashboard` · `OperationCenter` · `SystemSettings` |
 | `src/app/components/ai-family/` | AI Family 子域（lazy 加载） | `AIFamilyRouter` · `FamilyHome` |
 | `src/app/components/design-system/` | 内嵌设计系统 | `DesignSystemPage` /design-system |
-| `src/app/hooks/` | 30+ 自定义 Hooks | `useI18n` · `usePWAManager` · `usePatrol` |
-| `src/app/lib/` | 纯逻辑工具层（node 测试覆盖） | `yyc3-icons` · `yyc3-storage` · `error-handler` |
-| `src/app/__tests__/` | 140+ 测试（dom/node 双项目） | `a11y-audit` · `i18n-consistency` · `rf00*` 回归 |
+| `src/app/hooks/` | 30+ 自定义 Hooks（AGENTS.md 细则） | `useI18n` · `usePWAManager` · `usePatrol` |
+| `src/app/config/providers/` | 提供商声明式配置（JSON+zod） | `builtin-providers.json` · `provider-schema.ts` |
+| `src/app/lib/batch/` | 批量任务检查点（崩溃续跑/幂等） | `checkpoint.ts` |
+| `src/app/__tests__/` | 116 文件 · 1965 用例（unit-dom/unit-node 双档） | `a11y-audit` · `i18n-consistency` · `checkpoint` |
 | `deploy/` | 零依赖部署 +launchd/nginx 配置 | `server.mjs` · `com.yyc3.dashboard.plist` |
-| `scripts/` | 工具脚本 | `check_mermaid.py`（pre-commit 闸） |
-| `docs/YYC3-AI-Family-团队规范/` | 标规文档 + 模版闭环 + 验收体系 | 五维驱动 · 开发标准 · 文档闭环 |
+| `scripts/` | 工具脚本 + 架构守护 | `ast-grep/` · `check-size.mjs` · `knip-check.mjs` · `doctor.mjs` |
 | `docs/YYC3-开发者文档/` | 开发者文档（本目录） | ARCHITECTURE · CICD · LABELS · RELEASE |
 
 ---
@@ -166,7 +166,7 @@ graph TD
 |---|---------------|------------|----------------|
 | 1 | 构建工具 | Vite 6（非 Next.js） | 纯前端 SPA + 本地推理矩阵场景，无需 SSR；`VITE_BASE` 子路径部署满足 NAS 反代 |
 | 2 | 状态管理 | 自研 store + localStorage | 本地闭环优先，零后端依赖；Supabase 仅作可选增强（ghost 模式） |
-| 3 | 测试策略 | Vitest 4 projects 工作区 | `.tsx`→jsdom 组件测试 / `.ts`→node 纯函数，双轨覆盖率 80% 门槛 |
+| 3 | 测试策略 | Vitest 4 projects 三档工作区 | unit-dom（jsdom 组件）/ unit-node（纯函数）/ integration（显式开启），CI 默认只跑 unit；覆盖率基线锁定 + 月度爬坡 |
 | 4 | 图标架构 | 物理源 + 逻辑源 + CDN 三级 | 单一事实源，四级兜底（静态→清单→运行时→CDN），零断链 |
 | 5 | 部署形态 | Node 原生 http 零依赖 | 无 npm 依赖 = 无供应链风险；内置 Ollama 代理免去 nginx 复杂度（nginx.conf 备选） |
 | 6 | 错误治理 | 三层拦截（capture→handler→boundary） | Figma iframe 宿主环境噪声静默 + Vite HMR 动态导入自恢复 |

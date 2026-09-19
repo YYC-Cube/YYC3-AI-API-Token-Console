@@ -124,8 +124,8 @@ Pick labels per [`LABELS.md`](./LABELS.md): type + module + priority for Issues;
 ## 6. PR 检查单 | PR Checklist
 
 - [ ] 分支基于最新 `main`，提交符合 Conventional Commits
-- [ ] `pnpm typecheck && pnpm test` 本地通过（coverage ≥ 80%）
-- [ ] `pnpm build` 通过
+- [ ] `pnpm typecheck && pnpm lint && pnpm test:unit` 本地通过（coverage ≥ 基线门槛，月度爬坡见 [CICD.md](./CICD.md)）
+- [ ] `pnpm build && pnpm astgrep && pnpm size:check` 通过（架构守护三件套）
 - [ ] PR 标题、描述完整，已选类型/模块标签
 - [ ] 无硬编码密钥/凭证（gitleaks 闸强制拦截）；敏感配置走 `${ENV_VAR}`
 - [ ] 涉及文档时同步更新（双语：中文在上，英文在下）
@@ -141,12 +141,13 @@ Pick labels per [`LABELS.md`](./LABELS.md): type + module + priority for Issues;
 
 | 维度 Dimension | 要求 Requirement |
 |----------------|------------------|
-| 组件测试 | `.test.tsx` → jsdom（dom 项目），交互行为 + 渲染断言 |
-| 纯函数测试 | `.test.ts` → node（node 项目），lib/ 层 100% 单元覆盖 |
+| 组件测试 | `.test.tsx` → jsdom（unit-dom 项目），交互行为 + 渲染断言 |
+| 纯函数测试 | `.test.ts` → node（unit-node 项目），lib/ 层 100% 单元覆盖 |
+| 集成测试 | `.integration.test.ts`（integration 项目），`YYC3_TEST_INTEGRATION=1` 显式开启，不入 CI 默认档 |
 | 回归用例 | 缺陷修复以 `rf{编号}-{主题}.test.ts` 命名（如 `rf001-ws-url-unification`） |
 | 可达性 | UI 变更需通过 `a11y-audit.test.tsx`（axe-core） |
 | i18n | 新增文案需同步 zh-CN / en-US 双语言包并通过 `i18n-consistency.test.ts` |
-| 覆盖率 | lines / branches / statements ≥ 80%，functions ≥ 70% |
+| 覆盖率 | 基线锁定策略：lines ≥ 38 / functions ≥ 31 / branches ≥ 36 / statements ≥ 36，月度 +2% 爬坡（见 [CICD.md](./CICD.md)） |
 
 ---
 
@@ -154,7 +155,7 @@ Pick labels per [`LABELS.md`](./LABELS.md): type + module + priority for Issues;
 
 1. **双语对照**：中文段落在上，English 在下；代码块/图表/标签名保持英文。
    Bilingual: Chinese first, English second; code/diagrams/labels in English.
-2. **frontmatter**：新增 md 文档需带 YAML 元数据（file/description/author/version/created/updated/status/tags/category），遵循《[YYC3-团队规范-开发标准](../YYC3-AI-Family-团队规范/标规文档/YYC3-团队规范-开发标准.md)》。
+2. **frontmatter**：新增 md 文档需带 YAML 元数据（file/description/author/version/created/updated/status/tags/category），遵循《YYC3-团队规范-开发标准》（`docs/YYC3-AI-Family-团队规范/标规文档/`，本地参考，不入远程库）。
 3. **Mermaid 图**：节点 ≤ 15 个；配色遵循 `#dfd/#0a0`（成功）与 `#fee/#c00`（失败）令牌；提交前 `python scripts/check_mermaid.py` 校验代码块闭合。
 4. **品牌页脚**：每篇收尾 `**® YANYUCLOUDCUBE** · © 2025-2026 言语（河南）智能科技有限公司`。
 

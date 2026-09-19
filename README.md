@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./public/yyc3-Family.png" alt="YYC³ AI Family — 品牌主视觉" width="100%" />
+
 # YYC³ · AI Family Token Console
 
 ### YYC³ · 本地多端推理矩阵数据库 · 数据看盘
@@ -55,8 +57,8 @@
 | 2 | **全端图标体系**：Android / Web / iOS / macOS / watchOS 五平台 32+ PNG 全链路对齐 | **Full-Platform Icons**: 5 platforms, 32+ PNGs, end-to-end aligned |
 | 3 | **PWA 全链路**：manifest + 运行时 head 注入 + CDN 回退 + 安装引导 | **PWA Full-Chain**: manifest + runtime head injection + CDN fallback + install prompt |
 | 4 | **双语 i18n**：zh-CN / en-US 全量语言包一致性测试保障 | **Bilingual i18n**: zh-CN / en-US packs guarded by consistency tests |
-| 5 | **质量门禁**：TypeScript strict + Vitest 80% 覆盖率门槛 + a11y 审计 | **Quality Gates**: TS strict + Vitest 80% coverage + a11y audit |
-| 6 | **闭环 CI/CD**：Typecheck → Test → Security Scan → Build 四阶段流水线 | **Closed-Loop CI/CD**: Typecheck → Test → Security Scan → Build |
+| 5 | **质量门禁**：TypeScript strict + Vitest 分级测试（1965+ 用例）+ 覆盖率基线爬坡 + a11y 审计 | **Quality Gates**: TS strict + tiered Vitest (1965+ tests) + baseline coverage ramp + a11y audit |
+| 6 | **闭环 CI/CD**：Typecheck → Lint(边界) → Unit Test → Security → Build(纪律三件套) 五阶段流水线 | **Closed-Loop CI/CD**: Typecheck → Lint(boundaries) → Unit Test → Security → Build(discipline) |
 | 7 | **零依赖部署**：Node 原生模块部署服务器 + Ollama 反向代理 | **Zero-Dep Deploy**: native Node server + Ollama reverse proxy |
 | 8 | **设计系统内嵌**：Design Tokens / 组件展示 / 阶段评审一体化 | **Embedded Design System**: tokens / showcase / stage review in one |
 
@@ -84,10 +86,17 @@ pnpm dev            # → http://localhost:3030
 # 3'. 局域网可访问 LAN accessible
 pnpm dev:host
 
-# 4. 质量门禁 Quality gates
+# 4. 质量门禁 Quality gates（与 CI 同款，本地绿 = CI 绿）
 pnpm typecheck      # TypeScript strict 检查
-pnpm test           # Vitest 单元测试
-pnpm test:coverage  # 覆盖率 (≥80% 门槛)
+pnpm lint           # ESLint 0-errors + import 分层边界
+pnpm test:unit      # Vitest 分级单测 (零外部依赖档)
+pnpm test:coverage  # 覆盖率 ≥ 基线门槛 (月度爬坡, 见 CICD.md)
+
+# 4'. 架构守护工具链 Architecture guards
+pnpm doctor         # 12 项环境/策略一键自诊断
+pnpm astgrep        # ast-grep 反模式扫描 (6 条规则)
+pnpm size:check     # 文件体量门禁 (基线只减不增)
+pnpm knip           # 死代码盘点 (基线只减不增)
 
 # 5. 生产构建 + 本地部署 Build & serve
 pnpm build          # Vite 生产构建 → dist/
@@ -98,40 +107,45 @@ pnpm serve:local    # 零依赖部署服务器 (默认 3118) + Ollama 代理
 
 ```
 YYC3-AI-API-Token-Console/
+├── AGENTS.md                       # AI 导师上下文总纲 (技术栈/门禁/红线)
+├── 404.html                        # SPA 404 回退 (静态资源不回退 + 深链还原)
 ├── .github/                        # CI 流水线 + Issue/PR 模板 + 标签清单
-│   ├── workflows/ci.yml            # 四阶段 CI（typecheck→test→scan→build）
+│   ├── workflows/ci.yml            # 五阶段 CI（typecheck→lint→test→scan→build）
 │   ├── workflows/release.yml       # tag v* 触发 GitHub Release
 │   ├── ISSUE_TEMPLATE/             # Bug/Feature/Docs 三模板
-│   ├── PULL_REQUEST_TEMPLATE.md    # PR 规范（五高对齐自检）
+│   ├── PULL_REQUEST_TEMPLATE.md    # PR 规范（五高自检 + Footprint Ladder 档位）
 │   └── labels.json                 # 仓库标签机器可读清单
 ├── index.html                      # Vite 入口 (全端 favicon/manifest 链)
-├── package.json                    # 脚本与依赖 (dev: 3030)
+├── package.json                    # 脚本与依赖 (dev: 3030 · 精确锁定无 ^ 漂移)
 ├── vite.config.ts                  # Vite + React + Tailwind v4
-├── vitest.config.ts                # 测试配置 (80% 门槛)
+├── vitest.config.ts                # 测试三项目工作区 (unit-dom/unit-node/integration)
+├── knip.config.ts                  # 死代码盘点基线 (只减不增)
 ├── public/
 │   ├── manifest.json               # PWA manifest (yyc3-icons 对齐)
 │   ├── yyc3-Family.png             # README 顶图 / 品牌主视觉
 │   └── yyc3-icons/                 # 全端图标体系 (5 平台 32+ PNG)
-│       ├── Android/  ├── Web App/  ├── iOS/
-│       ├── macOS/    └── watchOS/
 ├── deploy/
 │   └── server.mjs                  # 零依赖部署服务器 + Ollama 反向代理
 ├── scripts/
+│   ├── ast-grep/                   # 结构化反模式守护 (6 条规则)
+│   ├── check-size.mjs              # 体量门禁 (1500 行阈值 + 基线)
+│   ├── knip-check.mjs              # knip 基线门禁
+│   ├── doctor.mjs                  # 环境自诊断 (12 项)
 │   └── check_mermaid.py            # Mermaid 代码块开闭校验（pre-commit 闸）
 ├── src/
 │   ├── main.tsx                    # React 挂载入口
 │   ├── styles/                     # fonts / tailwind / theme
 │   └── app/
-│       ├── App.tsx                 # 根组件 (ErrorBoundary + Auth + i18n)
+│       ├── App.tsx                 # 根组件 (ErrorBoundary + Auth + i18n + 404 深链还原)
 │       ├── routes.ts               # 路由表 (六大功能域)
 │       ├── components/             # 60+ 业务组件
-│       ├── hooks/                  # 30+ 自定义 Hooks
-│       ├── lib/                    # yyc3-icons / 存储 / 网络工具
-│       └── __tests__/              # 140+ 测试文件
+│       ├── hooks/                  # 30+ 自定义 Hooks (AGENTS.md 细则)
+│       ├── config/providers/       # 提供商声明式配置 (JSON + zod)
+│       ├── lib/                    # yyc3-icons / 存储 / 网络工具 / batch 检查点
+│       └── __tests__/              # 116 测试文件 · 1965 用例 (AGENTS.md 细则)
 └── docs/                           # 文档体系（讲 why）
-    ├── YYC3-AI-Family-团队规范/     # 标规文档 + 模版闭环 + 验收体系
-    │   ├── 标规文档/                # 五维驱动 · 开发标准 · 图标可视化 · 多端适配
-    │   └── 模版闭环/                # CI/CD · 文档 · 发布 · 标签闭环模版
+    ├── YYC3-Phase2-4全量落地实施总结报告.md
+    ├── YYC3-可借鉴项实施规划-上游解耦版.md   # 四项目借鉴规划 (Phase 1-4)
     └── YYC3-开发者文档/             # 架构 / CI/CD / 标签 / 发布 / 贡献 / 安全
 ```
 
@@ -155,9 +169,14 @@ YYC3-AI-API-Token-Console/
 | 检查项 Gate | 工具 Tool | 通过标准 Standard |
 | ----------- | --------- | ----------------- |
 | 类型检查 | `tsc --noEmit` | 0 errors (strict) |
-| 单元测试 | `vitest` | 100% pass |
-| 覆盖率 | `vitest --coverage` | lines/branches ≥ 80% |
+| 代码规范 | `eslint` (ESLint 9 + boundaries) | 0 errors · import 分层契约 |
+| 单元测试 | `vitest --project unit-dom unit-node` | 100% pass (1965+ 用例) |
+| 覆盖率 | `vitest --coverage` | ≥ 基线门槛 (38/31/36/36, 月度 +2% 爬坡) |
 | 安全扫描 | `gitleaks` | 0 secrets leaked |
+| 反模式守护 | `ast-grep` (6 条规则) | 0 命中 |
+| 体量门禁 | `check-size.mjs` | 基线文件只减不增 |
+| 死代码盘点 | `knip-check.mjs` | 基线只减不增 |
+| 环境自诊断 | `doctor.mjs` | 12/12 通过 |
 | 构建验证 | `vite build` | 产物完整可部署 |
 
 ## 🤝 贡献指南 | Contributing
@@ -176,8 +195,9 @@ YYC3-AI-API-Token-Console/
 
 | 事件 Event | 工作流 Workflow | 说明 Description |
 | ----------- | ---------------- | ------------------ |
-| `push` → `main` / `develop` | `ci.yml` | 全量门禁（typecheck / test / scan / build） |
+| `push` → `main` / `develop` | `ci.yml` | 全量门禁（typecheck / lint / unit-test / scan / build+纪律三件套） |
 | `pull_request` → `main` / `develop` | `ci.yml` | PR 必需状态检查 |
+| CI 成功后自动 | `pages.yml` | GitHub Pages 部署 → <https://token.yyc3.vip> |
 | `push` tag `v*.*.*` | `release.yml` | 版本发布流水线（GitHub Release + 制品归档） |
 
 ## 🏷️ 仓库标签规范 | Labeling Policy

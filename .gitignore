@@ -48,6 +48,17 @@ tmp/
 # ── 设计资产（导航截图, 本地参考, 不入库）──────────────────
 public/一级导航-*/
 
+# ── 本地参考文档（不入远程库, 本地保留）────────────────────
+# 团队规范全景（标规文档/模版闭环/验收总结/验收系统）
+docs/YYC3-AI-Family-团队规范/
+# 项目设计 Guidelines（Family Matrix / P1 设计稿）
+docs/YYC3-Family-Matrix-Guidelines-项目设计/
+# 模型网关设计核心（五化设计文档；「开发推进」子目录保留入库）
+docs/YYC3-AI-Family-Token-Console-模型网关/YYC3-AI-Family-Token-Console-设计核心/
+# 历史会话工作目录（AI 导师会话存档）
+docs/open-webui-glm-turbo-*/
+docs/*-20[0-9][0-9][0-9][0-9][0-9][0-9]/
+
 # ── Python 工具链（模版闭环脚本本地运行产物）───────────────
 __pycache__/
 *.pyc

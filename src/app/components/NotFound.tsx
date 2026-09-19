@@ -11,6 +11,7 @@
  */
 
 import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useI18n } from "../hooks/useI18n";
 

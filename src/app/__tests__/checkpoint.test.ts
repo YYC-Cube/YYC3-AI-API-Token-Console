@@ -5,7 +5,7 @@
  * 只验证检查点协议本身 (续跑/幂等/恰好一次), 不测 IndexedDB 实现。
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // 内存版 idb 三件套 — 模拟「进程崩溃重启后数据仍在」跨调用共享
 // vi.hoisted: vi.mock 工厂被提升至文件顶部, 共享状态必须经 hoisted 创建
@@ -23,10 +23,10 @@ vi.mock("../lib/yyc3-storage", () => ({
 }));
 
 import {
-  confirmStep,
   createCheckpoint,
-  failCheckpoint,
+  confirmStep,
   finishCheckpoint,
+  failCheckpoint,
   runWithCheckpoint,
 } from "../lib/batch/checkpoint";
 
