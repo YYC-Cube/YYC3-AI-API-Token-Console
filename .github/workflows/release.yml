@@ -72,9 +72,8 @@ jobs:
     name: "🚀 GitHub Release"
     runs-on: ubuntu-latest
     needs: release-build
-    environment:
-      name: production
-      url: https://token.yyc3.vip
+    # 说明: 不绑定自定义 environment — 发布记录由 GitHub Release 页承载,
+    # 线上 URL 跟踪由 pages.yml 的 github-pages deployment 负责
     steps:
       - uses: actions/checkout@v4
 
