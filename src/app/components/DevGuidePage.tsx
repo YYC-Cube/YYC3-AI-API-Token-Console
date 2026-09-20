@@ -16,7 +16,6 @@ import {
   BookOpen, Server, Database, Globe, Cpu,
   Check, Clock, AlertCircle, ChevronRight,
   HardDrive, Terminal, MonitorSmartphone, Layers,
-  ArrowRight,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";

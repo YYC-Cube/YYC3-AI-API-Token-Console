@@ -15,7 +15,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
 import {
-  MessageSquare, Send, Square, Plus, Trash2, Bot, User,
+  MessageSquare, Send, Square, Plus, Trash2, User,
   Activity, Zap, BarChart3, Clock, AlertCircle,
   ChevronDown, Loader2, Cpu,
 } from "lucide-react";

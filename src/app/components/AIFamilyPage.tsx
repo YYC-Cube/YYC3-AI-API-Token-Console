@@ -9,7 +9,7 @@
  * 风格: 赛博朋克 · 深空黑背景 · 霓虹光效 · 真实时钟走动
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Ear, Brain, Eye, Star, Network, Shield, Scale,
   MessageCircle, ChevronRight, X, Sparkles,

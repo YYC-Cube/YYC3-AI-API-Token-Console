@@ -14,8 +14,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Bot, X, Send, Sparkles, Terminal, Settings, ChevronDown, ChevronUp,
-  Zap, Server, Database, Shield, RotateCcw, Play, Square, Copy, Check,
+ X, Send, Sparkles, Terminal, Settings, ChevronDown, ChevronUp,
+  Zap, Server, Database, Shield, RotateCcw, Play, Copy, Check,
   Cpu, HardDrive, Activity, Network, Layers, Key, Sliders, MessageSquare,
   BookOpen, Command, Minimize2, Maximize2, Trash2
 } from "lucide-react";

@@ -10,9 +10,8 @@
 import React from "react";
 import {
   Server, Database, Monitor, Terminal,
-  ArrowRight, ArrowLeftRight,
+  ArrowRight,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
 import type { DataFlowEdge } from "../types";
 import type { DataFlowNode } from "../types";
 

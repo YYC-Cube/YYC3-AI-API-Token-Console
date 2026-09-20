@@ -12,8 +12,8 @@
 import React, { useState, useMemo } from "react";
 import { GlassCard } from "./GlassCard";
 import {
-  AlertTriangle, ShieldAlert, Zap, Database, Globe, Layers, Code,
-  ChevronDown, ChevronRight, CheckCircle2, XCircle, AlertCircle,
+  AlertTriangle, ShieldAlert, Database, Globe, Layers, Code,
+  ChevronDown, ChevronRight, CheckCircle2, AlertCircle,
   GitBranch, FileWarning, Repeat, ArrowRightLeft, Bug, Wrench,
   Target, Clock, TrendingUp, BarChart3,
 } from "lucide-react";

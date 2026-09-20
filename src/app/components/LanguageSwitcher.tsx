@@ -7,7 +7,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Globe } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
-import type { Locale } from "../types";
 
 interface LanguageSwitcherProps {
   compact?: boolean;

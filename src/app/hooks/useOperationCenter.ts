@@ -5,7 +5,7 @@
  * 管理操作分类、快速操作、模板、日志流
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { usePersistedList } from "./usePersistedState";
 import type {

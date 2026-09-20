@@ -9,7 +9,7 @@
 
 import React, { useState, useCallback, useRef, useContext, useEffect } from "react";
 import {
-  FolderOpen, File, ChevronRight, ArrowUp, Plus, Trash2,
+  FolderOpen, File, ChevronRight, ArrowUp, Trash2,
   Download, Upload, Save, RotateCcw, Edit3, FolderPlus,
   FilePlus, Clock, HardDrive, AlertTriangle, X, Search,
   RefreshCcw, Image, History, Loader2, Code2,

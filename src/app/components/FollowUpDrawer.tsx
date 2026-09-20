@@ -7,9 +7,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User, Tag,
-  ChevronRight, Zap, Bot, CheckCircle, Loader2, Send, RotateCcw,
-  Link2, Server, Cpu, Activity, Copy, Check,
+  X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User,
+  ChevronRight, Zap, Bot, CheckCircle, Loader2, RotateCcw,
+  Link2, Server, Activity, Copy, Check,
 } from "lucide-react";
 import { OperationChain } from "./OperationChain";
 import { QuickActionGroup } from "./QuickActionGroup";

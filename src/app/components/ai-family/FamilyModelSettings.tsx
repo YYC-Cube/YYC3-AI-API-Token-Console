@@ -10,15 +10,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Server, Cloud, Shield, Cpu, Globe, Zap,
-  Search, Check, Copy, ChevronDown, ChevronRight,
+  Search, Check, ChevronDown, ChevronRight,
   Eye, EyeOff, AlertCircle, CheckCircle2, Loader2,
-  Activity, Clock, Settings2, Download, Upload,
-  Volume2, VolumeX, Bot, Sparkles, ArrowRight, X,
+  Activity, Settings2, Download, Upload,
+  Volume2, Bot, Sparkles, ArrowRight, X,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, MEMBERS_MAP, hexToRgb,
+  FAMILY_MEMBERS, hexToRgb,
   DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES,
   type FamilyMember, type MemberModelAssignment, type VoiceProfile,
 } from "./shared";

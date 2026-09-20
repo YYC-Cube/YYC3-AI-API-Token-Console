@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Heart, Users, MessageCircle, BookOpen, Music, TrendingUp,
   Coffee, Sun, Moon, Cloud,
-  Zap, Activity, Clock, Sparkles, ChevronRight,
+  Zap, Activity, Clock, ChevronRight,
   Smile, FileText, HandHeart, Phone, Gamepad2, Trophy,
   Volume2, Server, Radio, Database, Settings2,
 } from "lucide-react";

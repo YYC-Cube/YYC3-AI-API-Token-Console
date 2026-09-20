@@ -19,7 +19,7 @@ import {
   BarChart3, Layers, Database, Route, FileCode2,
   CheckCircle2, AlertTriangle, XCircle, Shield,
   ChevronDown, ChevronRight, GitBranch, Package,
-  TestTube2, Cpu, Globe, Palette, Eye,
+  TestTube2, Cpu, Globe, Eye,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";

@@ -2,9 +2,9 @@ import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
 import React, { useState, useMemo, useCallback } from "react";
 import {
-  Search, Filter, Download, Calendar, ChevronDown, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, AlertTriangle, Clock, RefreshCw, Eye, MoreHorizontal,
-  User, Shield, Database, Server, Activity, FileJson, Copy, Check
+  Search, Download, Calendar, ChevronDown, ChevronLeft, ChevronRight,
+  CheckCircle2, XCircle, AlertTriangle, Clock, RefreshCw, Eye,
+  User, Shield, Database, Activity, FileJson, Copy, Check
 } from "lucide-react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell

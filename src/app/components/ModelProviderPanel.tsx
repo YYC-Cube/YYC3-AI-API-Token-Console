@@ -12,7 +12,7 @@
 
 import React, { useContext, useState } from "react";
 import {
-  Plus, Trash2, Plug, Server, Cpu, Key,
+  Plus, Trash2, Plug, Server, Cpu,
   CheckCircle, AlertCircle, HelpCircle, RefreshCw,
   Edit3, Download, Upload, Globe, ChevronDown, ChevronUp,
 } from "lucide-react";

@@ -16,8 +16,9 @@ import { existsSync } from "node:fs";
 
 const MAX_LINES = 1500; // 拆分触发阈值 (较上游收紧 25%)
 // 基线: 2026-09-20 盘点锁定的超标存量文件 (§6.6.1) — 键为锁定行数
+// types/index.ts (1781) 已于 2026-09-20 按 Facade+Siblings 拆分为 6 个领域
+// sibling (§6.6.1 首个清零项), 从基线移出; index.ts 现 14 行 Facade
 const BASELINE = {
-  "src/app/types/index.ts": 1781,
   "src/app/components/SystemSettings.tsx": 1373,
   "src/app/components/ServiceConnectionTest.tsx": 1265,
   "src/app/components/AIFamilyDesignDoc.tsx": 1217,

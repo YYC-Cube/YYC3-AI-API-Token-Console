@@ -201,6 +201,8 @@ flowchart LR
 4. 首次部署成功后勾选 **Enforce HTTPS**
 
 > 常见坑：若站点 404，检查 Pages Source 是否仍为 `deploy from branch`；若资源 404，确认构建参数为 `--base=/` 而非默认子路径。
+> 深链回退：`public/404.html`（2026-09-20 自仓库根目录迁入 — 根目录文件不会被 Vite 拷贝进 dist，曾导致线上深链命中 GitHub Pages 默认 404 页）。深链访问会先落到该页，由其中脚本按「静态资源不回退 + hash 还原 + 深链重定向根路径」策略处理。
+> Deep-link fallback: `public/404.html` (moved from repo root on 2026-09-20 — root-level files are not copied into dist by Vite, which previously made live deep-links hit GitHub Pages' default 404).
 
 ---
 

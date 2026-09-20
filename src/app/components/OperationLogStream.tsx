@@ -7,7 +7,7 @@
 import React from "react";
 import {
   Search, Radio, CheckCircle, XCircle, Loader2, Clock,
-  Server, Brain, ListTodo, Settings, Puzzle, Filter,
+  Server, Brain, ListTodo, Settings, Puzzle,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { CATEGORY_META } from "../hooks/useOperationCenter";

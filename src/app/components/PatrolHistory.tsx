@@ -7,7 +7,7 @@
 
 import React, { useState } from "react";
 import {
-  Clock, Calendar, Shield, ChevronRight, CheckCircle,
+  Clock, Calendar, ChevronRight, CheckCircle,
   AlertTriangle, XCircle, User, Zap, Timer,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";

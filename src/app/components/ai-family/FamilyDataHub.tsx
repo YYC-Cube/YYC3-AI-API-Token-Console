@@ -13,15 +13,15 @@
 import React, { useState, useMemo } from "react";
 import {
   Database, Users, Trophy, Heart, MessageCircle,
-  TrendingUp, Award, Clock, BarChart3, Activity,
-  Download, ArrowRight, Star, Zap, Shield,
+  TrendingUp, Award, BarChart3, Activity,
+  Download, Star, Zap, Shield,
   BookOpen, Gamepad2, Sparkles, CalendarDays,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
   FAMILY_MEMBERS, FAMILY_ACTIVITIES, SAMPLE_MEMORIES, SAMPLE_MESSAGES,
-  MEMBER_MEDALS, MEDALS, getFamilyDataSummary, hexToRgb,
+  MEMBER_MEDALS, getFamilyDataSummary, hexToRgb,
   type FamilyMember,
 } from "./shared";
 

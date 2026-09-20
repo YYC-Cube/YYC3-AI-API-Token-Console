@@ -26,7 +26,7 @@ import {
   ChevronRight, ChevronDown, Play, Pause,
   Home, Headphones, Radio, Globe, Target,
   Award, Rocket, GitBranch, Layers, Code, Terminal,
-  BarChart3, Activity, Cpu, Database,
+  BarChart3, Activity, Database,
   Sun, Clock, Compass,
   FileText, FolderOpen, Settings, Bell,
   Quote, Mic, Volume2, Rss,

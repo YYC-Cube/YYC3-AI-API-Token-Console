@@ -13,9 +13,9 @@
 
 import React, { useState, useCallback, useContext } from "react";
 import {
-  Database, Plus, Trash2, Edit3, Check, X, Eye, EyeOff,
-  Plug, Unplug, TestTube, Download, Upload, RotateCcw,
-  Loader2, CheckCircle2, AlertTriangle, XCircle, Server,
+  Database, Plus, Trash2, Edit3, Check, Eye, EyeOff,
+ Unplug, TestTube, Download, Upload, RotateCcw,
+  Loader2, CheckCircle2, XCircle, Server,
   Settings2, Play, Clock, Layers,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";

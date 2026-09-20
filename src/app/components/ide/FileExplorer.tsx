@@ -8,9 +8,9 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   ChevronRight, ChevronDown, FileText, Folder, FolderOpen,
-  Search, Plus, RefreshCw, MoreHorizontal,
+  Search, RefreshCw, MoreHorizontal,
   FileCode, FileJson, FileType, File as FileIcon,
-  FilePlus, FolderPlus, Pencil, Trash2, Copy, Scissors,
+  FilePlus, FolderPlus, Pencil, Trash2, Copy,
   GitBranch,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";

@@ -6,7 +6,7 @@
 
 import React from "react";
 import {
-  CheckCircle, XCircle, Zap, Bot, ArrowRight,
+  CheckCircle, Zap, Bot, ArrowRight,
   Shield, Loader2,
 } from "lucide-react";
 import type { AIRecommendation } from "../types";

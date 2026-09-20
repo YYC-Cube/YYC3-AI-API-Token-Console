@@ -5,7 +5,6 @@
  */
 
 import React, { useState } from "react";
-import { GlassCard } from "../GlassCard";
 import type { ColorToken, TypographyToken, SpacingToken, ShadowToken, AnimationToken } from "../../types";
 
 // RF-011: Re-export 已移除 — 所有类型统一从 types/index.ts 导入

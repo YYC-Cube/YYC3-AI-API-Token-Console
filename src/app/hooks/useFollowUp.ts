@@ -6,7 +6,7 @@
  * Phase-3: localStorage 持久化 + CRUD
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { createLocalStore } from "../lib/create-local-store";
 import type { FollowUpItem, FollowUpStatus } from "../types";

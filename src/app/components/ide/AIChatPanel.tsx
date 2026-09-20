@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Bot, User, Send, Image as ImageIcon,
   FileCode, Link, Figma, Clipboard, Plus,
-  Sparkles, Code2, Bug, Zap, TestTube, RefreshCw,
+  Sparkles, Bug, Zap, TestTube, RefreshCw,
   Lightbulb, Wand2, Copy, Check,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";

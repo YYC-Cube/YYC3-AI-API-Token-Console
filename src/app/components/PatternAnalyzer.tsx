@@ -9,7 +9,6 @@ import {
   TrendingUp, TrendingDown, Minus, AlertTriangle,
   X, Clock, Repeat,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
 import type { DetectedPattern, PatternSeverity } from "../types";
 
 const severityConfig: Record<PatternSeverity, { color: string; bg: string; label: string }> = {

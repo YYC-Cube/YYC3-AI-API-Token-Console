@@ -7,7 +7,7 @@
  * 如果 lazy 加载失败（Figma 沙箱限制），自动 fallback 到静态 import。
  */
 
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState } from "react";
 import { useParams, useLocation } from "react-router";
 
 // ═══ Lazy 加载（减少初始 bundle 大小）═══

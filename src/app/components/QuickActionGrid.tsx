@@ -10,7 +10,6 @@ import {
   ArrowRightLeft, Pause, Play, HeartPulse, HardDrive, Terminal,
   Loader2, CheckCircle, XCircle, AlertTriangle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
 import type { OperationItem, OperationStatus } from "../types";
 
 const iconMap: Record<string, React.ElementType> = {

@@ -12,7 +12,6 @@ import {
   MessageCircle, Send, Users, ChevronLeft, Smile,
   Sparkles, Search,
 } from "lucide-react";
-import { GlassCard } from "../GlassCard";
 import { useNavigate } from "react-router";
 import { FAMILY_MEMBERS, AI_RESPONSES, hexToRgb, getMember } from "./shared";
 

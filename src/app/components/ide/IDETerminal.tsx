@@ -7,7 +7,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Terminal, Plus, X, ChevronUp, ChevronDown, Maximize2, Minimize2,
+  Terminal, Plus, X, ChevronUp, ChevronDown, Minimize2,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
 

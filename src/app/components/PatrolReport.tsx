@@ -7,7 +7,7 @@
 
 import React, { useState } from "react";
 import {
-  CheckCircle, AlertTriangle, XCircle, SkipForward, Shield,
+  CheckCircle, AlertTriangle, XCircle, SkipForward,
   Clock, Timer, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";

@@ -16,12 +16,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
-  Activity, BarChart3, AlertTriangle, Radar,
-  Wrench, RefreshCcw, FolderOpen, Settings,
+  Activity, AlertTriangle, Radar,
+  Wrench, FolderOpen, Settings,
   Brain, Sparkles, Cpu,
   Code2, Palette, BookOpen, Paintbrush, Terminal, Monitor,
   ShieldCheck, ClipboardList, Users, Cog,
-  MoreHorizontal, X, ChevronRight,
+  MoreHorizontal, X,
   BellRing, FileBarChart, BrainCircuit,
   HardDrive, Database, GitBranch,
   Smartphone,

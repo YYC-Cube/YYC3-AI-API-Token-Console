@@ -9,7 +9,7 @@
 import React, { useState } from "react";
 import {
   Bell, BellRing, Plus, Trash2, ToggleLeft, ToggleRight,
-  AlertTriangle, ShieldAlert, Info, ChevronRight,
+  AlertTriangle, ShieldAlert, Info,
   CheckCircle2, XCircle, Clock, TrendingUp,
   Filter, Zap, Settings, ArrowUpRight, Pencil, Wifi,
 } from "lucide-react";

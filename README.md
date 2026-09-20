@@ -108,7 +108,6 @@ pnpm serve:local    # 零依赖部署服务器 (默认 3118) + Ollama 代理
 ```
 YYC3-AI-API-Token-Console/
 ├── AGENTS.md                       # AI 导师上下文总纲 (技术栈/门禁/红线)
-├── 404.html                        # SPA 404 回退 (静态资源不回退 + 深链还原)
 ├── .github/                        # CI 流水线 + Issue/PR 模板 + 标签清单
 │   ├── workflows/ci.yml            # 五阶段 CI（typecheck→lint→test→scan→build）
 │   ├── workflows/release.yml       # tag v* 触发 GitHub Release
@@ -122,6 +121,7 @@ YYC3-AI-API-Token-Console/
 ├── knip.config.ts                  # 死代码盘点基线 (只减不增)
 ├── public/
 │   ├── manifest.json               # PWA manifest (yyc3-icons 对齐)
+│   ├── 404.html                    # SPA 404 回退 (静态资源不回退 + 深链还原; 经 Vite 进 dist)
 │   ├── yyc3-Family.png             # README 顶图 / 品牌主视觉
 │   └── yyc3-icons/                 # 全端图标体系 (5 平台 32+ PNG)
 ├── deploy/

@@ -9,7 +9,7 @@ import React, { useState, useCallback } from "react";
 import {
   GitBranch, GitCommit as GitCommitIcon, GitPullRequest,
   Plus, Minus, FileEdit, FilePlus, FileX, FileType,
-  Check, ChevronDown, ChevronRight, RefreshCw,
+  Check, ChevronDown, RefreshCw,
   ArrowUp, ArrowDown, Search,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";

@@ -10,7 +10,7 @@
  * - t() 函数支持嵌套 key 和模板变量
  */
 
-import React, { useState, useCallback, useMemo, createContext, useContext } from "react";
+import { useState, useCallback, useMemo, createContext, useContext } from "react";
 import { zhCN, enUS } from "../i18n";
 import type { TranslationKeys } from "../i18n";
 import type { Locale, LocaleInfo, I18nContextValue } from "../types";

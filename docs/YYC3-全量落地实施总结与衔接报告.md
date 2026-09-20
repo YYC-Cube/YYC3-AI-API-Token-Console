@@ -320,18 +320,20 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 
 ### 6.2 首轮遗留项闭环核对
 
-| 首轮遗留 | 处置状态 |
-| -------- | -------- |
+| 首轮遗留　　　　　　　　　　　　　　　　　　 | 处置状态　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　|
+| ----------------------------------------------| -------------------------------------------------------------------------------------------------------|
 | CORS 按网段收敛（`ALLOW_ORIGIN` 环境变量化） | ✅ 2026-09-20 落地（server.mjs 默认仅同源 + 白名单/CIDR 按需放行，9 项运行时验证全绿；见 SECURITY.md） |
-| `labels.yml` 自动同步 CI job | ⬜ 仍开放（P2） |
-| Pages 部署后 PWA 安装链路验证 | ⬜ 仍开放（P2，站点已上线待人工验证） |
-| 首轮 13 项已修复问题 | ✅ 全部保持闭环 |
+| `labels.yml` 自动同步 CI job　　　　　　　　 | ⬜ 仍开放（P2）　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　|
+| Pages 部署后 PWA 安装链路验证　　　　　　　　| 🔄 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200 + 深链 404 缺陷已修复）；浏览器安装/离线验证仍待人工　　　　　　　　　　　　　　　　　　　　　　　　　　　　|
+| 首轮 13 项已修复问题　　　　　　　　　　　　 | ✅ 全部保持闭环　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　|
 
-### 6.3 全量落地后的新 TOP 3 行动项（下次会话起点）
+### 6.3 全量落地后的新 TOP 3 行动项（2026-09-20 第三轮执行后）
 
 1. **[P1]** ~~CORS 按网段收敛~~ ✅ 2026-09-20 已完成（默认仅同源 + `ALLOW_ORIGIN`/`ALLOW_ORIGIN_CIDR` 收敛，运行时验证 9/9）
-2. **[P1]** lint 存量 295 warnings 渐进清零（随 knip/体量门禁季度评审推进）
-3. **[P2]** 5 个超标大文件按 Facade+Siblings 拆分（基线只减不增，每拆一个移出一个）
+2. **[P1]** ~~lint 存量 warnings 治理（首批）~~ ✅ 295 → 216（codemod v2 安全移除 121 个未用导入绑定，eslint+tsc 双重复验；`no-explicit-any` 84 项与 `exhaustive-deps` 22 项维持挂账渐进）
+3. **[P2]** ~~大文件拆分（首个）~~ ✅ types/index.ts 1781 → 14 行 Facade + 6 领域 sibling（core/network-sync/ui-shared/ai-provider/ops-monitor/design-system，全部 ≤522 行），基线 5 → 4；**useWebSocketData → stores 分层豁免同步清零**（§6.7 例外清单现为空）
+4. **[P2]** ~~Pages PWA 链路验证~~ ✅ 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200；深链 `/settings` 404 回退 **发现缺陷并已修复**：404.html 移入 `public/` 使其进入 dist 产物）；浏览器人工安装验证（iOS Safari / Chrome 添加到主屏 + 离线）仍待人工执行
+5. **[P2]** 剩余 4 个超标组件大文件拆分（SystemSettings 1373 / ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `no-explicit-any` 渐进清零
 
 ---
 
@@ -369,11 +371,11 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 Phase 1-3 全量闭环（17/17 ✅）；文档三合一（本报告 v2.0.0）；无进行中代码任务。
 
-### 8.3 当前优先级
+### 8.3 当前优先级（2026-09-20 第三轮执行后）
 
-1. **[P1]** lint warnings 渐进治理（CORS 已闭环）
-2. **[P2]** 大文件拆分 + 2026-12 Phase 4 触发条件季度核对
-3. **[P2]** Pages PWA 安装链路人工验证（manifest/图标/离线）
+1. **[P2]** 剩余 4 个超标组件拆分 + `no-explicit-any`(84)/`exhaustive-deps`(22) 渐进治理
+2. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
+3. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
 ### 8.4 文档资产索引
 

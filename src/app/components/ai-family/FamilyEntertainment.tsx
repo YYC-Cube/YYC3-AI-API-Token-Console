@@ -7,12 +7,12 @@
  * "不要冷冰冰的文档模块" — 这里是有温度的家人互动空间
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Gamepad2, Palette, Music2, BookOpen, Trophy,
   Swords, Puzzle, Dice5, Crown,
   Image, Megaphone, Radio, Heart,
-  Play, RotateCcw, Star, Sparkles,
+ RotateCcw, Star, Sparkles,
   Clock,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";

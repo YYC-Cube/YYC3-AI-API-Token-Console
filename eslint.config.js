@@ -104,9 +104,8 @@ export default tseslint.config(
             { from: ["main", "routes", "app"], allow: ["components", "hooks", "stores", "lib", "types"] },
             { from: "tests", allow: ["components", "hooks", "stores", "lib", "types"] },
             { from: "components", allow: ["components", "hooks", "stores", "lib", "types"] },
-            // 例外清单 (只减不增):
-            // - useWebSocketData → stores: 节点数据写回 dashboard-store (2026-09-20 盘点既有, 拆分时消除)
-            //   当前以 eslint-disable-next-line boundaries/element-types 局部豁免, 清除后本清单同步收紧
+            // 例外清单 (只减不增): 当前为空 — useWebSocketData → stores 豁免已于
+            // 2026-09-20 消除 (分层修复: 节点数据读取改为 lib 层注入), 首个豁免清零
             { from: "hooks", allow: ["hooks", "lib", "types"] },
             { from: "stores", allow: ["lib", "types"] },
             { from: "lib", allow: ["lib", "types"] },

@@ -9,11 +9,10 @@
 
 import React, { useState } from "react";
 import {
-  Check, X, AlertTriangle, Info, Loader2, Bell,
-  Activity, Shield, Server, Database, Zap,
-  ChevronRight, ExternalLink,
+  Check, X, AlertTriangle, Info, Loader2,
+ Shield, Server, Database, Zap,
+ ExternalLink,
 } from "lucide-react";
-import { GlassCard } from "../GlassCard";
 import type { StatusDef, ComponentEntry, InteractionSpec } from "../../types";
 
 // RF-011: Re-export 已移除

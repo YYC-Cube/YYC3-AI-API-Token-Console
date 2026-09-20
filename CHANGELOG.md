@@ -7,6 +7,18 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Refactored 重构
+
+- **types/index.ts Facade+Siblings 拆分（基线首个清零项）**: 1781 行巨型类型文件按 37 分区领域聚类为 6 个 sibling（core 233 / network-sync 129 / ui-shared 443 / ai-provider 371 / ops-monitor 522 / design-system 139），index.ts 收敛为 14 行 Facade 稳定重导出 — 116 处消费方 import 路径零改动；体量基线 5 → 4（§6.6 只减不增首次兑现）
+  types/index.ts split into 6 domain siblings via Facade pattern; consumers untouched; size baseline 5 → 4
+- **lint warnings 首批治理（295 → 216）**: `scripts/lint-warn-codemod.mjs` 安全移除 121 个未用导入绑定（eslint 单文件复验 + 全量 tsc 复验双保险，语义不符自动回滚单文件）；useWebSocketData → stores 分层豁免同步清零（§6.7 例外清单转空）；剩余 `no-explicit-any`(84) / `exhaustive-deps`(22) 挂账渐进
+  First lint pass: 121 unused import bindings removed with dual re-verification; boundaries exemption cleared; remainder deferred
+
+### Fixed 修复
+
+- **404.html 未进 dist 产物（Task 3.6 缺陷补修）**: 线上深链 `/settings` 实测命中 GitHub Pages 默认 404 页而非自定义回退页 — 根因为 404.html 位于仓库根目录、Vite 仅拷贝 `public/`；移入 `public/404.html` 后进入 dist。HTTP 验证: 首页/manifest/图标全 200
+  404.html moved into `public/` so Vite copies it to dist; live deep-link fallback now uses our page instead of GitHub Pages default
+
 ### Security 安全
 
 - **CORS 网段收敛（首轮遗留 P1 闭环）**: `deploy/server.mjs` 由「全放行 `*`」改为**默认仅同源**（不回 CORS 头），经 `ALLOW_ORIGIN`（精确来源白名单）/ `ALLOW_ORIGIN_CIDR`（IPv4 网段，如 `192.168.3.0/24`）按需放行；`ALLOW_ORIGIN="*"` 显式恢复旧行为（仅限可信内网）。启动横幅显示当前 CORS 模式；运行时验证 9 项场景全绿（默认拒绝/CIDR 命中与拒绝/域名拒绝/协议端口不匹配拒绝/通配/非法条目跳过）

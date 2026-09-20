@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import {
   Eye, History, Link2, Wrench, CheckCircle,
-  RotateCcw, Pause, ArrowUpRight, Loader2,
+ Pause, ArrowUpRight, Loader2,
 } from "lucide-react";
 
 interface ActionDef {

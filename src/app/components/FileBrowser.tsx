@@ -7,7 +7,7 @@
 import React from "react";
 import {
   Folder, FileText, FileJson, FileCode, ChevronRight,
-  ArrowUp, Home, RefreshCw,
+  ArrowUp, Home,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import type { FileItem } from "../types";

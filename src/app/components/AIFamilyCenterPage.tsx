@@ -13,8 +13,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Heart, ChevronRight, Phone, MessageCircle, Music, BookOpen,
-  Gamepad2, TrendingUp, Sparkles, Star, Shield, Award,
+  Heart, Phone, MessageCircle, Music, BookOpen,
+  Gamepad2, TrendingUp, Sparkles, Star, Shield,
   Clock, Users, Zap, HandHeart, Volume2, Trophy,
   Server, Radio, Database,
 } from "lucide-react";
@@ -22,7 +22,7 @@ import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router";
 import {
   FAMILY_MEMBERS, DEEP_BG, getGreeting, getHourlyCare,
-  hexToRgb, type FamilyMember,
+ type FamilyMember,
 } from "./ai-family/shared";
 
 // ═══ FadeIn (沙箱安全) ═══

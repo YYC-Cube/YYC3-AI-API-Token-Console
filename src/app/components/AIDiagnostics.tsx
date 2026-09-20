@@ -9,10 +9,10 @@
 import React from "react";
 import {
   BrainCircuit, Play, Loader2, Search, Zap,
-  AlertTriangle, CheckCircle2, TrendingUp, TrendingDown,
+  AlertTriangle, TrendingUp, TrendingDown,
   Minus, Target, Lightbulb, Clock, ArrowRight,
   Activity, Eye, BarChart3, ChevronRight,
-  Cpu, MemoryStick, Wifi, HardDrive,
+  Cpu, MemoryStick, Wifi,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
