@@ -7,9 +7,24 @@
  * - WebSocket 连接测试
  */
 
-import type { NetworkInterface, NetworkConfig, ConnectionTestResult } from "../types";
+import type { ConnectionTestResult, NetworkConfig, NetworkInterface } from "../types";
 
 // RF-011: Re-export 已移除 — 所有类型统一从 types/index.ts 导入
+
+/** NavigatorNetworkInformation 扩展 — Network Information API (W3C 草案, TS DOM 未收录) */
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    effectiveType?: string;
+    type?: string;
+    downlink?: number;
+    rtt?: number;
+  };
+}
+
+/** globalThis.WebSocket 检索 — 测试环境经 vi.stubGlobal 注入 Mock, 浏览器取原生实现 */
+function getWebSocketCtor(): typeof WebSocket | undefined {
+  return (globalThis as { WebSocket?: typeof WebSocket }).WebSocket;
+}
 
 /** 根据服务器地址和端口自动生成 WebSocket URL */
 export function generateWsUrl(address: string, port: string): string {
@@ -79,7 +94,7 @@ export async function getLocalIP(): Promise<string> {
 /** 检测网络接口信息 */
 export async function getNetworkInterfaces(): Promise<NetworkInterface[]> {
   const ip = await getLocalIP();
-  const connection = (navigator as any).connection;
+  const connection = (navigator as NavigatorWithConnection).connection;
   const effectiveType = connection?.effectiveType || "unknown";
   const isWifi = effectiveType === "4g" || connection?.type === "wifi";
 
@@ -123,7 +138,7 @@ export function testWebSocketConnection(
 
     try {
       // 显式经 globalThis 解析 — node 测试环境经 vi.stubGlobal 注入, 浏览器取原生实现
-      const WSImpl = (globalThis as any).WebSocket;
+      const WSImpl = getWebSocketCtor();
       if (typeof WSImpl !== "function") throw new Error("WebSocket 不可用");
       const ws = new WSImpl(url);
 
@@ -158,14 +173,14 @@ export function testWebSocketConnection(
           });
         }
       };
-    } catch (err: any) {
+    } catch (err) {
       if (!resolved) {
         resolved = true;
         clearTimeout(timer);
         resolve({
           success: false,
           latency: Date.now() - start,
-          error: err?.message || "网络不可达",
+          error: err instanceof Error ? err.message : "网络不可达",
         });
       }
     }
@@ -189,12 +204,12 @@ export async function testHTTPConnection(
     });
     clearTimeout(timer);
     return { success: true, latency: Date.now() - start };
-  } catch (err: any) {
+  } catch (err) {
     clearTimeout(timer);
     return {
       success: false,
       latency: Date.now() - start,
-      error: err?.name === "AbortError" ? "连接超时" : "网络不可达",
+      error: err instanceof Error && err.name === "AbortError" ? "连接超时" : "网络不可达",
     };
   }
 }

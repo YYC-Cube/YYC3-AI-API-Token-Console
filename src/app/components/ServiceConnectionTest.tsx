@@ -14,21 +14,35 @@
  * - 测试结果持久化 (localStorage)
  */
 
-import React, { useState, useCallback, useRef, useContext } from "react";
 import {
-  Zap, Play, RotateCcw, CheckCircle2, XCircle, AlertTriangle,
-  Loader2, Globe, Server, Database, Radio, Shield,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
   ChevronDown, ChevronUp, Clock,
-  ArrowRight, Terminal, Info, Copy,
-  Activity, Network,
+  Copy,
+  Database,
+  Globe,
+  Info,
+  Loader2,
+  Network,
+  Play,
+  Radio,
+  RotateCcw,
+  Server,
+  Shield,
+  Terminal,
+  XCircle,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { ViewContext } from "../lib/view-context";
-import { useModelProvider } from "../hooks/useModelProvider";
-import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
-import { env } from "../lib/env-config";
-import { getOllamaEndpointInfo, getOllamaChatUrl, getOllamaTagsUrl } from "../lib/ollama-url";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useModelProvider } from "../hooks/useModelProvider";
+import { env } from "../lib/env-config";
+import { getOllamaChatUrl, getOllamaEndpointInfo, getOllamaTagsUrl } from "../lib/ollama-url";
+import { ViewContext } from "../lib/view-context";
+import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
+import { GlassCard } from "./GlassCard";
 
 // ============================================================
 // Types
@@ -64,12 +78,12 @@ const toastStyle = {
 };
 
 const STATUS_META: Record<TestStatus, { label: string; color: string; icon: React.ElementType }> = {
-  idle:    { label: "待测试", color: "rgba(0,212,255,0.3)", icon: Clock },
+  idle: { label: "待测试", color: "rgba(0,212,255,0.3)", icon: Clock },
   running: { label: "测试中", color: "#ffdd00", icon: Loader2 },
-  pass:    { label: "通过",   color: "#00ff88", icon: CheckCircle2 },
-  fail:    { label: "失败",   color: "#ff3366", icon: XCircle },
-  warn:    { label: "警告",   color: "#ffaa00", icon: AlertTriangle },
-  skip:    { label: "跳过",   color: "rgba(0,212,255,0.2)", icon: Clock },
+  pass: { label: "通过", color: "#00ff88", icon: CheckCircle2 },
+  fail: { label: "失败", color: "#ff3366", icon: XCircle },
+  warn: { label: "警告", color: "#ffaa00", icon: AlertTriangle },
+  skip: { label: "跳过", color: "rgba(0,212,255,0.2)", icon: Clock },
 };
 
 const RESULTS_KEY = "yyc3_connection_test_results";
@@ -82,7 +96,7 @@ function loadResults(): TestResult[] {
 }
 
 function saveResults(results: TestResult[]) {
-  try { localStorage.setItem(RESULTS_KEY, JSON.stringify(results)); } catch {}
+  try { localStorage.setItem(RESULTS_KEY, JSON.stringify(results)); } catch { }
 }
 
 // ============================================================
@@ -106,11 +120,11 @@ async function testFetch(url: string, options: RequestInit = {}, timeoutMs = 800
     clearTimeout(timer);
     const latencyMs = Date.now() - start;
     let body = "";
-    try { body = await res.text(); } catch {}
+    try { body = await res.text(); } catch { }
     return { ok: res.ok, status: res.status, statusText: res.statusText, latencyMs, body };
-  } catch (err: any) {
+  } catch (err) {
     const latencyMs = Date.now() - start;
-    const msg = err?.message || String(err);
+    const msg = err instanceof Error && err.message ? err.message : String(err);
     let errorType: "cors" | "network" | "timeout" | "unknown" = "unknown";
     if (msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("CORS") || msg.includes("cross-origin") || msg.includes("net::ERR_FAILED")) {
       errorType = "cors";
@@ -218,15 +232,15 @@ export function ServiceConnectionTest() {
           if (r.ok) {
             const data = JSON.parse(r.body || "{}");
             const models = data.models || [];
-            const found = models.some((m: any) => m.name === model || m.model === model);
+            const found = models.some((m: { name?: string; model?: string }) => m.name === model || m.model === model);
             if (found) {
               result.steps[result.steps.length - 1] = { label: "模型列表", status: "pass", detail: `模型 ${model} 已安装 (共 ${models.length} 个模型)`, latencyMs: r.latencyMs, timestamp: Date.now() };
             } else {
-              result.steps[result.steps.length - 1] = { label: "模型列表", status: "warn", detail: `模型 ${model} 未找到。已安装: ${models.map((m: any) => m.name).join(", ") || "(空)"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
+              result.steps[result.steps.length - 1] = { label: "模型列表", status: "warn", detail: `模型 ${model} 未找到。已安装: ${models.map((m: { name?: string }) => m.name).join(", ") || "(空)"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
               result.suggestion = `请运行: ollama pull ${model}`;
             }
           }
-        } catch {}
+        } catch { }
 
         // Step 3: Chat test
         addStep("推理测试", "running", "发送 ping 请求...");
@@ -480,7 +494,7 @@ export function ServiceConnectionTest() {
     try {
       const start = Date.now();
       // 规范: WebSocket 统一经 globalThis 解析 (测试环境可 stub, 禁止裸 new WebSocket)
-      const WSImpl = (globalThis as any).WebSocket;
+      const WSImpl = (globalThis as { WebSocket?: typeof WebSocket }).WebSocket;
       if (typeof WSImpl !== "function") throw new Error("WebSocket 不可用");
       const ws = new WSImpl(wsEndpoint);
       const connected = await new Promise<boolean>((resolve) => {
@@ -496,8 +510,8 @@ export function ServiceConnectionTest() {
         result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `连接超时或被拒绝 (${latency}ms)`, latencyMs: latency, timestamp: Date.now() };
         result.suggestion = `WebSocket 端点 ${wsEndpoint} 不可达。Dashboard 将使用模拟数据。`;
       }
-    } catch (err: any) {
-      result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `异常: ${err.message}`, timestamp: Date.now() };
+    } catch (err) {
+      result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `异常: ${err instanceof Error ? err.message : String(err)}`, timestamp: Date.now() };
     }
 
     result.overallStatus = result.steps[0].status === "pass" ? "pass" : "fail";

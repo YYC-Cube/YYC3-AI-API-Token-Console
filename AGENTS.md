@@ -25,7 +25,7 @@ pnpm lint           # eslint 0 errors + import 分层边界 (boundaries)
 pnpm test:unit      # vitest 分级单测 (unit-dom + unit-node, 1965+ 用例)
 pnpm test:coverage  # 覆盖率基线锁定 (38/31/36/36, 月度爬坡)
 pnpm build          # 产物零密钥断言见 CI
-pnpm astgrep        # ast-grep 反模式扫描 (6 条规则)
+pnpm astgrep        # ast-grep 反模式扫描 (6 条规则 × ts/tsx 双语言)
 pnpm size:check     # 文件体量门禁 (基线只减不增)
 node scripts/knip-check.mjs  # 死代码基线门禁
 ```

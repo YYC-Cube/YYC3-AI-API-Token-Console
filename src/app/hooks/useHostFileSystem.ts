@@ -16,11 +16,20 @@
  *  - API 端点: POST /api/fs/{read|write|delete|rename|list|upload|search}
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { idbPut, idbGetAll, idbDelete } from "../lib/yyc3-storage";
 import { getAPIConfig } from "../lib/api-config";
-import type { HostFileEntry, FileVersion } from "../types";
+import { idbDelete, idbGetAll, idbPut } from "../lib/yyc3-storage";
+import type { FileVersion, HostFileEntry } from "../types";
+
+/** Chrome File System Access API: window.showDirectoryPicker (尚未入 TS 标准 DOM lib) */
+interface WindowWithDirectoryPicker {
+  showDirectoryPicker(options?: { mode?: "read" | "readwrite"; id?: string; startIn?: string }): Promise<FileSystemDirectoryHandle>;
+}
+
+function errMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 // ============================================================
 //  API 降级层 (后端接口预留)
@@ -51,8 +60,8 @@ async function apiFallback<T>(
     });
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
     return { ok: true, data: await res.json() };
-  } catch (err: any) {
-    return { ok: false, error: err?.message ?? "网络不可达" };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "网络不可达" };
   }
 }
 
@@ -135,7 +144,7 @@ async function readDirectory(
 ): Promise<HostFileEntry[]> {
   const entries: HostFileEntry[] = [];
 
-  for await (const [name, handle] of (dirHandle as any).entries()) {
+  for await (const [name, handle] of dirHandle.entries()) {
     const entry: HostFileEntry = {
       id: genId(),
       name,
@@ -187,7 +196,7 @@ async function searchInDirectory(
   if (results.length >= maxResults || depth > maxDepth) return;
   const lq = query.toLowerCase();
 
-  for await (const [name, handle] of (dirHandle as any).entries()) {
+  for await (const [name, handle] of dirHandle.entries()) {
     if (results.length >= maxResults) break;
 
     const path = `${parentPath}/${name}`;
@@ -313,7 +322,7 @@ export function useHostFileSystem() {
 
     try {
       setLoading(true);
-      const handle = await (window as any).showDirectoryPicker({
+      const handle = await (window as unknown as WindowWithDirectoryPicker).showDirectoryPicker({
         mode: "readwrite",
       });
       rootRef.current = handle;
@@ -330,9 +339,9 @@ export function useHostFileSystem() {
       setEntries(items);
       toast.success(`已打开目录: ${handle.name}`);
       await loadVersions();
-    } catch (err: any) {
-      if (err?.name !== "AbortError") {
-        toast.error(`打开目录失败: ${err?.message}`);
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        toast.error(`打开目录失败: ${errMessage(err)}`);
       }
     } finally {
       setLoading(false);
@@ -351,8 +360,8 @@ export function useHostFileSystem() {
       setSelectedEntry(null);
       setEditingContent(null);
       setImagePreviewUrl(null);
-    } catch (err: any) {
-      toast.error(`无法打开: ${err?.message}`);
+    } catch (err) {
+      toast.error(`无法打开: ${errMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -377,8 +386,8 @@ export function useHostFileSystem() {
       setSelectedEntry(null);
       setEditingContent(null);
       setImagePreviewUrl(null);
-    } catch (err: any) {
-      toast.error(`导航失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`导航失败: ${errMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -417,8 +426,8 @@ export function useHostFileSystem() {
       setSelectedEntry(null);
       setEditingContent(null);
       setImagePreviewUrl(null);
-    } catch (err: any) {
-      toast.error(`导航失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`导航失败: ${errMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -462,8 +471,8 @@ export function useHostFileSystem() {
       const text = await file.text();
       setEditingContent(text);
       setEditingDirty(false);
-    } catch (err: any) {
-      toast.error(`读取失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`读取失败: ${errMessage(err)}`);
       setEditingContent(null);
     }
   }, []);
@@ -496,7 +505,7 @@ export function useHostFileSystem() {
       }
 
       // 写入文件
-      const writable = await (fileHandle as any).createWritable();
+      const writable = await fileHandle.createWritable();
       await writable.write(editingContent);
       await writable.close();
 
@@ -509,8 +518,8 @@ export function useHostFileSystem() {
 
       // 刷新列表中的文件大小
       await refreshCurrentDir();
-    } catch (err: any) {
-      toast.error(`保存失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`保存失败: ${errMessage(err)}`);
     }
   }, [selectedEntry, editingContent, versions, refreshCurrentDir]);
 
@@ -521,14 +530,14 @@ export function useHostFileSystem() {
     try {
       const newHandle = await dirHandle.getFileHandle(name, { create: true });
       if (content) {
-        const writable = await (newHandle as any).createWritable();
+        const writable = await newHandle.createWritable();
         await writable.write(content);
         await writable.close();
       }
       await refreshCurrentDir();
       toast.success(`已创建: ${name}`);
-    } catch (err: any) {
-      toast.error(`创建失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`创建失败: ${errMessage(err)}`);
     }
   }, [getCurrentDirHandle, refreshCurrentDir]);
 
@@ -540,8 +549,8 @@ export function useHostFileSystem() {
       await dirHandle.getDirectoryHandle(name, { create: true });
       await refreshCurrentDir();
       toast.success(`已创建目录: ${name}`);
-    } catch (err: any) {
-      toast.error(`创建目录失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`创建目录失败: ${errMessage(err)}`);
     }
   }, [getCurrentDirHandle, refreshCurrentDir]);
 
@@ -558,8 +567,8 @@ export function useHostFileSystem() {
         setImagePreviewUrl(null);
       }
       toast.success(`已删除: ${entry.name}`);
-    } catch (err: any) {
-      toast.error(`删除失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`删除失败: ${errMessage(err)}`);
     }
   }, [getCurrentDirHandle, selectedEntry]);
 
@@ -574,7 +583,7 @@ export function useHostFileSystem() {
         const oldFile = await (entry.handle as FileSystemFileHandle).getFile();
         const content = await oldFile.arrayBuffer();
         const newHandle = await dirHandle.getFileHandle(newName, { create: true });
-        const writable = await (newHandle as any).createWritable();
+        const writable = await newHandle.createWritable();
         await writable.write(content);
         await writable.close();
         await dirHandle.removeEntry(entry.name);
@@ -585,8 +594,8 @@ export function useHostFileSystem() {
 
       await refreshCurrentDir();
       toast.success(`已重命名: ${entry.name} → ${newName}`);
-    } catch (err: any) {
-      toast.error(`重命名失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`重命名失败: ${errMessage(err)}`);
     }
   }, [getCurrentDirHandle, refreshCurrentDir]);
 
@@ -602,8 +611,8 @@ export function useHostFileSystem() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success(`下载中: ${entry.name}`);
-    } catch (err: any) {
-      toast.error(`下载失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`下载失败: ${errMessage(err)}`);
     }
   }, []);
 
@@ -615,15 +624,15 @@ export function useHostFileSystem() {
       let count = 0;
       for (const file of Array.from(files)) {
         const newHandle = await dirHandle.getFileHandle(file.name, { create: true });
-        const writable = await (newHandle as any).createWritable();
+        const writable = await newHandle.createWritable();
         await writable.write(file);
         await writable.close();
         count++;
       }
       await refreshCurrentDir();
       toast.success(`已上传 ${count} 个文件`);
-    } catch (err: any) {
-      toast.error(`上传失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`上传失败: ${errMessage(err)}`);
     }
   }, [getCurrentDirHandle, refreshCurrentDir]);
 
@@ -654,14 +663,14 @@ export function useHostFileSystem() {
     }
     try {
       const fileHandle = selectedEntry.handle as FileSystemFileHandle;
-      const writable = await (fileHandle as any).createWritable();
+      const writable = await fileHandle.createWritable();
       await writable.write(version.content);
       await writable.close();
       setEditingContent(version.content);
       setEditingDirty(false);
       toast.success(`已恢复到: ${version.label || version.id}`);
-    } catch (err: any) {
-      toast.error(`恢复失败: ${err?.message}`);
+    } catch (err) {
+      toast.error(`恢复失败: ${errMessage(err)}`);
     }
   }, [selectedEntry]);
 

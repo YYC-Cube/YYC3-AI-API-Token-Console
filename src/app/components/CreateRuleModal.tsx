@@ -144,11 +144,14 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule }: CreateRul
     setThresholds((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const updateThreshold = useCallback((index: number, field: keyof AlertThreshold, value: any) => {
-    setThresholds((prev) =>
-      prev.map((th, i) => (i === index ? { ...th, [field]: value } : th))
-    );
-  }, []);
+  const updateThreshold = useCallback(
+    (index: number, field: keyof AlertThreshold, value: string | number) => {
+      setThresholds((prev) =>
+        prev.map((th, i) => (i === index ? { ...th, [field]: value } : th))
+      );
+    },
+    []
+  );
 
   // Escalation management
   const addEscalation = useCallback(() => {
@@ -163,11 +166,14 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule }: CreateRul
     setEscalation((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const updateEscalation = useCallback((index: number, field: string, value: any) => {
-    setEscalation((prev) =>
-      prev.map((esc, i) => (i === index ? { ...esc, [field]: value } : esc))
-    );
-  }, []);
+  const updateEscalation = useCallback(
+    (index: number, field: keyof EscalationPolicy, value: string | number | string[] | undefined) => {
+      setEscalation((prev) =>
+        prev.map((esc, i) => (i === index ? { ...esc, [field]: value } : esc))
+      );
+    },
+    []
+  );
 
   const toggleChannel = useCallback((escIndex: number, channel: string) => {
     setEscalation((prev) =>

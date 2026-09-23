@@ -10,10 +10,10 @@
  * - t() 函数支持嵌套 key 和模板变量
  */
 
-import { useState, useCallback, useMemo, createContext, useContext } from "react";
-import { zhCN, enUS } from "../i18n";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { TranslationKeys } from "../i18n";
-import type { Locale, LocaleInfo, I18nContextValue } from "../types";
+import { enUS, zhCN } from "../i18n";
+import type { I18nContextValue, Locale, LocaleInfo } from "../types";
 
 // RF-011: Re-export 已移除
 
@@ -28,7 +28,7 @@ const localeMap: Record<Locale, TranslationKeys> = {
 
 export const SUPPORTED_LOCALES: LocaleInfo[] = [
   { code: "zh-CN", label: "简体中文", nativeLabel: "简体中文" },
-  { code: "en-US", label: "English",  nativeLabel: "English" },
+  { code: "en-US", label: "English", nativeLabel: "English" },
 ];
 
 const STORAGE_KEY = "yyc3_locale";
@@ -41,12 +41,12 @@ const STORAGE_KEY = "yyc3_locale";
  * 通过点分 key 获取嵌套翻译值
  * e.g. t("nav.dataMonitor") → zhCN.nav.dataMonitor
  */
-function getNestedValue(obj: Record<string, any>, path: string): string {
+function getNestedValue(obj: unknown, path: string): string {
   const keys = path.split(".");
-  let result: any = obj;
+  let result: unknown = obj;
   for (const k of keys) {
     if (result == null || typeof result !== "object") return path;
-    result = result[k];
+    result = (result as Record<string, unknown>)[k];
   }
   return typeof result === "string" ? result : path;
 }
@@ -67,9 +67,9 @@ function interpolate(template: string, vars?: Record<string, string | number>): 
 
 export const I18nContext = createContext<I18nContextValue>({
   locale: "zh-CN",
-  setLocale: () => {},
+  setLocale: () => { },
   t: (key, vars) => {
-    const raw = getNestedValue(zhCN as Record<string, any>, key);
+    const raw = getNestedValue(zhCN, key);
     return vars ? interpolate(raw, vars) : raw;
   },
   locales: SUPPORTED_LOCALES,
@@ -100,7 +100,7 @@ export function useI18nProvider() {
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>): string => {
-      const raw = getNestedValue(translations as Record<string, any>, key);
+      const raw = getNestedValue(translations, key);
       return interpolate(raw, vars);
     },
     [translations]

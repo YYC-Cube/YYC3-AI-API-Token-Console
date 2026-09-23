@@ -153,7 +153,7 @@ supersedes: YYC3-深度分析-现状审计与演进指导.md / YYC3-四项目深
 | 3.4 | checkpoint 恢复管线（崩溃续跑/步骤幂等/恰好一次，5 用例） | [src/app/lib/batch/checkpoint.ts](../src/app/lib/batch/checkpoint.ts) | L2 | 断点续跑语义验证 | ✅ `47a31c0` |
 | 3.5 | `pnpm doctor` 自诊断（12 项检查 0 warning） | [scripts/doctor.mjs](../scripts/doctor.mjs) | L2 | 新机初始化 ≤ 10 分钟 | ✅ `47a31c0` |
 | 3.6 | SPA 404 回退精细化（静态资源不回退 + `?yyc3_fallback=` 深链还原防循环） | [404.html](../404.html) + App.tsx | L2 | 资源缺失报真实 404 | ✅ `47a31c0` |
-| 3.7 | ast-grep 结构化守护（6 条规则：裸 WS/document.write/innerHTML/隐式 eval/process.env/硬编码密钥） | [scripts/ast-grep/](../scripts/ast-grep/rules/) | L1 | 规则 ≥5 条 + CI 集成 | ✅ `47a31c0` |
+| 3.7 | ast-grep 结构化守护（6 条规则 × ts/tsx 双语言，共 12 文件：裸 WS/document.write/innerHTML/隐式 eval/process.env/硬编码密钥） | [scripts/ast-grep/](../scripts/ast-grep/rules/) | L1 | 规则 ≥5 条 + CI 集成 | ✅ `47a31c0` |
 
 **里程碑 M3 ✅**：架构违规「无法合入」而非「靠 review 发现」。
 
@@ -334,7 +334,8 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 3. **[P2]** ~~大文件拆分（首个）~~ ✅ types/index.ts 1781 → 14 行 Facade + 6 领域 sibling（core/network-sync/ui-shared/ai-provider/ops-monitor/design-system，全部 ≤522 行），基线 5 → 4；**useWebSocketData → stores 分层豁免同步清零**（§6.7 例外清单现为空）
 4. **[P2]** ~~Pages PWA 链路验证~~ ✅ 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200；深链 `/settings` 404 回退 **发现缺陷并已修复**：404.html 移入 `public/` 使其进入 dist 产物）；浏览器人工安装验证（iOS Safari / Chrome 添加到主屏 + 离线）仍待人工执行
 5. **[P2]** ~~剩余 4 个超标组件大文件拆分（首个：SystemSettings 1373）~~ ✅ 2026-09-24 完成：SystemSettings 1373 → 193 行主壳 + 6 领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行），基线 4 → 3；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化）
-6. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `no-explicit-any` 渐进清零
+6. **[P2]** ~~`no-explicit-any` 全量清零~~ ✅ 2026-09-24 完成：81 → 0（16 文件），catch 块统一 `err instanceof Error` 提取 + 浏览器非标准 API 最小契约 interface（`WindowWithDirectoryPicker`/`NavigatorWithConnection`/`PerformanceWithMemory`/`RegistrationWithSync`/`MinimalSpeechRecognition`）+ 动态数据具名联合收窄（`NodeStatusType`/`LogLevel`/`RecentOpEntry["status"]`）；lint 警告 216 → 121，1965 用例全绿
+7. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `exhaustive-deps`(22) 渐进治理
 
 ---
 
@@ -370,11 +371,11 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-SystemSettings 拆分已完成并通过全量门禁（typecheck 0 错 / lint 0 错 216 警告 / 1965 用例全绿 / build 3.07s / size·knip·astgrep 全绿）；无进行中代码任务。
+`no-explicit-any` 全量清零已完成并通过全量门禁（typecheck 0 错 / lint 0 错 121 警告 / 1965 用例全绿 / no-explicit-any 81 → 0）；无进行中代码任务。
 
 ### 8.3 当前优先级（2026-09-24 第四轮执行后）
 
-1. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `no-explicit-any`(84) 分布审计 + 可安全转型批次 → `exhaustive-deps`(22) 渐进治理
+1. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
 2. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
 3. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
@@ -399,6 +400,7 @@ SystemSettings 拆分已完成并通过全量门禁（typecheck 0 错 / lint 0 �
 | 2026-09-20 | v1.0.0（归档） | Phase 2-4 全量落地实施总结报告 | 交付记录 |
 | 2026-09-20 | **v2.0.0（本报告）** | 三文档 + 审计衔接合并为一；27 项借鉴项全景处置标记；五维得分刷新至 94 | 消除多文档同步成本，收敛单一事实源 |
 | 2026-09-24 | v2.1.0 | SystemSettings 1373 → 193 主壳 + 6 sibling（基线 4→3）；boundaries v7 语法重写（组合根/tests 增 file categories entry，例外清单保持为空）；knip StoredNode 死类型清零 | §8.3 第四轮 TOP 3 执行 |
+| 2026-09-24 | v2.1.1 | `no-explicit-any` 全量清零 81 → 0（16 文件：错误处理类型化 + 浏览器 API 最小契约 + 具名联合收窄）；lint 警告 216 → 121 | §6.3 第 6 项闭环 |
 
 ---
 

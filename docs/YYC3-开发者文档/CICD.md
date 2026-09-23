@@ -156,7 +156,7 @@ pnpm lint             # Gate 1b · ESLint 0-errors + import 分层边界
 pnpm test:unit        # Gate 2a · 分级单测 (unit-dom + unit-node)
 pnpm test:coverage    # Gate 2b · 覆盖率 ≥ 基线门槛 (38/31/36/36, 月度爬坡)
 pnpm build            # Gate 4 · 生产构建
-pnpm astgrep          # Gate 4 · ast-grep 反模式扫描 (6 条规则)
+pnpm astgrep          # Gate 4 · ast-grep 反模式扫描 (6 条规则 × ts/tsx 双语言)
 pnpm size:check       # Gate 4 · 体量门禁 (基线只减不增)
 node scripts/knip-check.mjs  # Gate 4 · knip 基线门禁
 pnpm doctor           # 环境自诊断 (12 项, 非门禁)

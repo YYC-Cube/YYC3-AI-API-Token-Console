@@ -94,7 +94,7 @@ pnpm test:coverage  # 覆盖率 ≥ 基线门槛 (月度爬坡, 见 CICD.md)
 
 # 4'. 架构守护工具链 Architecture guards
 pnpm doctor         # 12 项环境/策略一键自诊断
-pnpm astgrep        # ast-grep 反模式扫描 (6 条规则)
+pnpm astgrep        # ast-grep 反模式扫描 (6 条规则 × ts/tsx 双语言)
 pnpm size:check     # 文件体量门禁 (基线只减不增)
 pnpm knip           # 死代码盘点 (基线只减不增)
 
@@ -127,7 +127,7 @@ YYC3-AI-API-Token-Console/
 ├── deploy/
 │   └── server.mjs                  # 零依赖部署服务器 + Ollama 反向代理
 ├── scripts/
-│   ├── ast-grep/                   # 结构化反模式守护 (6 条规则)
+│   ├── ast-grep/                   # 结构化反模式守护 (6 条规则 × ts/tsx)
 │   ├── check-size.mjs              # 体量门禁 (1500 行阈值 + 基线)
 │   ├── knip-check.mjs              # knip 基线门禁
 │   ├── doctor.mjs                  # 环境自诊断 (12 项)
@@ -173,7 +173,7 @@ YYC3-AI-API-Token-Console/
 | 单元测试 | `vitest --project unit-dom unit-node` | 100% pass (1965+ 用例) |
 | 覆盖率 | `vitest --coverage` | ≥ 基线门槛 (38/31/36/36, 月度 +2% 爬坡) |
 | 安全扫描 | `gitleaks` | 0 secrets leaked |
-| 反模式守护 | `ast-grep` (6 条规则) | 0 命中 |
+| 反模式守护 | `ast-grep` (6 条规则 × ts/tsx) | 0 命中 |
 | 体量门禁 | `check-size.mjs` | 基线文件只减不增 |
 | 死代码盘点 | `knip-check.mjs` | 基线只减不增 |
 | 环境自诊断 | `doctor.mjs` | 12/12 通过 |

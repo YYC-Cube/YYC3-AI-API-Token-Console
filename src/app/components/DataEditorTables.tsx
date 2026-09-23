@@ -31,8 +31,8 @@ const toastStyle = {
 function sortItems<T>(items: T[], field: string, dir: "asc" | "desc"): T[] {
   if (!field) return items;
   return [...items].sort((a, b) => {
-    const va = (a as any)[field];
-    const vb = (b as any)[field];
+    const va = (a as Record<string, unknown>)[field];
+    const vb = (b as Record<string, unknown>)[field];
     if (typeof va === "number" && typeof vb === "number") return dir === "asc" ? va - vb : vb - va;
     const sa = String(va ?? "").toLowerCase();
     const sb = String(vb ?? "").toLowerCase();

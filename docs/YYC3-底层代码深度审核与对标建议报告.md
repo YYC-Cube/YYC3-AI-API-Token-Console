@@ -4,6 +4,8 @@
 > 审核对象：`YYC3-AI-API-Token-Console`（纯前端 SPA，`token.yyc3.vip`）
 > 审核方式：底层源码逐层精读 + 全量质量门禁实测 + 与四大同类大数据项目（open-webui / hermes-agent / dify / ragflow）核心技术对标
 > 性质：有依托的工程审核报告，所有结论均标注文件路径与行号（`文件:行`）可复现验证
+>
+> **修复状态（2026-09-24 更新）**：§5 中 P0-1（ESLint 分层契约失效）、P0-2（ast-grep 守护失效）及其连带违规（`hooks → stores` 跨层、裸 `new WebSocket`）已全部修复并经反向验证确认门禁真实生效。修复明细见文末「附：P0 修复记录」。
 
 ---
 
@@ -196,8 +198,8 @@
 | --- | --- | --- |
 | 供应链治理 | ⭐⭐⭐⭐⭐ | dify 级治理完整落地 |
 | 测试体系 | ⭐⭐⭐⭐ | 1965 用例全绿，覆盖率待爬坡 |
-| 架构分层设计 | ⭐⭐⭐⭐ | 设计正确，**执行失效** |
-| 结构化守护 | ⭐⭐ | 6 规则**静默失效** |
+| 架构分层设计 | ⭐⭐⭐⭐ | 设计正确，✅ 已修复（v7 语法 + resolver） |
+| 结构化守护 | ⭐⭐⭐⭐ | ✅ 已修复（ts + tsx 双语言拆分） |
 | 数据一致性 | ⭐⭐⭐ | 三处 Mock 数据矛盾 |
 | 性能/体量 | ⭐⭐ | 主包超阈值 5 倍 |
 | 安全收敛 | ⭐⭐⭐ | 默认凭据/明文密码/ghost 绕过 |
@@ -205,3 +207,38 @@
 **总体**：这是一份"骨架优秀、纪律一流、但防腐防线失守"的工程现状。优先修复 P0 门禁空心问题并建立"门禁有效性探针"，是让这套工程化体系真正可信的关键一步；其余为可排期的常规治理项。
 
 > 注：本报告所有结论均可通过文中标注的 `文件:行` 复现验证。财务/金融类分析不在本报告范围（本项目为基础设施看盘系统，非金融业务）。
+
+---
+
+## 附：P0 修复记录（2026-09-24 实施）
+
+针对 §5-P0 两条失效防线，已完成修复并通过反向验证确认门禁真实生效。
+
+### 修复 1：ESLint 分层契约重写（P0-1）
+
+- **根因**：`eslint-plugin-boundaries` 已升级 7.2.0，但 `eslint.config.js` 仍用 v5/v6 legacy 语法（`mode:"full"` / `rules` 选项 / bare selector / `${...}` 模板），插件仅告警不拦截。
+- **动作**：
+  1. `eslint.config.js` boundaries 段重写为 v7 语法：`boundaries/dependencies` + `policies` + `to:{element:{type}}` + `partialMatch:false`；组合根单文件（`App.tsx`/`routes.ts`/`main.tsx`）改用 `boundaries/files` file descriptor + category。
+  2. 新增 devDependency `eslint-import-resolver-typescript@4.4.5`（v7 依赖 eslint 生态 import resolver 解析相对路径，否则 `to` element 恒为 unknown）。
+  3. `settings["import/resolver"].typescript` 配置；`pnpm-workspace.yaml` 的 `allowBuilds` 追加 `unrs-resolver`（其 Rust 原生解析器 postinstall 需白名单）。
+- **连带修复**：`hooks → stores` 跨层引用（`useWebSocketData.ts:39`）。节点数据单一事实源下沉至 `lib/nodes.ts`，`stores/dashboard-stores.ts` 改为 re-export，`useWebSocketData.ts` 改从 `lib/nodes` 导入。
+- **验证**：临时植入 `lib → stores` 违规样本，`eslint` 返回 `boundaries/dependencies` error；全量 `pnpm lint` 0 error / 216 warning。
+
+### 修复 2：ast-grep 结构化守护修正（P0-2）
+
+- **根因**：6 条规则统一声明 `language: tsx`，ast-grep 0.45.3 中 `language` 与文件扩展名强绑定（单值枚举，不支持数组），导致 `.ts` 文件（含 `useWebSocketData.ts` 的裸 `new WebSocket`）被全部漏扫。
+- **动作**：6 条规则拆分为 ts/tsx 双语言版本（`language: ts` 覆盖 `.ts`，`language: tsx` 覆盖 `.tsx`），共 12 个规则文件（`scripts/ast-grep/rules/*-tsx.yml`）。
+- **连带修复**：`useWebSocketData.ts:142` 裸 `new WebSocket(wsUrl)` 改为经 `globalThis.WebSocket` 解析（对齐 `network-utils.ts` 与 AGENTS.md 红线 #3）。
+- **验证**：`pnpm astgrep` 全量 0 违规；反向植入 `.ts` / `.tsx` 裸 WebSocket 样本，分别被 `no-bare-websocket` / `no-bare-websocket-tsx` 拦截。
+
+### 门禁回归
+
+| 门禁 | 修复后结果 |
+| --- | --- |
+| `pnpm typecheck` | 0 error ✅ |
+| `pnpm lint` | 0 error / 216 warning ✅ |
+| `pnpm test:unit` | 116 文件 / 1965 用例全绿 ✅ |
+| `pnpm astgrep` | 0 违规 ✅ |
+| 反向验证（植入违规样本） | 两条防线均真实拦截 ✅ |
+
+> 遗留项：P0-3「门禁有效性回归测试」（在 CI 植入已知违规样本、断言门禁必须红灯）尚未落地，建议作为下一轮 P0 动作补充，防止防线再次因工具升级而静默失效。

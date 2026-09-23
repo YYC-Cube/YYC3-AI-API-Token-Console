@@ -123,17 +123,19 @@ class MockSupabaseClient {
   /** Mock 数据查询（模拟 Supabase .from().select() 链） */
   from(table: string) {
     return {
-      select: (columns?: string) => ({
-        eq: (col: string, val: any) => this._mockQuery(table, { [col]: val }),
-        order: (col: string, opts?: { ascending?: boolean }) => this._mockQuery(table),
-        limit: (n: number) => this._mockQuery(table),
-        then: (resolve: (val: any) => void) => resolve(this._mockQuery(table)),
+      select: (_columns?: string) => ({
+        eq: (col: string, val: string | number | boolean) =>
+          this._mockQuery(table, { [col]: val }),
+        order: (_col: string, _opts?: { ascending?: boolean }) => this._mockQuery(table),
+        limit: (_n: number) => this._mockQuery(table),
+        then: (resolve: (val: { data: never[]; error: null; count: number }) => void) =>
+          resolve(this._mockQuery(table)),
       }),
     };
   }
 
-  private _mockQuery(table: string, filters?: Record<string, any>) {
-    return { data: [], error: null, count: 0 };
+  private _mockQuery(_table: string, _filters?: Record<string, string | number | boolean>) {
+    return { data: [] as never[], error: null, count: 0 };
   }
 }
 

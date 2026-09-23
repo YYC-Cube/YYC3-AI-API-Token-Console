@@ -7,11 +7,16 @@
  * - 恢复网络后自动同步
  */
 
-import type { SyncItem, SyncQueueStats, SyncProcessResult } from "../types";
+import type { SyncItem, SyncProcessResult, SyncQueueStats } from "../types";
 
 // RF-011: Re-export 已移除
 
 const SYNC_QUEUE_KEY = "yyc3_sync_queue";
+
+/** ServiceWorkerRegistration.sync 扩展 — Background Sync API (Chrome 专属, TS DOM 未收录) */
+interface RegistrationWithSync extends ServiceWorkerRegistration {
+  sync?: { register: (tag: string) => Promise<void> };
+}
 
 /** 注册后台同步（需 Service Worker 支持） */
 export async function registerBackgroundSync(tag = "sync-data") {
@@ -27,7 +32,7 @@ export async function registerBackgroundSync(tag = "sync-data") {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    await (registration as any).sync.register(tag);
+    await (registration as RegistrationWithSync).sync?.register(tag);
     return true;
   } catch {
     console.log("[BackgroundSync] 注册失败");

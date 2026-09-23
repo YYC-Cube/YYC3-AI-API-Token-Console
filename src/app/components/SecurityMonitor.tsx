@@ -6,19 +6,33 @@
  * 赛博朋克风格，深色 #060e1f + 青色 #00d4ff
  */
 
-import React from "react";
 import {
-  Shield, Zap, Cpu, Database,
-  ScanLine, CheckCircle2, XCircle, AlertTriangle,
-  Cookie, Eye, FileSearch, BarChart3,
-  MemoryStick, Gauge, Monitor, Wifi,
-  Globe, HardDrive, Trash2, Download,
-  Upload, RefreshCw, Lock,
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  Cookie,
+  Cpu, Database,
+  Download,
+  Eye, FileSearch,
+  Gauge,
+  Globe, HardDrive,
+  Lock,
+  MemoryStick,
+  Monitor,
+  RefreshCw,
+  ScanLine,
+  Shield,
+  Trash2,
+  Upload,
+  Wifi,
+  XCircle,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React from "react";
 import { useI18n } from "../hooks/useI18n";
 import { useSecurityMonitor } from "../hooks/useSecurityMonitor";
-import type { SecurityTab, RiskLevel, VitalRating } from "../types";
+import type { RiskLevel, SecurityTab, VitalRating } from "../types";
+import { GlassCard } from "./GlassCard";
 
 // ============================================================
 // Helpers
@@ -287,7 +301,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.memoryTitle")}</span>
           </div>
           <span style={{ fontSize: "0.7rem", color: riskColor(memory.leakRisk) }}>
-            {t("security.memoryLeakRisk")}: {t(`security.memory${memory.leakRisk.charAt(0).toUpperCase() + memory.leakRisk.slice(1)}` as any)}
+            {t("security.memoryLeakRisk")}: {t(`security.memory${memory.leakRisk.charAt(0).toUpperCase() + memory.leakRisk.slice(1)}`)}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -330,7 +344,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <div key={v.name}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[rgba(224,240,255,0.7)]" style={{ fontSize: "0.72rem" }}>
-                  {t(`security.vitals${v.name}` as any)}
+                  {t(`security.vitals${v.name}`)}
                 </span>
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: "0.85rem", color: vitalColor(v.rating), fontFamily: "'Orbitron', sans-serif" }}>
@@ -420,10 +434,10 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
               value: network.isStable ? t("security.networkStable") : t("security.networkUnstable"),
               color: network.isStable ? "#00ff88" : "#ff3366",
             },
-          ].map((item) => (
+          ].map((item: { label: string; value: string; color?: string }) => (
             <div key={item.label} className="flex items-center justify-between" style={{ fontSize: "0.72rem" }}>
               <span className="text-[rgba(0,212,255,0.5)]">{item.label}</span>
-              <span style={{ color: (item as any).color || "#e0f0ff" }}>{item.value}</span>
+              <span style={{ color: item.color || "#e0f0ff" }}>{item.value}</span>
             </div>
           ))}
         </div>

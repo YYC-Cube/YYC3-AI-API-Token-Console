@@ -9,6 +9,8 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Refactored 重构
 
+- **no-explicit-any 全量清零（81 → 0）**: 16 个文件的显式 `any` 全部转型——catch 块统一 `err instanceof Error` / `errMessage()` 提取；浏览器非标准 API 经最小契约 interface 扩展（`WindowWithDirectoryPicker` / `NavigatorWithConnection` / `PerformanceWithMemory` / `RegistrationWithSync` / `MinimalSpeechRecognition`）；动态数据经 `Record<string, unknown>` / 具名联合收窄（`NodeStatusType` / `LogLevel` / `RecentOpEntry["status"]` / `keyof AlertThreshold`）；`globalThis.WebSocket` 经 `{ WebSocket?: typeof WebSocket }` 解析。lint 警告 216 → 121，typecheck 0 错，1965 用例全绿
+  All 81 explicit `any` eliminated across 16 files: typed error handling, minimal-contract interfaces for non-standard browser APIs, and precise union narrowing; lint warnings 216 → 121
 - **SystemSettings.tsx Facade+Siblings 拆分（基线 4 → 3）**: 1373 行巨型设置组件拆分为 193 行主壳（侧栏导航 + 分区路由 + 操作条）+ 6 个领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行）；12 个设置分区路由与测试 mock 契约保持兼容（1965 用例全绿）；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化，SettingsToggles 替代裸 Record）
   SystemSettings.tsx split into 193-line shell + 6 domain siblings under settings/; test mock contracts intact; 2 `as any` removed via typed props
 - **eslint boundaries v7 语法修复（隐性失效根治）**: eslint-plugin-boundaries 7.2 下原 v5/v6 legacy 语法（`mode:"full"` / bare selector）静默失效（仅告警不拦截，组合根跨层引用漏检）；重写为 v7 语法（`boundaries/files` file descriptor + category，policies `from: { file: { categories } }`；组合根与 tests 的 allow 采用数组 OR 语义覆盖「element 类型 + 组合根单文件」双目标）；例外清单保持为空，lint 0 错误 216 警告
@@ -24,6 +26,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 - **404.html 未进 dist 产物（Task 3.6 缺陷补修）**: 线上深链 `/settings` 实测命中 GitHub Pages 默认 404 页而非自定义回退页 — 根因为 404.html 位于仓库根目录、Vite 仅拷贝 `public/`；移入 `public/404.html` 后进入 dist。HTTP 验证: 首页/manifest/图标全 200
   404.html moved into `public/` so Vite copies it to dist; live deep-link fallback now uses our page instead of GitHub Pages default
+
+- **ast-grep 守护静默失效根治 + boundaries v7 真正生效（P0 门禁防腐）**: ① ast-grep 6 条规则原统一 `language: tsx`，ast-grep 0.45.3 中 language 与文件扩展名强绑定（单值枚举，不支持数组），致全部 `.ts` 文件被漏扫（含 `useWebSocketData.ts` 裸 `new WebSocket`）；拆分为 ts/tsx 双语言共 12 个规则文件。② `useWebSocketData.ts` 裸 `new WebSocket` 改为经 `globalThis.WebSocket` 解析（对齐红线 #3）。③ eslint-plugin-boundaries 7.2 需 `eslint-import-resolver-typescript` 解析相对路径（否则 `to` element 恒为 unknown 致规则失效），新增该 devDependency 并配 `import/resolver`，`allowBuilds` 追加 `unrs-resolver`。反向验证：植入 `.ts`/`.tsx` 裸 WS 与 `lib→stores` 违规样本均被拦截；lint 0 error / astgrep 0 违规 / 1965 用例全绿
+  ast-grep silent-failure fix (per-file-extension split to ts/tsx) + boundaries v7 truly enforced via eslint-import-resolver-typescript; reverse-verified both guards now intercept violations
 
 ### Security 安全
 

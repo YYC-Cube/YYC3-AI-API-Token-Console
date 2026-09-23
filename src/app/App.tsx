@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RouterProvider } from "react-router";
-import { router } from "./routes";
-import { Login } from "./components/Login";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { installGlobalErrorListeners } from "./lib/error-handler";
-import { supabase, ghostSignIn, isGhostMode } from "./lib/supabaseClient";
+import { Login } from "./components/Login";
+import { I18nContext, useI18nProvider } from "./hooks/useI18n";
 import { useYYC3Head } from "./hooks/useYYC3Head";
-import { useI18nProvider, I18nContext } from "./hooks/useI18n";
 import { AuthContext } from "./lib/authContext";
+import { installGlobalErrorListeners } from "./lib/error-handler";
 import { isFigmaPlatformError } from "./lib/figma-error-filter";
-import type { UserRole, AppSession } from "./types";
+import { ghostSignIn, isGhostMode, supabase } from "./lib/supabaseClient";
+import { router } from "./routes";
+import type { AppSession, UserRole } from "./types";
 
 // ────────────────────────────────────────────────────────────────
 // RF-003: Figma 平台 iframe 通信错误静默拦截
@@ -56,7 +56,7 @@ if (typeof window !== "undefined") {
       return true; // suppress completely
     }
     if (typeof _prevOnerror === "function") {
-      return (_prevOnerror as any).apply(this, args);
+      return _prevOnerror.apply(this, args);
     }
     return false;
   };

@@ -7,8 +7,13 @@
  * - 提供安装触发函数
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { BeforeInstallPromptEvent } from "../types";
+
+/** Navigator.standalone 扩展 — iOS Safari 检测 standalone 模式 (非标准属性) */
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
 
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
@@ -27,7 +32,7 @@ export function useInstallPrompt() {
     // 检查是否已安装（standalone 模式）
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
+      (window.navigator as NavigatorWithStandalone).standalone === true;
     setIsInstalled(isStandalone);
 
     // 监听安装状态变更

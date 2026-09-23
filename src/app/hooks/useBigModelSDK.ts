@@ -11,20 +11,20 @@
  * - 会话管理 (localStorage 持久化)
  */
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
 import type {
+  ChatMessage,
+  ChatRole,
+  ChatSession,
   ConfiguredModel,
   ModelProviderId,
-  ChatMessage,
-  ChatSession,
-  ChatRole,
-  SDKConnectionStatus,
-  SDKUsageStats,
-  SDKChatResponse,
   SDKCapability,
+  SDKChatResponse,
+  SDKConnectionStatus,
   SDKProviderCapabilities,
+  SDKUsageStats,
 } from "../types";
-import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
 
 // ============================================================
 // 常量
@@ -35,15 +35,15 @@ const STATS_KEY = "yyc3_sdk_usage_stats";
 
 /** 各提供商支持的能力 */
 export const PROVIDER_CAPABILITIES: SDKProviderCapabilities[] = [
-  { providerId: "zhipu",          capabilities: ["chat", "chat-stream", "file-upload", "knowledge-base", "image-gen", "tts", "stt", "video-gen", "code-gen"] },
-  { providerId: "zhipu-plan",     capabilities: ["chat", "chat-stream"] },
-  { providerId: "openai",         capabilities: ["chat", "chat-stream", "image-gen", "tts", "stt", "code-gen"] },
-  { providerId: "kimi-cn",        capabilities: ["chat", "chat-stream"] },
-  { providerId: "kimi-global",    capabilities: ["chat", "chat-stream"] },
-  { providerId: "deepseek",       capabilities: ["chat", "chat-stream", "code-gen"] },
-  { providerId: "volcengine",     capabilities: ["chat", "chat-stream"] },
+  { providerId: "zhipu", capabilities: ["chat", "chat-stream", "file-upload", "knowledge-base", "image-gen", "tts", "stt", "video-gen", "code-gen"] },
+  { providerId: "zhipu-plan", capabilities: ["chat", "chat-stream"] },
+  { providerId: "openai", capabilities: ["chat", "chat-stream", "image-gen", "tts", "stt", "code-gen"] },
+  { providerId: "kimi-cn", capabilities: ["chat", "chat-stream"] },
+  { providerId: "kimi-global", capabilities: ["chat", "chat-stream"] },
+  { providerId: "deepseek", capabilities: ["chat", "chat-stream", "code-gen"] },
+  { providerId: "volcengine", capabilities: ["chat", "chat-stream"] },
   { providerId: "volcengine-plan", capabilities: ["chat", "chat-stream"] },
-  { providerId: "ollama",         capabilities: ["chat", "chat-stream", "code-gen"] },
+  { providerId: "ollama", capabilities: ["chat", "chat-stream", "code-gen"] },
 ];
 
 // ============================================================
@@ -58,7 +58,7 @@ function loadSessions(): ChatSession[] {
 }
 
 function saveSessions(sessions: ChatSession[]) {
-  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch {}
+  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch { }
 }
 
 function loadStats(): SDKUsageStats {
@@ -69,7 +69,7 @@ function loadStats(): SDKUsageStats {
 }
 
 function saveStats(stats: SDKUsageStats) {
-  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch {}
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch { }
 }
 
 function defaultStats(): SDKUsageStats {
@@ -387,7 +387,7 @@ export function useBigModelSDK() {
       updateStats(response);
       setConnectionStatus("connected");
       return response;
-    } catch (err: any) {
+    } catch (err) {
       const latency = Date.now() - start;
       setConnectionStatus("error");
       const friendly = friendlyError(err, configuredModel);
@@ -585,7 +585,7 @@ export function useBigModelSDK() {
       setStreaming(false);
       setStreamingContent("");
       return response;
-    } catch (err: any) {
+    } catch (err) {
       setConnectionStatus("error");
       const friendly = friendlyError(err, configuredModel);
       setError(friendly);
@@ -694,7 +694,7 @@ export function useBigModelSDK() {
       }
 
       return { success: true, latencyMs: Date.now() - start };
-    } catch (err: any) {
+    } catch (err) {
       return { success: false, latencyMs: Date.now() - start, error: friendlyError(err, configuredModel) };
     }
   }, []);
@@ -744,8 +744,9 @@ export function useBigModelSDK() {
 // ============================================================
 
 /** 检测 CORS 和网络错误, 返回用户友好的中文提示 */
-function friendlyError(err: any, model: ConfiguredModel): string {
-  const msg = err?.message || String(err);
+function friendlyError(err: unknown, model: ConfiguredModel): string {
+  const rawMsg = (err as { message?: unknown } | null)?.message;
+  const msg = (typeof rawMsg === "string" ? rawMsg : "") || String(err);
 
   // 典型 CORS / 网络拒绝错误
   if (

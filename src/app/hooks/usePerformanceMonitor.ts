@@ -16,7 +16,30 @@
  * localStorage 持久化历史指标 (最近 100 条)
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+// ============================================================
+// 浏览器非标准/草案 API 类型扩展 (TS DOM 未收录)
+// ============================================================
+
+/** Performance.memory — Chrome 专属内存指标 */
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
+/** Navigator.connection — Network Information API (W3C 草案) */
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    effectiveType?: string;
+    type?: string;
+    downlink?: number;
+    rtt?: number;
+  };
+}
 
 // ============================================================
 // 类型
@@ -95,7 +118,7 @@ function measureFPS(callback: (fps: number) => void) {
 }
 
 function getMemoryInfo(): { usedMB: number; totalMB: number; percent: number } {
-  const mem = (performance as any).memory;
+  const mem = (performance as PerformanceWithMemory).memory;
   if (!mem) return { usedMB: 0, totalMB: 0, percent: 0 };
   const used = mem.usedJSHeapSize / (1024 * 1024);
   const total = mem.jsHeapSizeLimit / (1024 * 1024);
@@ -113,7 +136,7 @@ function getDOMNodeCount(): number {
 }
 
 function getNetworkInfo(): { type: string; rtt: number } {
-  const conn = (navigator as any).connection;
+  const conn = (navigator as NavigatorWithConnection).connection;
   if (!conn) return { type: "unknown", rtt: 0 };
   return { type: conn.effectiveType || "unknown", rtt: conn.rtt || 0 };
 }

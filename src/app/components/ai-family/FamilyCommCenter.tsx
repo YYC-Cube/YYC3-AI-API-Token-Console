@@ -475,7 +475,7 @@ export function FamilyCommCenter() {
         </div>
 
         {/* Messages area */}
-        <GlassCard className="flex-1 p-4 overflow-y-auto mb-4" ref={scrollContainerRef as any}>
+        <GlassCard className="flex-1 p-4 overflow-y-auto mb-4" ref={scrollContainerRef}>
           <div className="space-y-4">
             {/* Load more button */}
             {hasMoreHistory && (

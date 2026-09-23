@@ -6,27 +6,34 @@
  * Device Capabilities, Network Quality, Browser Compatibility, and Data Management.
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
-  SecurityTab,
-  ScanStatus,
-  RiskLevel,
-  VitalRating,
+  BrowserInfo,
   CSPResult,
   CookieResult,
-  SensitiveDataResult,
-  ResourceEntry,
-  PerformanceResult,
-  MemoryResult,
-  WebVital,
-  DeviceInfo,
-  NetworkInfo,
-  BrowserFeature,
-  BrowserInfo,
-  StorageUsage,
   DataManagementState,
+  DeviceInfo,
+  MemoryResult,
+  NetworkInfo,
+  PerformanceResult,
+  RiskLevel,
   SecurityMonitorState,
+  SecurityTab,
+  SensitiveDataResult,
+  WebVital
 } from "../types";
+
+/** Navigator 设备/网络扩展 — deviceMemory (Chrome) + connection (Network Information API 草案) */
+interface NavigatorWithDevice extends Navigator {
+  deviceMemory?: number;
+  connection?: {
+    effectiveType?: string;
+    type?: string;
+    downlink?: number;
+    rtt?: number;
+    saveData?: boolean;
+  };
+}
 
 // RF-011: Re-export 已移除 — 所有类型统一从 types/index.ts 导入
 
@@ -139,7 +146,7 @@ function mockVitals(): WebVital[] {
 function mockDevice(): DeviceInfo {
   return {
     cpuCores: typeof navigator !== "undefined" ? navigator.hardwareConcurrency || 8 : 8,
-    memory: typeof navigator !== "undefined" ? (navigator as any).deviceMemory || null : null,
+    memory: typeof navigator !== "undefined" ? (navigator as NavigatorWithDevice).deviceMemory || null : null,
     screen: typeof window !== "undefined" ? `${window.screen.width}x${window.screen.height}` : "1920x1080",
     pixelRatio: typeof window !== "undefined" ? window.devicePixelRatio || 1 : 2,
     touchSupport: typeof window !== "undefined" ? "ontouchstart" in window : false,
@@ -150,7 +157,7 @@ function mockDevice(): DeviceInfo {
 }
 
 function mockNetwork(): NetworkInfo {
-  const conn = typeof navigator !== "undefined" ? (navigator as any).connection : null;
+  const conn = typeof navigator !== "undefined" ? (navigator as NavigatorWithDevice).connection : null;
   return {
     type: conn?.type || "wifi",
     downlink: conn?.downlink || 100,

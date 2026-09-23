@@ -204,7 +204,7 @@ export function FamilyEntertainment() {
                 <FadeIn key={game.key} delay={i * 0.06}>
                   <GlassCard
                     className={`p-5 text-center transition-all ${game.available ? "cursor-pointer hover:scale-[1.03]" : "opacity-50"}`}
-                    onClick={() => game.available && setGameType(game.key as any)}
+                    onClick={() => game.available && game.key === "gomoku" && setGameType("gomoku")}
                     glowColor={game.available ? `${game.color}06` : undefined}
                   >
                     <div

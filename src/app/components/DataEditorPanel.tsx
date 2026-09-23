@@ -11,32 +11,64 @@
  * - 输入校验 (集成 useValidation)
  */
 
-import React, { useState, useCallback, useEffect, useContext } from "react";
 import {
-  Cpu, Server, Bot, Plus, Trash2, Save, RotateCcw,
-  Edit3, Check, X, AlertTriangle, ChevronDown, ChevronUp,
-  Package, RefreshCw, Search, Activity, BarChart3, Zap,
-  Radar, PieChart, ScrollText,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  Bot,
+  Check,
+  ChevronDown, ChevronUp,
+  Cpu,
+  Edit3,
+  Package,
+  PieChart,
+  Plus,
+  Radar,
+  RefreshCw,
+  RotateCcw,
+  ScrollText,
+  Search,
+  Server,
+  Trash2,
+  X,
+  Zap
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { ConfigExportCenter } from "./ConfigExportCenter";
-import {
-  getActiveModels, getNodesStatus, getAllAgents,
-  addDbModel, updateDbModel, deleteDbModel,
-  addDbNode, updateDbNode, deleteDbNode,
-  addDbAgent, updateDbAgent, deleteDbAgent,
-  resetDbModels, resetDbAgents, resetDbNodes,
-} from "../lib/db-queries";
-import { useValidation, validateRange, validateModelName } from "../hooks/useValidation";
-import { ViewContext } from "../lib/view-context";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { Model, NodeStatusRecord, Agent, NodeStatusType } from "../types";
+import { useValidation, validateModelName, validateRange } from "../hooks/useValidation";
 import {
-  nodeStore, modelPerfStore, recentOpsStore,
-  radarStore, modelDistStore, logStore,
-  type ModelPerfEntry, type RecentOpEntry,
-  type RadarEntry, type ModelDistEntry, type StoredLogEntry,
+  addDbAgent,
+  addDbModel,
+  addDbNode,
+  deleteDbAgent,
+  deleteDbModel,
+  deleteDbNode,
+  getActiveModels,
+  getAllAgents,
+  getNodesStatus,
+  resetDbAgents,
+  resetDbModels,
+  resetDbNodes,
+  updateDbAgent,
+  updateDbModel,
+  updateDbNode,
+} from "../lib/db-queries";
+import { ViewContext } from "../lib/view-context";
+import {
+  logStore,
+  modelDistStore,
+  modelPerfStore,
+  nodeStore,
+  radarStore,
+  recentOpsStore,
+  type ModelDistEntry,
+  type RadarEntry,
+  type RecentOpEntry,
+  type StoredLogEntry
 } from "../stores/dashboard-stores";
+import type { Agent, LogLevel, Model, NodeStatusRecord, NodeStatusType } from "../types";
+import { ConfigExportCenter } from "./ConfigExportCenter";
+import { GlassCard } from "./GlassCard";
 
 // ── 样式常量 ──
 const toastStyle = {
@@ -87,11 +119,10 @@ function CellInput({ value, onChange, type = "text", error, placeholder, mono, w
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border text-[#e0f0ff] focus:outline-none transition-all ${
-          error
-            ? "border-[rgba(255,51,102,0.5)] focus:border-[rgba(255,51,102,0.7)]"
-            : "border-[rgba(0,180,255,0.15)] focus:border-[rgba(0,212,255,0.4)]"
-        } ${mono ? "font-mono" : ""}`}
+        className={`w-full px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border text-[#e0f0ff] focus:outline-none transition-all ${error
+          ? "border-[rgba(255,51,102,0.5)] focus:border-[rgba(255,51,102,0.7)]"
+          : "border-[rgba(0,180,255,0.15)] focus:border-[rgba(0,212,255,0.4)]"
+          } ${mono ? "font-mono" : ""}`}
         style={{ fontSize: "0.72rem" }}
       />
       {error && (
@@ -437,23 +468,22 @@ export function DataEditorPanel() {
           const active = activeTab === tab.key;
           const count = tab.key === "models" ? models.length
             : tab.key === "nodes" ? nodes.length
-            : tab.key === "agents" ? agents.length
-            : tab.key === "liveNodes" ? nodeStore.count()
-            : tab.key === "modelPerf" ? modelPerfStore.count()
-            : tab.key === "recentOps" ? recentOpsStore.count()
-            : tab.key === "radarData" ? radarStore.count()
-            : tab.key === "modelDist" ? modelDistStore.count()
-            : tab.key === "logsData" ? logStore.count()
-            : 0;
+              : tab.key === "agents" ? agents.length
+                : tab.key === "liveNodes" ? nodeStore.count()
+                  : tab.key === "modelPerf" ? modelPerfStore.count()
+                    : tab.key === "recentOps" ? recentOpsStore.count()
+                      : tab.key === "radarData" ? radarStore.count()
+                        : tab.key === "modelDist" ? modelDistStore.count()
+                          : tab.key === "logsData" ? logStore.count()
+                            : 0;
           return (
             <button
               key={tab.key}
               onClick={() => { setActiveTab(tab.key); cancelEdit(); setShowAddForm(false); setSearchQuery(""); setSelectedIds(new Set()); setSortKey(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl whitespace-nowrap transition-all ${
-                active
-                  ? "bg-[rgba(0,140,200,0.15)] border border-[rgba(0,180,255,0.3)] text-[#00d4ff]"
-                  : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] hover:bg-[rgba(0,100,150,0.08)] border border-transparent"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl whitespace-nowrap transition-all ${active
+                ? "bg-[rgba(0,140,200,0.15)] border border-[rgba(0,180,255,0.3)] text-[#00d4ff]"
+                : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] hover:bg-[rgba(0,100,150,0.08)] border border-transparent"
+                }`}
               style={{ fontSize: "0.78rem" }}
             >
               <span style={{ color: active ? tab.color : undefined }}>{tab.icon}</span>
@@ -873,8 +903,8 @@ function LiveNodesTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
   const q = searchQuery.toLowerCase();
   const items = nodeStore.getAll().filter((n) => n.id.toLowerCase().includes(q) || n.model.toLowerCase().includes(q));
   const sc = (s: string) => s === "active" ? "#00ff88" : s === "warning" ? "#ffaa00" : "#ff3366";
-  const save = () => { if (!editingId) return; nodeStore.update(editingId, { status: editDraft.status as any, gpu: parseInt(editDraft.gpu) || 0, mem: parseInt(editDraft.mem) || 0, temp: parseInt(editDraft.temp) || 0, model: editDraft.model || "", tasks: parseInt(editDraft.tasks) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("实时节点已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.id?.trim()) return; nodeStore.add({ id: addDraft.id.trim(), status: (addDraft.status as any) || "active", gpu: parseInt(addDraft.gpu) || 0, mem: parseInt(addDraft.mem) || 0, temp: parseInt(addDraft.temp) || 40, model: addDraft.model || "", tasks: parseInt(addDraft.tasks) || 0 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("实时节点已添加", { style: toastStyle }); };
+  const save = () => { if (!editingId) return; nodeStore.update(editingId, { status: editDraft.status as NodeStatusType, gpu: parseInt(editDraft.gpu) || 0, mem: parseInt(editDraft.mem) || 0, temp: parseInt(editDraft.temp) || 0, model: editDraft.model || "", tasks: parseInt(editDraft.tasks) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("实时节点已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.id?.trim()) return; nodeStore.add({ id: addDraft.id.trim(), status: (addDraft.status as NodeStatusType) || "active", gpu: parseInt(addDraft.gpu) || 0, mem: parseInt(addDraft.mem) || 0, temp: parseInt(addDraft.temp) || 40, model: addDraft.model || "", tasks: parseInt(addDraft.tasks) || 0 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("实时节点已添加", { style: toastStyle }); };
   const del = (id: string) => { nodeStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
   return (
     <GlassCard className="p-4 overflow-x-auto">
@@ -906,17 +936,19 @@ function LiveNodesTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>节点ID</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>GPU%</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>MEM%</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>温度</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>模型</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>任务</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>状态</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((n) => { const isE = editingId === n.id; const c = sc(n.status); return (
-            <tr key={n.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2 font-mono text-[#e0f0ff]">{n.id}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.gpu || ""} onChange={(v) => setEditDraft((p) => ({ ...p, gpu: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.gpu}%</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.mem || ""} onChange={(v) => setEditDraft((p) => ({ ...p, mem: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.mem}%</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.temp || ""} onChange={(v) => setEditDraft((p) => ({ ...p, temp: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.temp}°C</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.model || ""} onChange={(v) => setEditDraft((p) => ({ ...p, model: v }))} /> : <span className="text-[rgba(0,212,255,0.5)]">{n.model || "-"}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.tasks || ""} onChange={(v) => setEditDraft((p) => ({ ...p, tasks: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.tasks}</span>}</td>
-              <td className="px-2 py-2">{isE ? <StatusSelect value={editDraft.status || "active"} onChange={(v) => setEditDraft((p) => ({ ...p, status: v }))} /> : <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: c }} /><span style={{ color: c, fontSize: "0.65rem" }}>{n.status}</span></span>}</td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(n.id, { status: n.status, gpu: String(n.gpu), mem: String(n.mem), temp: String(n.temp), model: n.model, tasks: String(n.tasks) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(n.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((n) => {
+            const isE = editingId === n.id; const c = sc(n.status); return (
+              <tr key={n.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2 font-mono text-[#e0f0ff]">{n.id}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.gpu || ""} onChange={(v) => setEditDraft((p) => ({ ...p, gpu: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.gpu}%</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.mem || ""} onChange={(v) => setEditDraft((p) => ({ ...p, mem: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.mem}%</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.temp || ""} onChange={(v) => setEditDraft((p) => ({ ...p, temp: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.temp}°C</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.model || ""} onChange={(v) => setEditDraft((p) => ({ ...p, model: v }))} /> : <span className="text-[rgba(0,212,255,0.5)]">{n.model || "-"}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.tasks || ""} onChange={(v) => setEditDraft((p) => ({ ...p, tasks: v }))} type="number" /> : <span className="font-mono text-[rgba(224,240,255,0.7)]">{n.tasks}</span>}</td>
+                <td className="px-2 py-2">{isE ? <StatusSelect value={editDraft.status || "active"} onChange={(v) => setEditDraft((p) => ({ ...p, status: v }))} /> : <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: c }} /><span style={{ color: c, fontSize: "0.65rem" }}>{n.status}</span></span>}</td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(n.id, { status: n.status, gpu: String(n.gpu), mem: String(n.mem), temp: String(n.temp), model: n.model, tasks: String(n.tasks) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(n.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无数据</p>}
@@ -958,15 +990,17 @@ function ModelPerfTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>模型</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>准确率</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>速度</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>内存</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>成本</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((m) => { const isE = editingId === m.id; return (
-            <tr key={m.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.model || ""} onChange={(v) => setEditDraft((p) => ({ ...p, model: v }))} /> : <span className="text-[#e0f0ff]">{m.model}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.accuracy || ""} onChange={(v) => setEditDraft((p) => ({ ...p, accuracy: v }))} type="number" /> : <span className="font-mono text-[#00d4ff]">{m.accuracy}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.speed || ""} onChange={(v) => setEditDraft((p) => ({ ...p, speed: v }))} type="number" /> : <span className="font-mono text-[#00ff88]">{m.speed}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.memory || ""} onChange={(v) => setEditDraft((p) => ({ ...p, memory: v }))} type="number" /> : <span className="font-mono text-[#aa55ff]">{m.memory}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.cost || ""} onChange={(v) => setEditDraft((p) => ({ ...p, cost: v }))} type="number" /> : <span className="font-mono text-[#ffaa00]">{m.cost}</span>}</td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(m.id, { model: m.model, accuracy: String(m.accuracy), speed: String(m.speed), memory: String(m.memory), cost: String(m.cost) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(m.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((m) => {
+            const isE = editingId === m.id; return (
+              <tr key={m.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.model || ""} onChange={(v) => setEditDraft((p) => ({ ...p, model: v }))} /> : <span className="text-[#e0f0ff]">{m.model}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.accuracy || ""} onChange={(v) => setEditDraft((p) => ({ ...p, accuracy: v }))} type="number" /> : <span className="font-mono text-[#00d4ff]">{m.accuracy}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.speed || ""} onChange={(v) => setEditDraft((p) => ({ ...p, speed: v }))} type="number" /> : <span className="font-mono text-[#00ff88]">{m.speed}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.memory || ""} onChange={(v) => setEditDraft((p) => ({ ...p, memory: v }))} type="number" /> : <span className="font-mono text-[#aa55ff]">{m.memory}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.cost || ""} onChange={(v) => setEditDraft((p) => ({ ...p, cost: v }))} type="number" /> : <span className="font-mono text-[#ffaa00]">{m.cost}</span>}</td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(m.id, { model: m.model, accuracy: String(m.accuracy), speed: String(m.speed), memory: String(m.memory), cost: String(m.cost) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(m.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无数据</p>}
@@ -980,8 +1014,8 @@ function RecentOpsTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
   const q = searchQuery.toLowerCase();
   const items = recentOpsStore.getAll().filter((o) => o.action.toLowerCase().includes(q) || o.target.toLowerCase().includes(q));
   const osc: Record<string, string> = { success: "#00ff88", running: "#00d4ff", pending: "#aa55ff", warning: "#ffdd00", error: "#ff3366" };
-  const save = () => { if (!editingId) return; recentOpsStore.update(editingId, { action: editDraft.action, target: editDraft.target, user: editDraft.user, time: editDraft.time, status: editDraft.status as any }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.action?.trim()) return; recentOpsStore.add({ action: addDraft.action.trim(), target: addDraft.target || "", user: addDraft.user || "admin", time: new Date().toLocaleTimeString("zh-CN", { hour12: false }), status: (addDraft.status as any) || "success" }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
+  const save = () => { if (!editingId) return; recentOpsStore.update(editingId, { action: editDraft.action, target: editDraft.target, user: editDraft.user, time: editDraft.time, status: editDraft.status as RecentOpEntry["status"] }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.action?.trim()) return; recentOpsStore.add({ action: addDraft.action.trim(), target: addDraft.target || "", user: addDraft.user || "admin", time: new Date().toLocaleTimeString("zh-CN", { hour12: false }), status: (addDraft.status as RecentOpEntry["status"]) || "success" }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
   const del = (id: string) => { recentOpsStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
   return (
     <GlassCard className="p-4 overflow-x-auto">
@@ -1010,15 +1044,17 @@ function RecentOpsTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>操作</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>目标</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>用户</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>时间</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>状态</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((o) => { const isE = editingId === o.id; const c = osc[o.status] || "#e0f0ff"; return (
-            <tr key={o.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.action || ""} onChange={(v) => setEditDraft((p) => ({ ...p, action: v }))} /> : <span className="text-[#e0f0ff]">{o.action}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.target || ""} onChange={(v) => setEditDraft((p) => ({ ...p, target: v }))} /> : <span className="text-[rgba(0,212,255,0.5)] truncate max-w-[200px] block">{o.target}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.user || ""} onChange={(v) => setEditDraft((p) => ({ ...p, user: v }))} /> : <span className="text-[rgba(224,240,255,0.6)]">{o.user}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.time || ""} onChange={(v) => setEditDraft((p) => ({ ...p, time: v }))} /> : <span className="font-mono text-[rgba(224,240,255,0.5)]">{o.time}</span>}</td>
-              <td className="px-2 py-2">{isE ? (<select value={editDraft.status || "success"} onChange={(e) => setEditDraft((p) => ({ ...p, status: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>{OP_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select>) : (<span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${c}15`, color: c, fontSize: "0.6rem" }}>{o.status}</span>)}</td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(o.id, { action: o.action, target: o.target, user: o.user, time: o.time, status: o.status })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(o.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((o) => {
+            const isE = editingId === o.id; const c = osc[o.status] || "#e0f0ff"; return (
+              <tr key={o.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.action || ""} onChange={(v) => setEditDraft((p) => ({ ...p, action: v }))} /> : <span className="text-[#e0f0ff]">{o.action}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.target || ""} onChange={(v) => setEditDraft((p) => ({ ...p, target: v }))} /> : <span className="text-[rgba(0,212,255,0.5)] truncate max-w-[200px] block">{o.target}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.user || ""} onChange={(v) => setEditDraft((p) => ({ ...p, user: v }))} /> : <span className="text-[rgba(224,240,255,0.6)]">{o.user}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.time || ""} onChange={(v) => setEditDraft((p) => ({ ...p, time: v }))} /> : <span className="font-mono text-[rgba(224,240,255,0.5)]">{o.time}</span>}</td>
+                <td className="px-2 py-2">{isE ? (<select value={editDraft.status || "success"} onChange={(e) => setEditDraft((p) => ({ ...p, status: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>{OP_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select>) : (<span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${c}15`, color: c, fontSize: "0.6rem" }}>{o.status}</span>)}</td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(o.id, { action: o.action, target: o.target, user: o.user, time: o.time, status: o.status })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(o.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无操作记录</p>}
@@ -1058,14 +1094,16 @@ function RadarDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>指标</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>方案 A</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>方案 B</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>差值</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((r: RadarEntry) => { const isE = editingId === r.id; const diff = r.A - r.B; const diffColor = diff > 0 ? "#00ff88" : diff < 0 ? "#ff3366" : "rgba(224,240,255,0.5)"; return (
-            <tr key={r.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.metric || ""} onChange={(v) => setEditDraft((p) => ({ ...p, metric: v }))} mono /> : <span className="text-[#e0f0ff] font-mono">{r.metric}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.A || ""} onChange={(v) => setEditDraft((p) => ({ ...p, A: v }))} type="number" /> : <span className="font-mono text-[#00d4ff]">{r.A}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.B || ""} onChange={(v) => setEditDraft((p) => ({ ...p, B: v }))} type="number" /> : <span className="font-mono text-[#cc66ff]">{r.B}</span>}</td>
-              <td className="px-2 py-2"><span className="font-mono" style={{ color: diffColor }}>{diff > 0 ? "+" : ""}{diff}</span></td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(r.id, { metric: r.metric, A: String(r.A), B: String(r.B) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(r.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((r: RadarEntry) => {
+            const isE = editingId === r.id; const diff = r.A - r.B; const diffColor = diff > 0 ? "#00ff88" : diff < 0 ? "#ff3366" : "rgba(224,240,255,0.5)"; return (
+              <tr key={r.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.metric || ""} onChange={(v) => setEditDraft((p) => ({ ...p, metric: v }))} mono /> : <span className="text-[#e0f0ff] font-mono">{r.metric}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.A || ""} onChange={(v) => setEditDraft((p) => ({ ...p, A: v }))} type="number" /> : <span className="font-mono text-[#00d4ff]">{r.A}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.B || ""} onChange={(v) => setEditDraft((p) => ({ ...p, B: v }))} type="number" /> : <span className="font-mono text-[#cc66ff]">{r.B}</span>}</td>
+                <td className="px-2 py-2"><span className="font-mono" style={{ color: diffColor }}>{diff > 0 ? "+" : ""}{diff}</span></td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(r.id, { metric: r.metric, A: String(r.A), B: String(r.B) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(r.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无雷达数据</p>}
@@ -1109,18 +1147,20 @@ function ModelDistTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>模型</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>数值</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>占比</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>分布条</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((m: ModelDistEntry, idx: number) => { const isE = editingId === m.id; const pct = total > 0 ? ((m.value / total) * 100).toFixed(1) : "0"; const barColor = distColors[idx % distColors.length]; return (
-            <tr key={m.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.name || ""} onChange={(v) => setEditDraft((p) => ({ ...p, name: v }))} /> : <span className="text-[#e0f0ff]">{m.name}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.value || ""} onChange={(v) => setEditDraft((p) => ({ ...p, value: v }))} type="number" /> : <span className="font-mono text-[#cc66ff]">{m.value}</span>}</td>
-              <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.6)]">{pct}%</span></td>
-              <td className="px-2 py-2">
-                <div className="w-full h-2 rounded-full bg-[rgba(0,40,80,0.3)] overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor, boxShadow: `0 0 6px ${barColor}40` }} />
-                </div>
-              </td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(m.id, { name: m.name, value: String(m.value) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(m.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((m: ModelDistEntry, idx: number) => {
+            const isE = editingId === m.id; const pct = total > 0 ? ((m.value / total) * 100).toFixed(1) : "0"; const barColor = distColors[idx % distColors.length]; return (
+              <tr key={m.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.name || ""} onChange={(v) => setEditDraft((p) => ({ ...p, name: v }))} /> : <span className="text-[#e0f0ff]">{m.name}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.value || ""} onChange={(v) => setEditDraft((p) => ({ ...p, value: v }))} type="number" /> : <span className="font-mono text-[#cc66ff]">{m.value}</span>}</td>
+                <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.6)]">{pct}%</span></td>
+                <td className="px-2 py-2">
+                  <div className="w-full h-2 rounded-full bg-[rgba(0,40,80,0.3)] overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor, boxShadow: `0 0 6px ${barColor}40` }} />
+                  </div>
+                </td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(m.id, { name: m.name, value: String(m.value) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(m.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无分布数据</p>}
@@ -1134,8 +1174,8 @@ function LogsDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm,
   const q = searchQuery.toLowerCase();
   const items = logStore.getAll().filter((l: StoredLogEntry) => l.message.toLowerCase().includes(q) || l.source.toLowerCase().includes(q) || l.level.toLowerCase().includes(q));
   const levelColors: Record<string, string> = { debug: "#7b8cff", info: "#00d4ff", warn: "#ffaa00", error: "#ff3366", fatal: "#ff0044" };
-  const save = () => { if (!editingId) return; logStore.update(editingId, { level: editDraft.level as any, source: editDraft.source, message: editDraft.message, timestamp: parseInt(editDraft.timestamp) || Date.now() }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.message?.trim()) return; logStore.add({ timestamp: Date.now(), level: (addDraft.level as any) || "info", source: addDraft.source || "system", message: addDraft.message.trim() }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
+  const save = () => { if (!editingId) return; logStore.update(editingId, { level: editDraft.level as LogLevel, source: editDraft.source, message: editDraft.message, timestamp: parseInt(editDraft.timestamp) || Date.now() }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.message?.trim()) return; logStore.add({ timestamp: Date.now(), level: (addDraft.level as LogLevel) || "info", source: addDraft.source || "system", message: addDraft.message.trim() }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
   const del = (id: string) => { logStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
   const fmtTime = (ts: number) => new Date(ts).toLocaleString("zh-CN", { hour12: false });
   return (
@@ -1167,20 +1207,22 @@ function LogsDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm,
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>级别</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>来源</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>消息</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>时间</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((l: StoredLogEntry) => { const isE = editingId === l.id; const lc = levelColors[l.level] || "#e0f0ff"; return (
-            <tr key={l.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-              <td className="px-2 py-2">{isE ? (
-                <select value={editDraft.level || "info"} onChange={(e) => setEditDraft((p) => ({ ...p, level: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
-                  {LOG_LEVELS.map((lv) => <option key={lv} value={lv}>{lv.toUpperCase()}</option>)}
-                </select>
-              ) : (
-                <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${lc}15`, color: lc, fontSize: "0.6rem" }}>{l.level.toUpperCase()}</span>
-              )}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.source || ""} onChange={(v) => setEditDraft((p) => ({ ...p, source: v }))} mono /> : <span className="font-mono text-[rgba(0,212,255,0.5)]">{l.source}</span>}</td>
-              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.message || ""} onChange={(v) => setEditDraft((p) => ({ ...p, message: v }))} /> : <span className="text-[rgba(224,240,255,0.7)] max-w-[300px] truncate block">{l.message}</span>}</td>
-              <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.6rem" }}>{fmtTime(l.timestamp)}</span></td>
-              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(l.id, { level: l.level, source: l.source, message: l.message, timestamp: String(l.timestamp) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(l.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-            </tr>); })}
+          {items.map((l: StoredLogEntry) => {
+            const isE = editingId === l.id; const lc = levelColors[l.level] || "#e0f0ff"; return (
+              <tr key={l.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+                <td className="px-2 py-2">{isE ? (
+                  <select value={editDraft.level || "info"} onChange={(e) => setEditDraft((p) => ({ ...p, level: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
+                    {LOG_LEVELS.map((lv) => <option key={lv} value={lv}>{lv.toUpperCase()}</option>)}
+                  </select>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${lc}15`, color: lc, fontSize: "0.6rem" }}>{l.level.toUpperCase()}</span>
+                )}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.source || ""} onChange={(v) => setEditDraft((p) => ({ ...p, source: v }))} mono /> : <span className="font-mono text-[rgba(0,212,255,0.5)]">{l.source}</span>}</td>
+                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.message || ""} onChange={(v) => setEditDraft((p) => ({ ...p, message: v }))} /> : <span className="text-[rgba(224,240,255,0.7)] max-w-[300px] truncate block">{l.message}</span>}</td>
+                <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.6rem" }}>{fmtTime(l.timestamp)}</span></td>
+                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(l.id, { level: l.level, source: l.source, message: l.message, timestamp: String(l.timestamp) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(l.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+              </tr>);
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="text-center py-6 text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.75rem" }}>暂无日志数据</p>}

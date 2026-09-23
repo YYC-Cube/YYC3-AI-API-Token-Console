@@ -11,17 +11,17 @@
  * - 服务商模型列表可动态编辑
  */
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import builtinProvidersJson from "../config/providers/builtin-providers.json";
+import { builtinProvidersSchema } from "../config/providers/provider-schema";
+import { getOllamaTagsUrl } from "../lib/ollama-url";
 import type {
-  ModelProviderId,
-  ModelProviderDef,
   ConfiguredModel,
+  ModelProviderDef,
+  ModelProviderId,
   OllamaModel,
   OllamaTagsResponse,
 } from "../types";
-import { getOllamaTagsUrl } from "../lib/ollama-url";
-import { builtinProvidersSchema } from "../config/providers/provider-schema";
-import builtinProvidersJson from "../config/providers/builtin-providers.json";
 
 // ============================================================
 // 内置服务商 — 声明式 JSON 单一事实源 (Phase 3 / Task 3.3)
@@ -145,10 +145,10 @@ export function useModelProvider() {
         prev.map((m) =>
           m.providerId === id
             ? {
-                ...m,
-                providerLabel: updates.label ?? m.providerLabel,
-                baseUrl: updates.baseUrl ?? m.baseUrl,
-              }
+              ...m,
+              providerLabel: updates.label ?? m.providerLabel,
+              baseUrl: updates.baseUrl ?? m.baseUrl,
+            }
             : m
         )
       );
@@ -231,7 +231,7 @@ export function useModelProvider() {
       }
 
       return models;
-    } catch (err: any) {
+    } catch (err) {
       // Mock fallback for development
       const mockModels: OllamaModel[] = [
         {
@@ -284,7 +284,7 @@ export function useModelProvider() {
         },
       ];
       setOllamaModels(mockModels);
-      setOllamaError(`连接失败 (Mock 模式): ${err.message}`);
+      setOllamaError(`连接失败 (Mock 模式): ${err instanceof Error ? err.message : String(err)}`);
 
       // Mock 模式也同步
       setProviders((prev) =>

@@ -339,8 +339,8 @@ export function useServiceLoop() {
         toast.success("✅ 闭环流程完成", {
           description: `总耗时 ${((run.completedAt! - run.startedAt) / 1000).toFixed(1)}s`,
         });
-      } catch (err: any) {
-        if (err.message === "ABORTED") {
+      } catch (err) {
+        if (err instanceof Error && err.message === "ABORTED") {
           run = { ...run, overallStatus: "error", completedAt: Date.now() };
           setCurrentRun(run);
           toast.info("闭环流程已中止");
