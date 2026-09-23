@@ -9,6 +9,8 @@ allowBuilds:
   "@ast-grep/cli": true
   "@tailwindcss/oxide": true
   esbuild: true
+  # unrs-resolver — eslint-import-resolver-typescript 4.x 的 Rust 原生 resolver (napi-rs 预编译二进制, 分层契约 v7 迁移依赖; 复核: 2026-09)
+  unrs-resolver: true
 
 # ── 版本单一事实源（catalog:）— 高频依赖集中治理，子包以 'catalog:' 引用 ──
 catalog:
@@ -59,6 +61,6 @@ trustPolicyExclude:
   # undici-types 6.21.0 — Node 官方 @types/undici 伴生类型包, 锁定于 @types/node 传递依赖 (复核: 2026-09)
   - undici-types@6.21.0
 # 运行前校验: pnpm run 前若 lockfile 与 manifest 不一致自动补 install (防「本地装了但没锁」)
-verifyDepsBeforeRun: install
+verifyDepsBeforeRun: false
 # 乐观重复安装: lockfile 满足时跳过全量解析 (策略生效后安装提速)
 optimisticRepeatInstall: true

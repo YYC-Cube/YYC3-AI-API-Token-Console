@@ -333,7 +333,8 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 2. **[P1]** ~~lint 存量 warnings 治理（首批）~~ ✅ 295 → 216（codemod v2 安全移除 121 个未用导入绑定，eslint+tsc 双重复验；`no-explicit-any` 84 项与 `exhaustive-deps` 22 项维持挂账渐进）
 3. **[P2]** ~~大文件拆分（首个）~~ ✅ types/index.ts 1781 → 14 行 Facade + 6 领域 sibling（core/network-sync/ui-shared/ai-provider/ops-monitor/design-system，全部 ≤522 行），基线 5 → 4；**useWebSocketData → stores 分层豁免同步清零**（§6.7 例外清单现为空）
 4. **[P2]** ~~Pages PWA 链路验证~~ ✅ 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200；深链 `/settings` 404 回退 **发现缺陷并已修复**：404.html 移入 `public/` 使其进入 dist 产物）；浏览器人工安装验证（iOS Safari / Chrome 添加到主屏 + 离线）仍待人工执行
-5. **[P2]** 剩余 4 个超标组件大文件拆分（SystemSettings 1373 / ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `no-explicit-any` 渐进清零
+5. **[P2]** ~~剩余 4 个超标组件大文件拆分（首个：SystemSettings 1373）~~ ✅ 2026-09-24 完成：SystemSettings 1373 → 193 行主壳 + 6 领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行），基线 4 → 3；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化）
+6. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `no-explicit-any` 渐进清零
 
 ---
 
@@ -369,11 +370,11 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-Phase 1-3 全量闭环（17/17 ✅）；文档三合一（本报告 v2.0.0）；无进行中代码任务。
+SystemSettings 拆分已完成并通过全量门禁（typecheck 0 错 / lint 0 错 216 警告 / 1965 用例全绿 / build 3.07s / size·knip·astgrep 全绿）；无进行中代码任务。
 
-### 8.3 当前优先级（2026-09-20 第三轮执行后）
+### 8.3 当前优先级（2026-09-24 第四轮执行后）
 
-1. **[P2]** 剩余 4 个超标组件拆分 + `no-explicit-any`(84)/`exhaustive-deps`(22) 渐进治理
+1. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `no-explicit-any`(84) 分布审计 + 可安全转型批次 → `exhaustive-deps`(22) 渐进治理
 2. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
 3. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
@@ -397,6 +398,7 @@ Phase 1-3 全量闭环（17/17 ✅）；文档三合一（本报告 v2.0.0）；
 | 2026-09-20 | v1.0.0（归档） | 四项目深度分析 + 可借鉴项实施规划发布 | 制定上游解耦实施规划 |
 | 2026-09-20 | v1.0.0（归档） | Phase 2-4 全量落地实施总结报告 | 交付记录 |
 | 2026-09-20 | **v2.0.0（本报告）** | 三文档 + 审计衔接合并为一；27 项借鉴项全景处置标记；五维得分刷新至 94 | 消除多文档同步成本，收敛单一事实源 |
+| 2026-09-24 | v2.1.0 | SystemSettings 1373 → 193 主壳 + 6 sibling（基线 4→3）；boundaries v7 语法重写（组合根/tests 增 file categories entry，例外清单保持为空）；knip StoredNode 死类型清零 | §8.3 第四轮 TOP 3 执行 |
 
 ---
 

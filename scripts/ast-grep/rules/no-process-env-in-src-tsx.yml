@@ -1,11 +1,11 @@
-id: no-process-env-in-src
-language: ts
+id: no-process-env-in-src-tsx
+language: tsx
 severity: warning
 message: >
   src/ 内禁止 process.env 直读 (Vite 前端 bundle 中 process 未定义, 运行时崩溃)。
   替代: import.meta.env (Vite 规范) 或 lib/env-config.ts 统一出口。
   例外: __tests__ 测试配置文件。
-note: YYC³ 结构化守护规则库 #5 — 协同开发文档 §6.8
+note: YYC³ 结构化守护规则库 #5 (tsx) — 协同开发文档 §6.8
 files:
   - "src/**"
 ignores:

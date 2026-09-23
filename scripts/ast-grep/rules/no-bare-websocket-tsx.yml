@@ -1,11 +1,11 @@
-id: no-bare-websocket
-language: ts
+id: no-bare-websocket-tsx
+language: tsx
 severity: error
 message: >
   禁止裸 new WebSocket(...) — 必须经 globalThis 解析 (const WSImpl = (globalThis as any).WebSocket)。
   原因: 测试环境依赖 vi.stubGlobal 注入 Mock, 裸构造在 node 环境直接崩溃 (2026-09 会话 5 测试事故根因)。
   豁免: lib/network-utils.ts 为唯一出口 (全局唯一解析点)。
-note: YYC³ 结构化守护规则库 #1 — 协同开发文档 §6.8
+note: YYC³ 结构化守护规则库 #1 (tsx) — 协同开发文档 §6.8
 files:
   - "src/**"
 ignores:

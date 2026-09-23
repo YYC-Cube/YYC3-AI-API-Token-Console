@@ -1,10 +1,10 @@
-id: no-innerhtml-assignment
-language: ts
+id: no-innerhtml-assignment-tsx
+language: tsx
 severity: error
 message: >
   禁止 .innerHTML = ... 赋值 — XSS 注入面; 动态内容一律经 React JSX 渲染或先转义。
   静态字符串确需 innerHTML 时, 经评审后在行内 eslint/ast-grep 双豁免并注明原因。
-note: YYC³ 结构化守护规则库 #3 — 协同开发文档 §6.8
+note: YYC³ 结构化守护规则库 #3 (tsx) — 协同开发文档 §6.8
 files:
   - "src/**"
 ignores:

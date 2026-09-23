@@ -3,8 +3,8 @@
  * Facade+Siblings 拆分产物 (§6.6, 2026-09-20): 自 types/index.ts 迁入,
  * 经 index.ts Facade 重导出, 消费方 import 路径不变。
  */
+import type { LoopStage, Locale, LocaleInfo, DataFlowNodeType } from "./ui-shared";
 import type { DatabaseType } from "./ai-provider";
-import type { DataFlowNodeType, Locale, LocaleInfo, LoopStage } from "./ui-shared";
 
 /**
  * ============================================================

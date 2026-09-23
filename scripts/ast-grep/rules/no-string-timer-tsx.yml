@@ -1,10 +1,10 @@
-id: no-string-timer
-language: ts
+id: no-string-timer-tsx
+language: tsx
 severity: warning
 message: >
   禁止字符串形式 setTimeout/setInterval("code()") — 隐式 eval (CSP unsafe-eval 冲突)。
   替代: 传函数引用 setTimeout(() => { ... }, delay)。
-note: YYC³ 结构化守护规则库 #4 — 协同开发文档 §6.8
+note: YYC³ 结构化守护规则库 #4 (tsx) — 协同开发文档 §6.8
 files:
   - "src/**"
 rule:

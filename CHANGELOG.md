@@ -9,6 +9,12 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Refactored 重构
 
+- **SystemSettings.tsx Facade+Siblings 拆分（基线 4 → 3）**: 1373 行巨型设置组件拆分为 193 行主壳（侧栏导航 + 分区路由 + 操作条）+ 6 个领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行）；12 个设置分区路由与测试 mock 契约保持兼容（1965 用例全绿）；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化，SettingsToggles 替代裸 Record）
+  SystemSettings.tsx split into 193-line shell + 6 domain siblings under settings/; test mock contracts intact; 2 `as any` removed via typed props
+- **eslint boundaries v7 语法修复（隐性失效根治）**: eslint-plugin-boundaries 7.2 下原 v5/v6 legacy 语法（`mode:"full"` / bare selector）静默失效（仅告警不拦截，组合根跨层引用漏检）；重写为 v7 语法（`boundaries/files` file descriptor + category，policies `from: { file: { categories } }`；组合根与 tests 的 allow 采用数组 OR 语义覆盖「element 类型 + 组合根单文件」双目标）；例外清单保持为空，lint 0 错误 216 警告
+  eslint-plugin-boundaries v7 migration: legacy syntax was silently not enforcing; rewritten with file descriptors + category-based policies (allow arrays = OR semantics)
+- **knip 死类型清零**: dashboard-stores.ts 移除未消费的 `StoredNode` re-export（基线比对恢复 0 error）
+  Removed unconsumed StoredNode re-export; knip baseline back to green
 - **types/index.ts Facade+Siblings 拆分（基线首个清零项）**: 1781 行巨型类型文件按 37 分区领域聚类为 6 个 sibling（core 233 / network-sync 129 / ui-shared 443 / ai-provider 371 / ops-monitor 522 / design-system 139），index.ts 收敛为 14 行 Facade 稳定重导出 — 116 处消费方 import 路径零改动；体量基线 5 → 4（§6.6 只减不增首次兑现）
   types/index.ts split into 6 domain siblings via Facade pattern; consumers untouched; size baseline 5 → 4
 - **lint warnings 首批治理（295 → 216）**: `scripts/lint-warn-codemod.mjs` 安全移除 121 个未用导入绑定（eslint 单文件复验 + 全量 tsc 复验双保险，语义不符自动回滚单文件）；useWebSocketData → stores 分层豁免同步清零（§6.7 例外清单转空）；剩余 `no-explicit-any`(84) / `exhaustive-deps`(22) 挂账渐进

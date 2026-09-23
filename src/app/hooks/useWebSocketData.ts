@@ -36,7 +36,7 @@ import type {
 } from "../types";
 
 import { getAPIConfig } from "../lib/api-config";
-import { nodeStore } from "../stores/dashboard-stores";
+import { nodeStore } from "../lib/nodes";
 
 // ============================================================
 // Simulated Data Generator — 从 localStorage nodeStore 读取
@@ -139,7 +139,11 @@ export function useWebSocketData(): WebSocketDataState {
     setConnectionState("connecting");
 
     try {
-      const ws = new WebSocket(wsUrl);
+      // 经 globalThis 解析 — 测试环境经 vi.stubGlobal 注入 Mock, 浏览器取原生实现
+      // (ast-grep 守护规则 #1: 禁止裸 new WebSocket)
+      const WSImpl = (globalThis as any).WebSocket as typeof WebSocket;
+      if (typeof WSImpl !== "function") throw new Error("WebSocket 不可用");
+      const ws = new WSImpl(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {

@@ -1,10 +1,10 @@
-id: no-document-write
-language: ts
+id: no-document-write-tsx
+language: tsx
 severity: error
 message: >
   禁止 document.write(...) — 同步解析阻塞渲染 + 扩大 XSS 注入面。
   替代: Blob URL 一次性写入 (参考 hooks/useReportExporter.ts exportPrintable 实现)。
-note: YYC³ 结构化守护规则库 #2 — 协同开发文档 §6.8
+note: YYC³ 结构化守护规则库 #2 (tsx) — 协同开发文档 §6.8
 files:
   - "src/**"
 rule:
