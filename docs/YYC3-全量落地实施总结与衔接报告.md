@@ -371,13 +371,14 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-`no-explicit-any` 全量清零已完成并通过全量门禁（typecheck 0 错 / lint 0 错 121 警告 / 1965 用例全绿 / no-explicit-any 81 → 0）；无进行中代码任务。
+`no-explicit-any` 清零已完成并推送（`7de5cc9`），但 CI 体量门禁失败：**eslint --fix 格式化副作用**使两个基线文件行数增长（DataEditorPanel 1188 → 1231 / ServiceConnectionTest 1265 → 1280），违反「只减不增」铁律（§6.6.1）。待修复：压缩这两个文件至基线以下（或拆分），随后 Pages Deploy 因 CI 失败被 skip 也需重新触发。
 
 ### 8.3 当前优先级（2026-09-24 第四轮执行后）
 
-1. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
-2. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
-3. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
+1. **[P0]** 修复 CI 体量门禁失败：DataEditorPanel 1231 → ≤1188 / ServiceConnectionTest 1280 → ≤1265（根因：本批修改触发 eslint --fix 全文件 import 逐行重排 + catch 空块格式化，纯格式膨胀约 +40/+15 行）
+2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
+3. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
+4. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
 ### 8.4 文档资产索引
 

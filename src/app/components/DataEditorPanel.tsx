@@ -12,59 +12,24 @@
  */
 
 import {
-  Activity,
-  AlertTriangle,
-  BarChart3,
-  Bot,
-  Check,
+  Activity, AlertTriangle, BarChart3, Bot, Check,
   ChevronDown, ChevronUp,
-  Cpu,
-  Edit3,
-  Package,
-  PieChart,
-  Plus,
-  Radar,
-  RefreshCw,
-  RotateCcw,
-  ScrollText,
-  Search,
-  Server,
-  Trash2,
-  X,
-  Zap
+  Cpu, Edit3, Package, PieChart, Plus, Radar, RefreshCw, RotateCcw,
+  ScrollText, Search, Server, Trash2, X, Zap
 } from "lucide-react";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useValidation, validateModelName, validateRange } from "../hooks/useValidation";
 import {
-  addDbAgent,
-  addDbModel,
-  addDbNode,
-  deleteDbAgent,
-  deleteDbModel,
-  deleteDbNode,
-  getActiveModels,
-  getAllAgents,
-  getNodesStatus,
-  resetDbAgents,
-  resetDbModels,
-  resetDbNodes,
-  updateDbAgent,
-  updateDbModel,
-  updateDbNode,
+  addDbAgent, addDbModel, addDbNode, deleteDbAgent, deleteDbModel, deleteDbNode,
+  getActiveModels, getAllAgents, getNodesStatus,
+  resetDbAgents, resetDbModels, resetDbNodes,
+  updateDbAgent, updateDbModel, updateDbNode,
 } from "../lib/db-queries";
 import { ViewContext } from "../lib/view-context";
 import {
-  logStore,
-  modelDistStore,
-  modelPerfStore,
-  nodeStore,
-  radarStore,
-  recentOpsStore,
-  type ModelDistEntry,
-  type RadarEntry,
-  type RecentOpEntry,
-  type StoredLogEntry
+  logStore, modelDistStore, modelPerfStore, nodeStore, radarStore, recentOpsStore,
+  type ModelDistEntry, type RadarEntry, type RecentOpEntry, type StoredLogEntry
 } from "../stores/dashboard-stores";
 import type { Agent, LogLevel, Model, NodeStatusRecord, NodeStatusType } from "../types";
 import { ConfigExportCenter } from "./ConfigExportCenter";
@@ -119,10 +84,7 @@ function CellInput({ value, onChange, type = "text", error, placeholder, mono, w
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border text-[#e0f0ff] focus:outline-none transition-all ${error
-          ? "border-[rgba(255,51,102,0.5)] focus:border-[rgba(255,51,102,0.7)]"
-          : "border-[rgba(0,180,255,0.15)] focus:border-[rgba(0,212,255,0.4)]"
-          } ${mono ? "font-mono" : ""}`}
+        className={`w-full px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border text-[#e0f0ff] focus:outline-none transition-all ${error ? "border-[rgba(255,51,102,0.5)] focus:border-[rgba(255,51,102,0.7)]" : "border-[rgba(0,180,255,0.15)] focus:border-[rgba(0,212,255,0.4)]"} ${mono ? "font-mono" : ""}`}
         style={{ fontSize: "0.72rem" }}
       />
       {error && (
@@ -467,15 +429,11 @@ export function DataEditorPanel() {
         {TABS.map((tab) => {
           const active = activeTab === tab.key;
           const count = tab.key === "models" ? models.length
-            : tab.key === "nodes" ? nodes.length
-              : tab.key === "agents" ? agents.length
-                : tab.key === "liveNodes" ? nodeStore.count()
-                  : tab.key === "modelPerf" ? modelPerfStore.count()
-                    : tab.key === "recentOps" ? recentOpsStore.count()
-                      : tab.key === "radarData" ? radarStore.count()
-                        : tab.key === "modelDist" ? modelDistStore.count()
-                          : tab.key === "logsData" ? logStore.count()
-                            : 0;
+            : tab.key === "nodes" ? nodes.length : tab.key === "agents" ? agents.length
+              : tab.key === "liveNodes" ? nodeStore.count() : tab.key === "modelPerf" ? modelPerfStore.count()
+                : tab.key === "recentOps" ? recentOpsStore.count() : tab.key === "radarData" ? radarStore.count()
+                  : tab.key === "modelDist" ? modelDistStore.count() : tab.key === "logsData" ? logStore.count()
+                    : 0;
           return (
             <button
               key={tab.key}
@@ -1207,21 +1165,20 @@ function LogsDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm,
           <th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>级别</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>来源</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>消息</th><th className="px-2 py-2" style={{ fontSize: "0.65rem" }}>时间</th><th className="px-2 py-2 text-right" style={{ fontSize: "0.65rem" }}>操作</th>
         </tr></thead>
         <tbody>
-          {items.map((l: StoredLogEntry) => {
-            const isE = editingId === l.id; const lc = levelColors[l.level] || "#e0f0ff"; return (
-              <tr key={l.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
-                <td className="px-2 py-2">{isE ? (
-                  <select value={editDraft.level || "info"} onChange={(e) => setEditDraft((p) => ({ ...p, level: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
-                    {LOG_LEVELS.map((lv) => <option key={lv} value={lv}>{lv.toUpperCase()}</option>)}
-                  </select>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${lc}15`, color: lc, fontSize: "0.6rem" }}>{l.level.toUpperCase()}</span>
-                )}</td>
-                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.source || ""} onChange={(v) => setEditDraft((p) => ({ ...p, source: v }))} mono /> : <span className="font-mono text-[rgba(0,212,255,0.5)]">{l.source}</span>}</td>
-                <td className="px-2 py-2">{isE ? <CellInput value={editDraft.message || ""} onChange={(v) => setEditDraft((p) => ({ ...p, message: v }))} /> : <span className="text-[rgba(224,240,255,0.7)] max-w-[300px] truncate block">{l.message}</span>}</td>
-                <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.6rem" }}>{fmtTime(l.timestamp)}</span></td>
-                <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(l.id, { level: l.level, source: l.source, message: l.message, timestamp: String(l.timestamp) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(l.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
-              </tr>);
+          {items.map((l: StoredLogEntry) => { const isE = editingId === l.id; const lc = levelColors[l.level] || "#e0f0ff"; return (
+            <tr key={l.id} className="border-t border-[rgba(0,180,255,0.04)] hover:bg-[rgba(0,40,80,0.08)]">
+              <td className="px-2 py-2">{isE ? (
+                <select value={editDraft.level || "info"} onChange={(e) => setEditDraft((p) => ({ ...p, level: e.target.value }))} className="px-2 py-1 rounded bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
+                  {LOG_LEVELS.map((lv) => <option key={lv} value={lv}>{lv.toUpperCase()}</option>)}
+                </select>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${lc}15`, color: lc, fontSize: "0.6rem" }}>{l.level.toUpperCase()}</span>
+              )}</td>
+              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.source || ""} onChange={(v) => setEditDraft((p) => ({ ...p, source: v }))} mono /> : <span className="font-mono text-[rgba(0,212,255,0.5)]">{l.source}</span>}</td>
+              <td className="px-2 py-2">{isE ? <CellInput value={editDraft.message || ""} onChange={(v) => setEditDraft((p) => ({ ...p, message: v }))} /> : <span className="text-[rgba(224,240,255,0.7)] max-w-[300px] truncate block">{l.message}</span>}</td>
+              <td className="px-2 py-2"><span className="font-mono text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.6rem" }}>{fmtTime(l.timestamp)}</span></td>
+              <td className="px-2 py-2 text-right">{isE ? (<div className="flex gap-1 justify-end"><button onClick={save} className="p-1 rounded hover:bg-[rgba(0,255,136,0.1)]"><Check className="w-3.5 h-3.5 text-[#00ff88]" /></button><button onClick={cancelEdit} className="p-1 rounded hover:bg-[rgba(255,51,102,0.1)]"><X className="w-3.5 h-3.5 text-[#ff3366]" /></button></div>) : (<div className="flex gap-1 justify-end"><button onClick={() => startEdit(l.id, { level: l.level, source: l.source, message: l.message, timestamp: String(l.timestamp) })} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]"><Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" /></button><button onClick={() => del(l.id)} className="p-1 rounded hover:bg-[rgba(255,51,102,0.08)]"><Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.4)]" /></button></div>)}</td>
+            </tr>);
           })}
         </tbody>
       </table>

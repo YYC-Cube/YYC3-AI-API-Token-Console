@@ -15,25 +15,10 @@
  */
 
 import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
+  Activity, AlertTriangle, ArrowRight, CheckCircle2,
   ChevronDown, ChevronUp, Clock,
-  Copy,
-  Database,
-  Globe,
-  Info,
-  Loader2,
-  Network,
-  Play,
-  Radio,
-  RotateCcw,
-  Server,
-  Shield,
-  Terminal,
-  XCircle,
-  Zap,
+  Copy, Database, Globe, Info, Loader2, Network, Play, Radio,
+  RotateCcw, Server, Shield, Terminal, XCircle, Zap,
 } from "lucide-react";
 import React, { useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -85,7 +70,6 @@ const STATUS_META: Record<TestStatus, { label: string; color: string; icon: Reac
   warn: { label: "警告", color: "#ffaa00", icon: AlertTriangle },
   skip: { label: "跳过", color: "rgba(0,212,255,0.2)", icon: Clock },
 };
-
 const RESULTS_KEY = "yyc3_connection_test_results";
 
 function loadResults(): TestResult[] {
