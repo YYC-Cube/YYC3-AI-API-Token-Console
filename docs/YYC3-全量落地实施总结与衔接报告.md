@@ -377,7 +377,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 1. **[P0]** 修复 CI 体量门禁失败：DataEditorPanel 1231 → ≤1188 / ServiceConnectionTest 1280 → ≤1265（根因：本批修改触发 eslint --fix 全文件 import 逐行重排 + catch 空块格式化，纯格式膨胀约 +40/+15 行）
 2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
-3. **[P2]** Pages PWA 浏览器人工验证（iOS Safari / Chrome 添加到主屏 + 离线回退；HTTP 层已全通过）
+3. **[P2]** Pages PWA 浏览器人工验证（清单已生成：[YYC3-PWA浏览器人工验证清单.md](./YYC3-PWA浏览器人工验证清单.md)，覆盖桌面 Chrome / iOS Safari / Android Chrome / 离线降级四场景；注意 GAP-006 — sw.js 未注册，离线项为预期失败基线）
 4. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
 ### 8.4 文档资产索引
