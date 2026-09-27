@@ -34,8 +34,41 @@ interface GatewayLive {
   fetchedAt: string;
 }
 
-function useGatewayLive(): GatewayLive & { refresh: () => void } {
-  const [live, setLive] = useState<GatewayLive>({
+/** 服务商 → 网关上游推送（第 3 步写通道：POST /v1/admin/upstreams，409 时转 PUT 更新） */
+async function pushProviderAsUpstream(p: {
+  id: string; label: string; baseUrl: string; models: string[];
+}): Promise<{ ok: boolean; msg: string }> {
+  const cfg = getGatewayConfig();
+  const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
+  const headers = { "X-API-Key": cfg.gatewayAdminKey, "Content-Type": "application/json" };
+  if (!cfg.gatewayAdminKey) return { ok: false, msg: "未配置网关 ADMIN 密钥（系统设置）" };
+  const body = {
+    name: `console-${p.id}`,
+    base_url: p.baseUrl,
+    models: p.models.length ? p.models : ["*"],
+    capability: "chat",
+    priority: 20,
+  };
+  try {
+    let r = await fetch(`${base}/v1/admin/upstreams`, {
+      method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
+    });
+    if (r.status === 409) {
+      r = await fetch(`${base}/v1/admin/upstreams/${body.name}`, {
+        method: "PUT", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
+      });
+    }
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      return { ok: false, msg: d.detail ?? `HTTP ${r.status}` };
+    }
+    return { ok: true, msg: `已同步到网关：${body.name}` };
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+function useGatewayLive(): GatewayLive & { refresh: () => void } {  const [live, setLive] = useState<GatewayLive>({
     health: "checking", upstreams: [], poolModels: [], routerStats: null, fetchedAt: "",
   });
   const refresh = () => {
@@ -89,6 +122,7 @@ export function ModelProviderPanel() {
   const { t } = useI18n();
   const isMobile = view?.isMobile ?? false;
   const gw = useGatewayLive();
+  const [gatewayMsg, setGatewayMsg] = useState("");
 
   const {
     providers,
@@ -305,6 +339,11 @@ export function ModelProviderPanel() {
             <span className="px-2 py-0.5 rounded bg-[rgba(0,255,136,0.1)] text-[#00ff88]" style={{ fontSize: "0.58rem" }}>
               0379-World · {gw.health === "up" ? "在线" : gw.health === "down" ? "离线" : "检测中"}
             </span>
+            {gatewayMsg && (
+              <span className="px-2 py-0.5 rounded bg-[rgba(0,212,255,0.08)] text-[#00d4ff]" style={{ fontSize: "0.56rem" }}>
+                {gatewayMsg}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.6rem" }}>
@@ -428,6 +467,18 @@ export function ModelProviderPanel() {
 
                 {/* 操作按钮 */}
                 <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={async () => {
+                      const r = await pushProviderAsUpstream(p);
+                      setGatewayMsg(`${p.label}: ${r.msg}`);
+                      if (r.ok) gw.refresh();
+                      setTimeout(() => setGatewayMsg(""), 4000);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-[rgba(0,255,136,0.08)] transition-all"
+                    title="推送到网关上游池（POST/PUT /v1/admin/upstreams）"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[rgba(0,255,136,0.6)]" />
+                  </button>
                   <button
                     onClick={() => { setEditingProvider(p); setProviderEditorOpen(true); }}
                     className="p-1.5 rounded-lg hover:bg-[rgba(0,180,255,0.08)] transition-all"
