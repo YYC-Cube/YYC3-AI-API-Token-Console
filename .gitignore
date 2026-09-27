@@ -23,6 +23,11 @@ playwright-report/
 .env.*
 !.env.example
 
+# ── AI 工具缓存（本地插件状态, 不入库）─────────────────────
+.mimosa/
+.v2c/
+.video_agent/
+
 # ── 编辑器与系统 Editor & OS ────────────────────────────────
 .DS_Store
 .idea/
