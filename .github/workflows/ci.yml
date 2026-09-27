@@ -4,7 +4,7 @@
 #
 #  触发: push 到 main/develop · 所有 PR
 #  阶段: 🔍 Typecheck → 🧹 Lint(含分层边界) → 🧪 Test(unit 分级+基线) → 🛡️ Security Scan
-#        → 📦 Build(+工程纪律: ast-grep/体量/knip + 产物零密钥)
+#        → 📦 Build(+工程纪律: ast-grep/门禁探针/体量/knip + 产物零密钥)
 #  下游: pages.yml (CI 全绿后自动部署 GitHub Pages → token.yyc3.vip)
 # ============================================================================
 
@@ -200,6 +200,11 @@ jobs:
       - name: "Discipline: ast-grep structural rules"
         # Task 3.7 — 6 条反模式规则 (裸 WebSocket/document.write/innerHTML/隐式 eval/process.env/硬编码密钥)
         run: pnpm astgrep
+
+      - name: "Discipline: guardrail probe (gate self-check)"
+        # P0-3 — 门禁有效性探针: 植入已知违规样本, 断言 ast-grep/eslint boundaries 真实拦截
+        # 防止「工具升级 + 配置脱节」导致门禁空心但 CI 绿灯 (meta-gate)
+        run: pnpm guardrail-probe
 
       - name: "Discipline: file size baseline (Facade+Siblings §6.6)"
         # Task 2.2 — 超阈值告警 + 基线文件只减不增 (增长即失败)

@@ -18,8 +18,8 @@
  */
 
 import { execSync } from "node:child_process";
-import { mkdirSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
 
 // 探针样本统一放在 hooks element 下 (临时创建 + 强制清理, 不进 git):
 //   - ast-grep 规则 files=src/** (ignores 仅 network-utils.ts 与 __tests__), 覆盖 .ts/.tsx
@@ -56,7 +56,8 @@ function expectIntercepted(name, files, runGate) {
   const paths = files.map(({ name, content }) => {
     const p = join(PROBE_DIR, name);
     writeFileSync(p, content, "utf8");
-    return p;
+    // 关键: 传相对路径 — ast-grep 规则 files glob (src/**) 对命令行绝对路径不匹配 (0.45.3 实测)
+    return relative(process.cwd(), p);
   });
 
   try {
@@ -82,14 +83,14 @@ function expectIntercepted(name, files, runGate) {
 expectIntercepted(
   "ast-grep 裸 WebSocket (.ts)",
   [{ name: "probe-ws.ts", content: 'const ws = new WebSocket("ws://localhost:9999");\nvoid ws;\n' }],
-  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${join(PROBE_DIR, "probe-ws.ts")}`)
+  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, "probe-ws.ts"))}`)
 );
 
 // ── 探针 2: ast-grep 裸 WebSocket (.tsx) ──
 expectIntercepted(
   "ast-grep 裸 WebSocket (.tsx)",
   [{ name: "probe-ws.tsx", content: 'const ws = new WebSocket("ws://localhost:9999");\nvoid ws;\n' }],
-  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${join(PROBE_DIR, "probe-ws.tsx")}`)
+  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, "probe-ws.tsx"))}`)
 );
 
 // ── 探针 3: eslint 分层契约 hooks→stores 跨层 ──
@@ -109,8 +110,8 @@ const failed = results.filter((r) => !r.ok).length;
 console.log("=".repeat(50));
 console.log(
   `结果: ${results.length - failed}/${results.length} 门禁有效` +
-    (failed ? ` · ${failed} 失效 ⛔` : "") +
-    "\n"
+  (failed ? ` · ${failed} 失效 ⛔` : "") +
+  "\n"
 );
 
 if (failed > 0) {

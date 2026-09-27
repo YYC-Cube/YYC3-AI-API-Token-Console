@@ -3,6 +3,27 @@
   "private": true,
   "version": "0.1.0",
   "description": "YYC³ AI Family Token Console — 本地闭环多端推理矩阵数据看盘系统",
+  "keywords": [
+    "api-token-console",
+    "token-usage-dashboard",
+    "llm-gateway-monitoring",
+    "inference-matrix",
+    "multi-provider",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss",
+    "shadcn-ui",
+    "radix-ui",
+    "recharts",
+    "codemirror",
+    "react-router",
+    "vitest",
+    "pnpm",
+    "github-pages",
+    "spa",
+    "yyc3"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite --port 3030",
@@ -24,6 +45,7 @@
     "knip": "knip",
     "doctor": "node scripts/doctor.mjs",
     "astgrep": "node_modules/@ast-grep/cli/ast-grep scan -c scripts/ast-grep/sgconfig.yml src/",
+    "guardrail-probe": "node scripts/guardrail-probe.mjs",
     "size:check": "node scripts/check-size.mjs"
   },
   "dependencies": {
