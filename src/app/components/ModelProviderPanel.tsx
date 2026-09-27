@@ -10,11 +10,12 @@
  * - 配置导入/导出
  */
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Plus, Trash2, Plug, Server, Cpu,
   CheckCircle, AlertCircle, HelpCircle, RefreshCw,
   Edit3, Download, Upload, Globe, ChevronDown, ChevronUp,
+  Activity,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { AddModelModal } from "./AddModelModal";
@@ -22,6 +23,60 @@ import { ProviderEditorModal } from "./ProviderEditorModal";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useI18n } from "../hooks/useI18n";
 import { ViewContext } from "../lib/view-context";
+import { getGatewayConfig } from "../lib/api-config";
+
+/** YYC³ 网关实时状态（/v1/router/stats + /v1/models + /healthz，只读对接第 1 步） */
+interface GatewayLive {
+  health: "up" | "down" | "checking";
+  upstreams: Array<{ name: string; base_url: string; models: string[]; breaker_state?: string }>;
+  poolModels: string[];
+  routerStats: Record<string, unknown> | null;
+  fetchedAt: string;
+}
+
+function useGatewayLive(): GatewayLive & { refresh: () => void } {
+  const [live, setLive] = useState<GatewayLive>({
+    health: "checking", upstreams: [], poolModels: [], routerStats: null, fetchedAt: "",
+  });
+  const refresh = () => {
+    const cfg = getGatewayConfig();
+    const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
+    const adminHeaders = { "X-API-Key": cfg.gatewayAdminKey };
+    const next: GatewayLive = { health: "checking", upstreams: [], poolModels: [], routerStats: null, fetchedAt: new Date().toLocaleTimeString() };
+    fetch(`${base}/healthz`, { signal: AbortSignal.timeout(6000) })
+      .then((r) => { next.health = r.ok ? "up" : "down"; })
+      .catch(() => { next.health = "down"; })
+      .finally(() => setLive((p) => ({ ...p, health: next.health, fetchedAt: next.fetchedAt })));
+    if (cfg.gatewayAdminKey) {
+      fetch(`${base}/v1/router/stats`, { headers: adminHeaders, signal: AbortSignal.timeout(6000) })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d) return;
+          next.routerStats = d;
+          const pool = (d.upstream_pool ?? d.upstreams ?? []) as Array<Record<string, unknown>>;
+          next.upstreams = pool.map((u) => ({
+            name: String(u.name ?? "?"),
+            base_url: String(u.base_url ?? ""),
+            models: (u.models as string[]) ?? [],
+            breaker_state: u.breaker_state as string | undefined,
+          }));
+          setLive((p) => ({ ...p, upstreams: next.upstreams, routerStats: d }));
+        })
+        .catch(() => { /* 静默：无 admin key 或网络失败时显示占位 */ });
+      fetch(`${base}/v1/models`, { headers: adminHeaders, signal: AbortSignal.timeout(6000) })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d) return;
+          const arr = Array.isArray(d) ? d : (d.data ?? []);
+          next.poolModels = arr.map((m: { id?: string }) => String(m.id ?? ""));
+          setLive((p) => ({ ...p, poolModels: next.poolModels }));
+        })
+        .catch(() => { /* 静默 */ });
+    }
+  };
+  useEffect(() => { refresh(); }, []);
+  return { ...live, refresh };
+}
 
 function formatSize(bytes: number): string {
   if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)}GB`;
@@ -33,6 +88,7 @@ export function ModelProviderPanel() {
   const view = useContext(ViewContext);
   const { t } = useI18n();
   const isMobile = view?.isMobile ?? false;
+  const gw = useGatewayLive();
 
   const {
     providers,
@@ -233,46 +289,74 @@ export function ModelProviderPanel() {
         </GlassCard>
       </div>
 
-      {/* ======== API 网关/全链路契约速查与 52 端点 ======== */}
+      {/* ======== API 网关实时状态（YYC³ 0379-World 真实对接） ======== */}
       <GlassCard className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Plug className="w-4 h-4 text-[#00d4ff]" />
+            <Activity className="w-4 h-4 text-[#00d4ff]" />
             <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.88rem" }}>
-              API 网关全链路契约 (52 端点已冻结)
+              API 网关实时状态
+              <span
+                className="ml-2 inline-block w-2 h-2 rounded-full"
+                style={{ background: gw.health === "up" ? "#00ff88" : gw.health === "down" ? "#f87171" : "#ffaa00" }}
+                title={gw.health}
+              />
             </h3>
             <span className="px-2 py-0.5 rounded bg-[rgba(0,255,136,0.1)] text-[#00ff88]" style={{ fontSize: "0.58rem" }}>
-              43 个直连 (82.7%)
+              0379-World · {gw.health === "up" ? "在线" : gw.health === "down" ? "离线" : "检测中"}
             </span>
           </div>
-          <a
-            href="https://api.0379.world/openapi.json"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] transition-all"
-            style={{ fontSize: "0.65rem" }}
-          >
-            查看 OpenAPI JSON ↗
-          </a>
+          <div className="flex items-center gap-3">
+            <span className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.6rem" }}>
+              {gw.fetchedAt || "—"}{gw.poolModels.length > 0 ? ` · 池模型 ${gw.poolModels.length}` : ""}
+            </span>
+            <button onClick={gw.refresh} className="text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-all" title="刷新">
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+            <a
+              href="https://api.0379.world/openapi.json"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] transition-all"
+              style={{ fontSize: "0.65rem" }}
+            >
+              OpenAPI ↗
+            </a>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div className="p-2.5 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
-            <p className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>对话与 WebSocket</p>
-            <p className="text-[#e0f0ff] font-mono mt-0.5" style={{ fontSize: "0.68rem" }}>POST /v1/chat/completions</p>
-            <p className="text-[rgba(0,255,136,0.6)] font-mono" style={{ fontSize: "0.58rem" }}>WS /ws/chat & /ws/monitor</p>
+        {gw.upstreams.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {gw.upstreams.map((u) => (
+              <div key={u.name} className="p-2.5 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
+                <div className="flex items-center justify-between">
+                  <p className="text-[#e0f0ff] font-mono" style={{ fontSize: "0.68rem" }}>{u.name}</p>
+                  {u.breaker_state && (
+                    <span className="px-1.5 py-0.5 rounded text-[0.55rem]"
+                      style={{ background: u.breaker_state === "closed" ? "rgba(0,255,136,0.1)" : "rgba(255,170,0,0.12)", color: u.breaker_state === "closed" ? "#00ff88" : "#ffaa00" }}>
+                      {u.breaker_state}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[rgba(0,212,255,0.4)] font-mono mt-0.5 truncate" style={{ fontSize: "0.56rem" }}>{u.base_url}</p>
+                <p className="text-[rgba(170,119,255,0.7)] font-mono mt-0.5 truncate" style={{ fontSize: "0.56rem" }}>
+                  {(u.models ?? []).slice(0, 3).join(", ") || "—"}{(u.models?.length ?? 0) > 3 ? ` +${u.models.length - 3}` : ""}
+                </p>
+              </div>
+            ))}
           </div>
-          <div className="p-2.5 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
-            <p className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>模型与上游路由池</p>
-            <p className="text-[#e0f0ff] font-mono mt-0.5" style={{ fontSize: "0.68rem" }}>GET /v1/models & /stats</p>
-            <p className="text-[#aa77ff] font-mono" style={{ fontSize: "0.58rem" }}>GET /v1/router/stats & /health</p>
+        ) : (
+          <div className="p-3 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
+            <p className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.62rem" }}>
+              {gw.health !== "up"
+                ? "网关不可达：检查 gatewayBase（默认 http://192.168.3.45:8000/v1，公网用 https://api.0379.world/v1）"
+                : "在系统设置中填入 ADMIN 密钥（sk-admin…）以拉取上游池与模型清单（/v1/router/stats、/v1/models 为管理面）"}
+            </p>
+            <p className="text-[rgba(170,119,255,0.5)] font-mono mt-1" style={{ fontSize: "0.56rem" }}>
+              契约速查：POST /v1/chat/completions · GET /v1/models · GET /v1/router/stats · RAG 9 · MCP 14
+            </p>
           </div>
-          <div className="p-2.5 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
-            <p className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>知识库 RAG & MCP 工具集</p>
-            <p className="text-[#e0f0ff] font-mono mt-0.5" style={{ fontSize: "0.68rem" }}>/v1/knowledge-bases (9端点)</p>
-            <p className="text-[#ffaa00] font-mono" style={{ fontSize: "0.58rem" }}>/v1/mcp/* (14端点)</p>
-          </div>
-        </div>
+        )}
       </GlassCard>
 
       {/* ======== 服务商注册表 ======== */}

@@ -31,6 +31,37 @@ const DEFAULTS: APIEndpoints = {
   maxRetries: 2,
 };
 
+/** YYC³ 网关（0379-World）配置：默认 LAN 直连，可经设置页改为公网/Tailscale */
+export const GATEWAY_DEFAULTS = {
+  /** OpenAI 兼容 base（LAN 快通道；公网= https://api.0379.world/v1） */
+  gatewayBase: "http://192.168.3.45:8000/v1",
+  /** 管理面密钥（/v1/models、/v1/router/stats 需 sk-admin；仅内网使用，勿入公网前端） */
+  gatewayAdminKey: "",
+  /** OpenAI 兼容调用密钥（chat 用） */
+  gatewayApiKey: "",
+};
+const GATEWAY_KEY = "yyc3_gateway_config";
+
+let _gateway: typeof GATEWAY_DEFAULTS = (() => {
+  try {
+    const raw = localStorage.getItem(GATEWAY_KEY);
+    if (raw) return { ...GATEWAY_DEFAULTS, ...JSON.parse(raw) };
+  } catch { /* ignore */ }
+  return { ...GATEWAY_DEFAULTS };
+})();
+
+export function getGatewayConfig(): typeof GATEWAY_DEFAULTS {
+  return _gateway;
+}
+
+export function setGatewayConfig(updates: Partial<typeof GATEWAY_DEFAULTS>): typeof GATEWAY_DEFAULTS {
+  _gateway = { ..._gateway, ...updates };
+  try { localStorage.setItem(GATEWAY_KEY, JSON.stringify(_gateway)); } catch { /* ignore */ }
+  try { getSharedChannel(CONFIG_CHANNEL_NAME)?.postMessage({ type: "gateway_update", gateway: _gateway }); } catch { /* ignore */ }
+  for (const fn of _listeners) { try { fn(_config); } catch { /* ignore */ } }
+  return _gateway;
+}
+
 /** 从 localStorage 加载配置 */
 function loadConfig(): APIEndpoints {
   try {
