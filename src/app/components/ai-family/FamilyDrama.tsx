@@ -60,6 +60,31 @@ async function probe(url: string, kind: "json" | "text"): Promise<boolean> {
   }
 }
 
+// ═══ 网关真实指标（/health 轮询，30s 刷新）═══
+
+interface GatewayMetrics {
+  status: string;
+  version: string;
+  uptime_seconds: number;
+  metrics: { active_requests: number; total_requests: number; cache_hit_rate: number };
+}
+
+async function fetchGatewayHealth(): Promise<GatewayMetrics | null> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), PROBE_TIMEOUT_MS);
+  try {
+    const res = await fetch("http://localhost:25080/health", {
+      signal: ctl.signal, mode: "cors",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as GatewayMetrics;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ═══ 生产链六环节（只读状态；执行在 manju-studio / H3 console）═══
 
 const PIPELINE_STAGES = [
@@ -117,6 +142,7 @@ export function FamilyDrama() {
   const [states, setStates] = useState<Record<string, ServiceState>>(
     () => Object.fromEntries(SERVICES.map(s => [s.id, "probing" as ServiceState])),
   );
+  const [gwMetrics, setGwMetrics] = useState<GatewayMetrics | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -124,7 +150,14 @@ export function FamilyDrama() {
       const ok = await probe(def.url, def.kind);
       if (alive) setStates(prev => ({ ...prev, [def.id]: ok ? "online" : "offline" }));
     });
-    return () => { alive = false; };
+    // 网关真实指标：首次拉取 + 30s 轮询
+    const fetchMetrics = async () => {
+      const m = await fetchGatewayHealth();
+      if (alive) setGwMetrics(m);
+    };
+    fetchMetrics();
+    const iv = setInterval(fetchMetrics, 30_000);
+    return () => { alive = false; clearInterval(iv); };
   }, []);
 
   const onlineCount = useMemo(
@@ -166,6 +199,32 @@ export function FamilyDrama() {
           <ServiceRow key={def.id} def={def} state={states[def.id]} delay={0.08 + i * 0.04} />
         ))}
       </div>
+
+      {/* 网关真实指标 */}
+      {gwMetrics && (
+        <FadeIn delay={0.28}>
+          <GlassCard className="p-3 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-white/60" style={{ fontSize: "0.72rem", fontWeight: 600 }}>
+                网关实时指标（0379-World v{gwMetrics.version} · 30s 刷新）
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2" style={{ fontSize: "0.68rem" }}>
+              {[
+                { k: "运行状态", v: gwMetrics.status },
+                { k: "在线时长", v: `${Math.floor(gwMetrics.uptime_seconds / 60)}m ${gwMetrics.uptime_seconds % 60}s` },
+                { k: "累计请求", v: String(gwMetrics.metrics.total_requests) },
+                { k: "缓存命中率", v: `${(gwMetrics.metrics.cache_hit_rate * 100).toFixed(1)}%` },
+              ].map(m => (
+                <div key={m.k}>
+                  <div className="text-white/35" style={{ fontSize: "0.58rem" }}>{m.k}</div>
+                  <div className="text-cyan-300/90" style={{ fontSize: "0.78rem", fontWeight: 600 }}>{m.v}</div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </FadeIn>
+      )}
 
       {/* 生产链 */}
       <FadeIn delay={0.3}>
