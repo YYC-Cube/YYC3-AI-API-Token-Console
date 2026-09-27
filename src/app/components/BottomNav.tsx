@@ -30,6 +30,7 @@ import {
   ServerCog,
   UserCircle2,
   FileText,
+  Film,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useI18n } from "../hooks/useI18n";
@@ -82,6 +83,7 @@ const MORE_CATEGORIES: MoreCategory[] = [
     items: [
       { key: "nav.aiFamily",       path: "/ai-family",        icon: UserCircle2 },
       { key: "nav.aiFamilyDesign", path: "/ai-family-design", icon: FileText },
+      { key: "nav.aiFamilyDrama",  path: "/ai-family-drama",  icon: Film },
     ],
   },
   {

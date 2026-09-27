@@ -30,6 +30,7 @@ import { FollowUpPanel } from "./components/FollowUpPanel";
 import { Layout } from "./components/Layout";
 import { LocalFileManager } from "./components/LocalFileManager";
 import { ModelProviderPanel } from "./components/ModelProviderPanel";
+import { GatewayKeysPanel } from "./components/GatewayKeysPanel";
 import { NotFound } from "./components/NotFound";
 import { OperationAudit } from "./components/OperationAudit";
 import { OperationCenter } from "./components/OperationCenter";
@@ -88,6 +89,7 @@ export const router = createBrowserRouter(
 
         // 3. AI 智能 (API 矩阵与模型)
         { path: "models", Component: ModelProviderPanel },
+        { path: "gateway-keys", Component: GatewayKeysPanel },
         { path: "ai", Component: AISuggestionPanel },
         { path: "ai-diagnosis", Component: AIDiagnostics },
 
@@ -121,6 +123,7 @@ export const router = createBrowserRouter(
         { path: "ai-family-data", Component: AIFamilyRouter },
         { path: "ai-family-comm", Component: AIFamilyRouter },
         { path: "ai-family-settings", Component: AIFamilyRouter },
+        { path: "ai-family-drama", Component: AIFamilyRouter },
 
         // 5. 开发规范
         { path: "design-system", Component: DesignSystemPage },

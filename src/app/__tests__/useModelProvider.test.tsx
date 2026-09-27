@@ -14,8 +14,16 @@ describe("useModelProvider", () => {
   });
 
   describe("MODEL_PROVIDERS 注册表", () => {
-    it("应有 9 个提供商", () => {
-      expect(MODEL_PROVIDERS.length).toBe(9);
+    it("应有 14 个提供商（9 云端 + 5 本地生产服务 yyc3-*）", () => {
+      expect(MODEL_PROVIDERS.length).toBe(14);
+    });
+
+    it("应含本地生产服务群（网关/ComfyUI/SyncNet/TTS/H3）", () => {
+      for (const id of ["yyc3-gateway", "yyc3-comfyui", "yyc3-syncnet", "yyc3-tts", "yyc3-h3"]) {
+        const svc = MODEL_PROVIDERS.find((p) => p.id === id);
+        expect(svc, id).toBeDefined();
+        expect(svc?.isLocal, id).toBe(true);
+      }
     });
 
     it("应含 Z.ai", () => {

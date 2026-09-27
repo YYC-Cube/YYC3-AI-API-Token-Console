@@ -96,6 +96,7 @@ const zhCN = {
     aiFamilyData: "数据中心",
     aiFamilyComm: "通信中心",
     aiFamilySettings: "生态控制",
+    aiFamilyDrama: "漫剧生产线",
   },
 
   // ======== 底部导航 ========

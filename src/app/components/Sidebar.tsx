@@ -26,6 +26,7 @@ import {
   Phone, Gamepad2, Trophy,
   Volume2, Radio, Server,
   Settings2,
+  Film,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { useI18n } from "../hooks/useI18n";
@@ -104,6 +105,7 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.aiFamilyData", path: "/ai-family-data", icon: Database },
       { key: "nav.aiFamilyComm", path: "/ai-family-comm", icon: Radio },
       { key: "nav.aiFamilySettings", path: "/ai-family-settings", icon: Settings2 },
+      { key: "nav.aiFamilyDrama", path: "/ai-family-drama", icon: Film },
     ],
   },
   {

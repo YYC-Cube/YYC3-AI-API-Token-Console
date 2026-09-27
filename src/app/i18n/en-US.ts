@@ -98,6 +98,7 @@ const enUS: TranslationKeys = {
     aiFamilyData: "Data Hub",
     aiFamilyComm: "Comm Center",
     aiFamilySettings: "Ecosystem",
+    aiFamilyDrama: "Drama Pipeline",
   },
 
   // ======== Bottom Nav ========

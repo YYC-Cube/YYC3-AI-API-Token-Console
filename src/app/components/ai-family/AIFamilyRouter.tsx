@@ -28,6 +28,7 @@ const lazyMap: Record<string, () => Promise<{ default: React.ComponentType }>> =
   data: () => import("./FamilyDataHub").then(m => ({ default: m.FamilyDataHub })),
   comm: () => import("./FamilyCommCenter").then(m => ({ default: m.FamilyCommCenter })),
   settings: () => import("./FamilyUISettings").then(m => ({ default: m.FamilyUISettings })),
+  drama: () => import("./FamilyDrama").then(m => ({ default: m.FamilyDrama })),
 };
 
 const VALID_KEYS = Object.keys(lazyMap);

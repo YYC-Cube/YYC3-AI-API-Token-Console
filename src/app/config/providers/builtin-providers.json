@@ -88,5 +88,55 @@
     "requiresApiKey": false,
     "isLocal": true,
     "isBuiltin": true
+  },
+  {
+    "id": "yyc3-gateway",
+    "label": "YYC³ 网关 (0379-World)",
+    "baseUrl": "http://localhost:25080",
+    "authType": "api-key",
+    "models": ["deepseek-v4-pro", "yyc3-family-coder:14b-q4", "qwen3-coder-30b"],
+    "requiresApiKey": true,
+    "isLocal": true,
+    "isBuiltin": true
+  },
+  {
+    "id": "yyc3-comfyui",
+    "label": "YYC³ ComfyUI (文生图)",
+    "baseUrl": "http://localhost:41888",
+    "authType": "none",
+    "models": ["DreamShaper_8_pruned.safetensors"],
+    "requiresApiKey": false,
+    "isLocal": true,
+    "isBuiltin": true
+  },
+  {
+    "id": "yyc3-syncnet",
+    "label": "YYC³ SyncNet (口型评分)",
+    "baseUrl": "http://localhost:42218",
+    "authType": "none",
+    "models": ["syncnet_v2"],
+    "requiresApiKey": false,
+    "isLocal": true,
+    "isBuiltin": true
+  },
+  {
+    "id": "yyc3-tts",
+    "label": "YYC³ TTS (piper 配音)",
+    "baseUrl": "http://localhost:42118",
+    "authType": "none",
+    "models": ["zh_CN-huayan-medium"],
+    "requiresApiKey": false,
+    "isLocal": true,
+    "isBuiltin": true
+  },
+  {
+    "id": "yyc3-h3",
+    "label": "YYC³ MiniMax-H3 (图生视频)",
+    "baseUrl": "http://localhost:8002",
+    "authType": "none",
+    "models": ["h3-pruned-preview", "h3-nf4-quality"],
+    "requiresApiKey": false,
+    "isLocal": true,
+    "isBuiltin": true
   }
 ]
