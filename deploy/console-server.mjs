@@ -115,7 +115,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ── 静态文件（SPA：未命中回退 index.html） ──
-  let filePath = path.join(DIST, path.normalize(pathname).replace(/^(\.\.[\/\\])+/, ""));
+  let filePath = path.join(DIST, path.normalize(pathname).replace(/^(\.\.[/\\])+/, ""));
   if (!filePath.startsWith(DIST)) { res.writeHead(403); return res.end(); }
   if (pathname === "/console" || pathname === "/console/") filePath = path.join(DIST, "index.html");
   else filePath = path.join(DIST, pathname.replace(/^\/console\/?/, "") || "index.html");
