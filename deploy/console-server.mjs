@@ -76,6 +76,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── /console（无斜杠）→ 301 重定向到 /console/（否则浏览器相对路径解析到根，JS/CSS 404 蓝屏） ──
+  if (pathname === "/console") {
+    res.writeHead(301, { Location: "/console/" });
+    return res.end();
+  }
+
   // ── 网关代理：/console/gw/* → 网关 /*（注入 X-API-Key） ──
   if (pathname.startsWith("/console/gw/")) {
     if (!GW_ADMIN_KEY) {
