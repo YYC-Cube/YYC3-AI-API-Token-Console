@@ -13,17 +13,33 @@
  *  - 聊天记录导出
  */
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
-  MessageCircle, Send, Users, Heart, Shield,
-  Sparkles, Filter, ChevronDown, ChevronUp,
-  Radio, Wifi, CheckCheck, Search,
-  Download, Trash2, CalendarDays, X,
+  CalendarDays,
+  CheckCheck,
+  ChevronDown, ChevronUp,
+  Download,
+  Filter,
+  Heart,
+  MessageCircle,
+  Radio,
+  Search,
+  Send,
+  Shield,
+  Sparkles,
+  Trash2,
+  Users,
+  Wifi,
+  X,
 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lsGet, lsSetJSON } from "../../lib/yyc3-storage";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, SAMPLE_MESSAGES, AI_RESPONSES, hexToRgb,
+  AI_RESPONSES,
+  FAMILY_MEMBERS,
+  hexToRgb,
+  SAMPLE_MESSAGES,
   type FamilyMember, type FamilyMessage,
 } from "./shared";
 
@@ -34,7 +50,7 @@ const COMM_PAGE_SIZE = 30;
 
 function loadMessages(): FamilyMessage[] {
   try {
-    const raw = localStorage.getItem(COMM_STORAGE_KEY);
+    const raw = lsGet(COMM_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -49,7 +65,7 @@ function saveMessages(msgs: FamilyMessage[]) {
   try {
     // Keep max 500 messages
     const trimmed = msgs.slice(-500);
-    localStorage.setItem(COMM_STORAGE_KEY, JSON.stringify(trimmed));
+    lsSetJSON(COMM_STORAGE_KEY, trimmed);
   } catch { /* noop */ }
 }
 
@@ -57,9 +73,9 @@ function saveMessages(msgs: FamilyMessage[]) {
 
 const MSG_TYPE_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   announcement: { label: "公告", color: "#f59e0b", icon: Sparkles },
-  alert:        { label: "警报", color: "#ef4444", icon: Shield },
-  text:         { label: "消息", color: "#3b82f6", icon: MessageCircle },
-  heartbeat:    { label: "心跳", color: "#ec4899", icon: Heart },
+  alert: { label: "警报", color: "#ef4444", icon: Shield },
+  text: { label: "消息", color: "#3b82f6", icon: MessageCircle },
+  heartbeat: { label: "心跳", color: "#ec4899", icon: Heart },
 };
 
 // ═══ 日期分组工具 ═══
@@ -85,11 +101,10 @@ function MemberStatusBar({ selectedMember, onSelect }: {
     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
       <button
         onClick={() => onSelect("all")}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0 transition-all ${
-          selectedMember === "all"
-            ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
-            : "bg-white/[0.03] text-white/40 border border-transparent hover:bg-white/[0.06]"
-        }`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0 transition-all ${selectedMember === "all"
+          ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
+          : "bg-white/[0.03] text-white/40 border border-transparent hover:bg-white/[0.06]"
+          }`}
         style={{ fontSize: "0.7rem" }}
       >
         <Users className="w-3 h-3" />
@@ -102,11 +117,10 @@ function MemberStatusBar({ selectedMember, onSelect }: {
           <button
             key={m.id}
             onClick={() => onSelect(m.id)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg shrink-0 transition-all ${
-              active
-                ? "border"
-                : "bg-white/[0.03] border border-transparent hover:bg-white/[0.06]"
-            }`}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg shrink-0 transition-all ${active
+              ? "border"
+              : "bg-white/[0.03] border border-transparent hover:bg-white/[0.06]"
+              }`}
             style={{
               ...(active ? { background: `rgba(${rgb},0.1)`, borderColor: `rgba(${rgb},0.3)`, color: m.color } : { color: "rgba(255,255,255,0.4)" }),
               fontSize: "0.7rem",
@@ -459,11 +473,10 @@ export function FamilyCommCenter() {
             <button
               key={item.key}
               onClick={() => setFilterType(item.key)}
-              className={`px-2 py-1 rounded transition-all ${
-                filterType === item.key
-                  ? "bg-[rgba(0,212,255,0.1)] text-cyan-300"
-                  : "text-white/30 hover:text-white/50"
-              }`}
+              className={`px-2 py-1 rounded transition-all ${filterType === item.key
+                ? "bg-[rgba(0,212,255,0.1)] text-cyan-300"
+                : "text-white/30 hover:text-white/50"
+                }`}
               style={{ fontSize: "0.6rem" }}
             >
               {item.label}

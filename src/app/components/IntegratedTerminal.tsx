@@ -14,30 +14,31 @@
  * 赛博朋克风格，深蓝底 + 青色强调
  */
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useContext,
-} from "react";
 import {
-  Terminal,
-  Minus,
+  Ghost,
   Maximize2,
   Minimize2,
-  X,
-  Plus,
-  Ghost,
-  Sparkles,
+  Minus,
   Navigation,
+  Plus,
+  Sparkles,
+  Terminal,
+  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate } from "react-router";
 import { useTerminal } from "../hooks/useTerminal";
-import { ViewContext } from "../lib/view-context";
 import { AuthContext } from "../lib/authContext";
 import { isGhostMode } from "../lib/supabaseClient";
+import { ViewContext } from "../lib/view-context";
+import { lsGet, lsSet } from "../lib/yyc3-storage";
 
 /* ── 常量 ─────────────────────────────── */
 const MIN_HEIGHT = 180;
@@ -256,7 +257,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
   // ── 面板高度 ──
   const [panelHeight, setPanelHeight] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = lsGet(STORAGE_KEY);
       return saved ? Math.max(MIN_HEIGHT, parseInt(saved, 10)) : DEFAULT_HEIGHT;
     } catch {
       return DEFAULT_HEIGHT;
@@ -284,8 +285,8 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
   // Persist height
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, String(panelHeight));
-    } catch {}
+      lsSet(STORAGE_KEY, String(panelHeight));
+    } catch { }
   }, [panelHeight]);
 
   /* ── 拖拽调高 ─────────────────────────── */
@@ -387,11 +388,10 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
                 {tabs.map((tab) => (
                   <div
                     key={tab.id}
-                    className={`flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-t-md transition-all cursor-pointer group/tab ${
-                      activeTabId === tab.id
+                    className={`flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-t-md transition-all cursor-pointer group/tab ${activeTabId === tab.id
                         ? "bg-[rgba(0,40,80,0.5)] border border-b-0 border-[rgba(0,180,255,0.12)] text-[#00d4ff]"
                         : "text-[rgba(0,212,255,0.3)] hover:text-[rgba(0,212,255,0.5)] hover:bg-[rgba(0,40,80,0.15)]"
-                    }`}
+                      }`}
                     onClick={() => setActiveTabId(tab.id)}
                     style={{
                       fontSize: "0.68rem",

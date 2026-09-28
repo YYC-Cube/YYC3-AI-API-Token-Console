@@ -198,8 +198,8 @@ describe("yyc3-storage", () => {
       expect(LOCALSTORAGE_KEYS.ghost).toBe("yyc3_ghost");
       expect(LOCALSTORAGE_KEYS.locale).toBe("yyc3_locale");
       expect(LOCALSTORAGE_KEYS.configuredModels).toBe("yyc3_configured_models");
-      expect(LOCALSTORAGE_KEYS.sdkSessions).toBe("yyc3_sdk_sessions");
-      expect(LOCALSTORAGE_KEYS.sdkStats).toBe("yyc3_sdk_stats");
+      expect(LOCALSTORAGE_KEYS.sdkSessions).toBe("yyc3_chat_sessions");
+      expect(LOCALSTORAGE_KEYS.sdkStats).toBe("yyc3_sdk_usage_stats");
       expect(LOCALSTORAGE_KEYS.syncQueue).toBe("yyc3_sync_queue");
       expect(LOCALSTORAGE_KEYS.errorLog).toBe("yyc3_error_log");
       expect(LOCALSTORAGE_KEYS.networkConfig).toBe("network_config");

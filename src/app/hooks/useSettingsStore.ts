@@ -11,8 +11,9 @@
  * - BroadcastChannel 多标签页同步
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getSharedChannel } from "../lib/broadcast-channel";
+import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 
 // ============================================================
 // 类型定义
@@ -166,7 +167,7 @@ const CHANNEL_NAME = "yyc3_settings_sync";
 
 function loadState(): SettingsState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = lsGet(STORAGE_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
       return {
@@ -180,7 +181,7 @@ function loadState(): SettingsState {
 
 function saveState(state: SettingsState) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    lsSetJSON(STORAGE_KEY, state);
   } catch { /* ignore */ }
 }
 

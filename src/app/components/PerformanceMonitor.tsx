@@ -14,19 +14,37 @@
  * - 全部数据可导出
  */
 
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
-  Activity, Gauge, Cpu, Bell, BellOff, Check, X, Save,
-  RefreshCw, Download, MonitorSpeaker, Database, Layers,
-  TrendingUp, TrendingDown, Minus, AlertTriangle, RotateCcw,
+  Activity,
+  AlertTriangle,
+  Bell, BellOff,
+  Cpu,
+  Database,
+  Download,
+  Gauge,
+  Layers,
+  Minus,
+  MonitorSpeaker,
+  RefreshCw,
+  RotateCcw,
+  TrendingDown,
+  TrendingUp
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, CartesianGrid, ReferenceLine,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid, ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis, YAxis,
 } from "recharts";
-import { env } from "../lib/env-config";
 import { toast } from "sonner";
+import { env } from "../lib/env-config";
+import { lsGet, lsKeys, lsSetJSON } from "../lib/yyc3-storage";
+import { GlassCard } from "./GlassCard";
 
 // ── 样式 ──
 const f = { xs: "0.62rem", sm: "0.72rem", md: "0.82rem", lg: "0.95rem" };
@@ -90,14 +108,14 @@ const THRESHOLDS_KEY = "yyc3_perf_alert_thresholds";
 
 function loadThresholds(): AlertThresholds {
   try {
-    const raw = localStorage.getItem(THRESHOLDS_KEY);
+    const raw = lsGet(THRESHOLDS_KEY);
     if (raw) return { ...DEFAULT_THRESHOLDS, ...JSON.parse(raw) };
   } catch { /* ignore */ }
   return { ...DEFAULT_THRESHOLDS };
 }
 
 function saveThresholds(t: AlertThresholds) {
-  try { localStorage.setItem(THRESHOLDS_KEY, JSON.stringify(t)); } catch { /* ignore */ }
+  try { lsSetJSON(THRESHOLDS_KEY, t); } catch { /* ignore */ }
 }
 
 // ============================================================
@@ -154,8 +172,8 @@ function StatCard({ label, value, unit, color, icon, trend, alert }: {
         {trend && (
           <span className="ml-auto">
             {trend === "up" ? <TrendingUp className="w-3.5 h-3.5 text-[#ff3366]" /> :
-             trend === "down" ? <TrendingDown className="w-3.5 h-3.5 text-[#00ff88]" /> :
-             <Minus className="w-3 h-3 text-[rgba(0,212,255,0.3)]" />}
+              trend === "down" ? <TrendingDown className="w-3.5 h-3.5 text-[#00ff88]" /> :
+                <Minus className="w-3 h-3 text-[rgba(0,212,255,0.3)]" />}
           </span>
         )}
       </div>
@@ -168,16 +186,16 @@ function StatCard({ label, value, unit, color, icon, trend, alert }: {
 // ============================================================
 
 const THRESHOLD_FIELDS: Array<{ key: keyof AlertThresholds; label: string; unit: string; type: "number" | "boolean" }> = [
-  { key: "fpsMin",          label: "FPS 最低",       unit: "fps",  type: "number" },
-  { key: "memMaxPercent",   label: "内存上限",       unit: "%",    type: "number" },
-  { key: "clsMax",          label: "CLS 上限",       unit: "",     type: "number" },
-  { key: "fcpMax",          label: "FCP 上限",       unit: "ms",   type: "number" },
-  { key: "lcpMax",          label: "LCP 上限",       unit: "ms",   type: "number" },
-  { key: "ttfbMax",         label: "TTFB 上限",      unit: "ms",   type: "number" },
-  { key: "inpMax",          label: "INP 上限",       unit: "ms",   type: "number" },
-  { key: "storageMaxKB",    label: "存储上限",       unit: "KB",   type: "number" },
-  { key: "alertCooldownSec",label: "冷却间隔",       unit: "秒",   type: "number" },
-  { key: "alertEnabled",    label: "告警总开关",     unit: "",     type: "boolean" },
+  { key: "fpsMin", label: "FPS 最低", unit: "fps", type: "number" },
+  { key: "memMaxPercent", label: "内存上限", unit: "%", type: "number" },
+  { key: "clsMax", label: "CLS 上限", unit: "", type: "number" },
+  { key: "fcpMax", label: "FCP 上限", unit: "ms", type: "number" },
+  { key: "lcpMax", label: "LCP 上限", unit: "ms", type: "number" },
+  { key: "ttfbMax", label: "TTFB 上限", unit: "ms", type: "number" },
+  { key: "inpMax", label: "INP 上限", unit: "ms", type: "number" },
+  { key: "storageMaxKB", label: "存储上限", unit: "KB", type: "number" },
+  { key: "alertCooldownSec", label: "冷却间隔", unit: "秒", type: "number" },
+  { key: "alertEnabled", label: "告警总开关", unit: "", type: "boolean" },
 ];
 
 function ThresholdEditor({ thresholds, onChange, onReset }: {
@@ -204,11 +222,10 @@ function ThresholdEditor({ thresholds, onChange, onReset }: {
             {type === "boolean" ? (
               <button
                 onClick={() => onChange({ ...thresholds, [key]: !thresholds[key] })}
-                className={`px-2 py-1 rounded-lg text-center transition-all ${
-                  thresholds[key]
-                    ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88] border border-[rgba(0,255,136,0.2)]"
-                    : "bg-[rgba(255,51,102,0.08)] text-[#ff6688] border border-[rgba(255,51,102,0.15)]"
-                }`}
+                className={`px-2 py-1 rounded-lg text-center transition-all ${thresholds[key]
+                  ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88] border border-[rgba(0,255,136,0.2)]"
+                  : "bg-[rgba(255,51,102,0.08)] text-[#ff6688] border border-[rgba(255,51,102,0.15)]"
+                  }`}
                 style={{ fontSize: f.xs }}
               >
                 {thresholds[key] ? "已启用" : "已关闭"}
@@ -333,9 +350,10 @@ export function PerformanceMonitor() {
   // ── localStorage 用量 ──
   const collectStorage = useCallback(() => {
     let totalSize = 0;
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) totalSize += (localStorage.getItem(k)?.length || 0) * 2; }
-    setStorageUsage({ used: totalSize, keys: localStorage.length });
-    return { used: totalSize, keys: localStorage.length };
+    const allKeys = lsKeys();
+    for (const k of allKeys) { totalSize += (lsGet(k)?.length || 0) * 2; }
+    setStorageUsage({ used: totalSize, keys: allKeys.length });
+    return { used: totalSize, keys: allKeys.length };
   }, []);
 
   // ── FPS 采集 + 告警检查 ──
@@ -412,11 +430,10 @@ export function PerformanceMonitor() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowThresholds((p) => !p)}
-            className={`flex items-center gap-1 px-2.5 py-2 rounded-xl border transition-all ${
-              showThresholds
-                ? "bg-[rgba(255,102,51,0.1)] border-[rgba(255,102,51,0.3)] text-[#ff6633]"
-                : "bg-[rgba(0,100,150,0.05)] border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.4)]"
-            }`}
+            className={`flex items-center gap-1 px-2.5 py-2 rounded-xl border transition-all ${showThresholds
+              ? "bg-[rgba(255,102,51,0.1)] border-[rgba(255,102,51,0.3)] text-[#ff6633]"
+              : "bg-[rgba(0,100,150,0.05)] border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.4)]"
+              }`}
             style={{ fontSize: f.sm }}
           >
             {thresholds.alertEnabled ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}

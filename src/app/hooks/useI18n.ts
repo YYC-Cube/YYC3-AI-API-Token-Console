@@ -13,6 +13,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { TranslationKeys } from "../i18n";
 import { enUS, zhCN } from "../i18n";
+import { lsGet, lsSet } from "../lib/yyc3-storage";
 import type { I18nContextValue, Locale, LocaleInfo } from "../types";
 
 // RF-011: Re-export 已移除
@@ -82,7 +83,7 @@ export const I18nContext = createContext<I18nContextValue>({
 export function useI18nProvider() {
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window === "undefined") return "zh-CN";
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = lsGet(STORAGE_KEY);
     if (saved === "en-US" || saved === "zh-CN") return saved;
     return "zh-CN"; // 默认中文
   });
@@ -90,7 +91,7 @@ export function useI18nProvider() {
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     try {
-      localStorage.setItem(STORAGE_KEY, newLocale);
+      lsSet(STORAGE_KEY, newLocale);
     } catch {
       // storage unavailable
     }

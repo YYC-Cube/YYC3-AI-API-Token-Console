@@ -12,20 +12,47 @@
  *  - 生态模块状态可视面板
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Settings2, Palette, Eye, Bell,
-  Zap, Shield, Database,
-  Download, Upload, Trash2, RefreshCw, CheckCircle2,
-  AlertCircle, Loader2, Activity, Server, Volume2,
-  Radio, MessageCircle, Trophy, Gamepad2, Music,
-  BookOpen, TrendingUp, Phone, Heart, Sparkles,
-  ExternalLink, ArrowRight, Wifi,
-  CircleDot, RotateCcw, FileJson, X,
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  BookOpen,
+  CheckCircle2,
+  CircleDot,
+  Database,
+  Download,
+  ExternalLink,
+  Eye,
+  FileJson,
+  Gamepad2,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Music,
+  Palette,
+  Phone,
+  Radio,
+  RefreshCw,
+  RotateCcw,
+  Server,
+  Settings2,
+  Shield,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+  Trophy,
+  Upload,
+  Volume2,
+  Wifi,
+  X,
+  Zap,
 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { lsGet, lsRemove, lsSetJSON } from "../../lib/yyc3-storage";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
-import { useNavigate } from "react-router";
 import { FAMILY_MEMBERS, hexToRgb } from "./shared";
 
 // ═══ Settings Types ═══
@@ -64,13 +91,13 @@ const CONFIG_KEY = "yyc3-family-ui-config";
 
 function loadConfig(): FamilyUIConfig {
   try {
-    const raw = localStorage.getItem(CONFIG_KEY);
+    const raw = lsGet(CONFIG_KEY);
     return raw ? { ...DEFAULT_CONFIG, ...JSON.parse(raw) } : DEFAULT_CONFIG;
   } catch { return DEFAULT_CONFIG; }
 }
 
 function saveConfig(cfg: FamilyUIConfig) {
-  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch { /* noop */ }
+  try { lsSetJSON(CONFIG_KEY, cfg); } catch { /* noop */ }
 }
 
 // ═══ Link Health Types ═══
@@ -151,14 +178,12 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <button
       onClick={() => onChange(!value)}
-      className={`w-10 h-5 rounded-full transition-all relative ${
-        value ? "bg-cyan-500/30" : "bg-white/10"
-      }`}
+      className={`w-10 h-5 rounded-full transition-all relative ${value ? "bg-cyan-500/30" : "bg-white/10"
+        }`}
     >
       <div
-        className={`w-4 h-4 rounded-full absolute top-0.5 transition-all ${
-          value ? "left-5.5 bg-cyan-400" : "left-0.5 bg-white/40"
-        }`}
+        className={`w-4 h-4 rounded-full absolute top-0.5 transition-all ${value ? "left-5.5 bg-cyan-400" : "left-0.5 bg-white/40"
+          }`}
         style={{ left: value ? "22px" : "2px" }}
       />
     </button>
@@ -176,11 +201,10 @@ function SelectPill({ options, value, onChange }: {
         <button
           key={opt.key}
           onClick={() => onChange(opt.key)}
-          className={`px-2.5 py-1 rounded-md transition-all ${
-            value === opt.key
-              ? "bg-cyan-500/15 text-cyan-300"
-              : "text-white/30 hover:text-white/50"
-          }`}
+          className={`px-2.5 py-1 rounded-md transition-all ${value === opt.key
+            ? "bg-cyan-500/15 text-cyan-300"
+            : "text-white/30 hover:text-white/50"
+            }`}
           style={{ fontSize: "0.65rem" }}
         >
           {opt.label}
@@ -206,9 +230,9 @@ function LinkNodeCard({
   const rgb = hexToRgb(node.color);
   const statusColor = status.status === "ok" ? "#00FF88"
     : status.status === "warn" ? "#FFD700"
-    : status.status === "error" ? "#FF4444"
-    : status.status === "testing" ? "#00d4ff"
-    : "rgba(255,255,255,0.15)";
+      : status.status === "error" ? "#FF4444"
+        : status.status === "testing" ? "#00d4ff"
+          : "rgba(255,255,255,0.15)";
 
   return (
     <div
@@ -308,7 +332,7 @@ export function FamilyUISettings() {
     // Check storage
     if (link.storageKey) {
       try {
-        const data = localStorage.getItem(link.storageKey);
+        const data = lsGet(link.storageKey);
         if (data) {
           const sizeKB = (new Blob([data]).size / 1024).toFixed(1);
           storageSize = `${sizeKB}KB`;
@@ -361,7 +385,7 @@ export function FamilyUISettings() {
       if (link?.storageKey && ls.status === "error") {
         // Clear corrupted data and re-seed
         try {
-          localStorage.removeItem(link.storageKey);
+          lsRemove(link.storageKey);
         } catch { /* noop */ }
       }
       setLinkStatuses(prev => ({
@@ -390,7 +414,7 @@ export function FamilyUISettings() {
     const items: { key: string; size: number }[] = [];
     for (const key of ALL_STORAGE_KEYS) {
       try {
-        const data = localStorage.getItem(key);
+        const data = lsGet(key);
         if (data) {
           const size = new Blob([data]).size;
           totalSize += size;
@@ -405,7 +429,7 @@ export function FamilyUISettings() {
     const allData: Record<string, unknown> = {};
     for (const key of ALL_STORAGE_KEYS) {
       try {
-        const raw = localStorage.getItem(key);
+        const raw = lsGet(key);
         if (raw) allData[key] = JSON.parse(raw);
       } catch { /* noop */ }
     }
@@ -440,7 +464,7 @@ export function FamilyUISettings() {
           let count = 0;
           for (const [key, value] of Object.entries(data)) {
             if (ALL_STORAGE_KEYS.includes(key)) {
-              localStorage.setItem(key, JSON.stringify(value));
+              lsSetJSON(key, value);
               count++;
             }
           }
@@ -459,7 +483,7 @@ export function FamilyUISettings() {
 
   const handleClearAll = useCallback(() => {
     for (const key of ALL_STORAGE_KEYS) {
-      try { localStorage.removeItem(key); } catch { /* noop */ }
+      try { lsRemove(key); } catch { /* noop */ }
     }
     setConfig(DEFAULT_CONFIG);
     setImportStatus("已清除所有 AI Family 数据");
@@ -525,11 +549,10 @@ export function FamilyUISettings() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center whitespace-nowrap ${
-                  activeTab === tab.key
-                    ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
-                    : "text-white/40 hover:text-white/60 border border-transparent"
-                }`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center whitespace-nowrap ${activeTab === tab.key
+                  ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
+                  : "text-white/40 hover:text-white/60 border border-transparent"
+                  }`}
                 style={{ fontSize: "0.75rem" }}
               >
                 <tab.icon className="w-3.5 h-3.5" />

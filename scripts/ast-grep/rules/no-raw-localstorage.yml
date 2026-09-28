@@ -1,0 +1,12 @@
+id: no-raw-localstorage
+language: ts
+severity: error
+message: >
+  禁止组件/Hook 层裸调 localStorage.* — 必须经 src/app/lib/yyc3-storage.ts 封装
+  (lsGet/lsSet/lsRemove/lsGetJSON/lsSetJSON/lsKeys)，新增 key 须注册进 LOCALSTORAGE_KEYS。
+note: YYC³ 结构化守护规则库 #7 — localStorage 收口 (批3 架构收口)
+files:
+  - "src/app/components/**"
+  - "src/app/hooks/**"
+rule:
+  pattern: localStorage.$PROP

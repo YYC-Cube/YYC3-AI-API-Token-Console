@@ -9,17 +9,17 @@
  * Phase-3: 文件树增删改 + localStorage 持久化
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { env } from "../lib/env-config";
+import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
   FileItem,
   LogEntry,
   LogLevel,
   ReportConfig,
-  ReportResult,
-  ReportType,
   ReportFormat,
+  ReportResult
 } from "../types";
 
 // ============================================================
@@ -48,17 +48,17 @@ const DEFAULT_FILE_TREE: FileItem[] = [
           {
             id: "d-gpu01", name: "GPU-A100-01", type: "directory", path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01", modifiedAt: h(1),
             children: [
-              { id: "f-inf01",  name: "inference.log", type: "file", size: 2400000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/inference.log", extension: "log", modifiedAt: h(0.03) },
-              { id: "f-err01",  name: "error.log",     type: "file", size: 85000,   path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/error.log",     extension: "log", modifiedAt: h(2) },
-              { id: "f-met01",  name: "metrics.json",   type: "file", size: 320000,  path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/metrics.json",  extension: "json", modifiedAt: h(0.25) },
+              { id: "f-inf01", name: "inference.log", type: "file", size: 2400000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/inference.log", extension: "log", modifiedAt: h(0.03) },
+              { id: "f-err01", name: "error.log", type: "file", size: 85000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/error.log", extension: "log", modifiedAt: h(2) },
+              { id: "f-met01", name: "metrics.json", type: "file", size: 320000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-01/metrics.json", extension: "json", modifiedAt: h(0.25) },
             ],
           },
           {
             id: "d-gpu03", name: "GPU-A100-03", type: "directory", path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03", modifiedAt: h(0.1),
             children: [
-              { id: "f-inf03",  name: "inference.log", type: "file", size: 3800000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/inference.log", extension: "log", modifiedAt: h(0.02) },
-              { id: "f-err03",  name: "error.log",     type: "file", size: 540000,  path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/error.log",     extension: "log", modifiedAt: h(0.1) },
-              { id: "f-met03",  name: "metrics.json",   type: "file", size: 290000,  path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/metrics.json",  extension: "json", modifiedAt: h(0.2) },
+              { id: "f-inf03", name: "inference.log", type: "file", size: 3800000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/inference.log", extension: "log", modifiedAt: h(0.02) },
+              { id: "f-err03", name: "error.log", type: "file", size: 540000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/error.log", extension: "log", modifiedAt: h(0.1) },
+              { id: "f-met03", name: "metrics.json", type: "file", size: 290000, path: "~/.yyc3-cloudpivot/logs/node/GPU-A100-03/metrics.json", extension: "json", modifiedAt: h(0.2) },
             ],
           },
         ],
@@ -66,8 +66,8 @@ const DEFAULT_FILE_TREE: FileItem[] = [
       {
         id: "d-logs-sys", name: "system", type: "directory", path: "~/.yyc3-cloudpivot/logs/system", modifiedAt: h(0.5),
         children: [
-          { id: "f-app-log",  name: "app.log",          type: "file", size: 1200000, path: "~/.yyc3-cloudpivot/logs/system/app.log",          extension: "log",  modifiedAt: h(0.01) },
-          { id: "f-perf-json",name: "performance.json",  type: "file", size: 890000,  path: "~/.yyc3-cloudpivot/logs/system/performance.json", extension: "json", modifiedAt: h(0.5) },
+          { id: "f-app-log", name: "app.log", type: "file", size: 1200000, path: "~/.yyc3-cloudpivot/logs/system/app.log", extension: "log", modifiedAt: h(0.01) },
+          { id: "f-perf-json", name: "performance.json", type: "file", size: 890000, path: "~/.yyc3-cloudpivot/logs/system/performance.json", extension: "json", modifiedAt: h(0.5) },
         ],
       },
     ],
@@ -94,7 +94,7 @@ const DEFAULT_FILE_TREE: FileItem[] = [
   {
     id: "d-backups", name: "backups", type: "directory", path: "~/.yyc3-cloudpivot/backups", modifiedAt: d(1),
     children: [
-      { id: "d-bk-nodes",  name: "nodes",  type: "directory", path: "~/.yyc3-cloudpivot/backups/nodes",  modifiedAt: d(1) },
+      { id: "d-bk-nodes", name: "nodes", type: "directory", path: "~/.yyc3-cloudpivot/backups/nodes", modifiedAt: d(1) },
       { id: "d-bk-models", name: "models", type: "directory", path: "~/.yyc3-cloudpivot/backups/models", modifiedAt: d(2) },
       { id: "d-bk-config", name: "config", type: "directory", path: "~/.yyc3-cloudpivot/backups/config", modifiedAt: d(0.5) },
     ],
@@ -102,9 +102,9 @@ const DEFAULT_FILE_TREE: FileItem[] = [
   {
     id: "d-configs", name: "configs", type: "directory", path: "~/.yyc3-cloudpivot/configs", modifiedAt: d(3),
     children: [
-      { id: "f-cfg-patrol", name: "patrol.json",    type: "file", size: 2400, path: "~/.yyc3-cloudpivot/configs/patrol.json",    extension: "json", modifiedAt: d(1) },
-      { id: "f-cfg-alerts", name: "alerts.json",    type: "file", size: 4800, path: "~/.yyc3-cloudpivot/configs/alerts.json",    extension: "json", modifiedAt: d(2) },
-      { id: "f-cfg-tpl",    name: "templates.json", type: "file", size: 8200, path: "~/.yyc3-cloudpivot/configs/templates.json", extension: "json", modifiedAt: d(3) },
+      { id: "f-cfg-patrol", name: "patrol.json", type: "file", size: 2400, path: "~/.yyc3-cloudpivot/configs/patrol.json", extension: "json", modifiedAt: d(1) },
+      { id: "f-cfg-alerts", name: "alerts.json", type: "file", size: 4800, path: "~/.yyc3-cloudpivot/configs/alerts.json", extension: "json", modifiedAt: d(2) },
+      { id: "f-cfg-tpl", name: "templates.json", type: "file", size: 8200, path: "~/.yyc3-cloudpivot/configs/templates.json", extension: "json", modifiedAt: d(3) },
     ],
   },
   {
@@ -114,7 +114,7 @@ const DEFAULT_FILE_TREE: FileItem[] = [
         id: "d-cache-q", name: "queries", type: "directory", path: "~/.yyc3-cloudpivot/cache/queries", modifiedAt: h(2),
         children: [
           { id: "f-cache1", name: "q-a8f3e2.json", type: "file", size: 12000, path: "~/.yyc3-cloudpivot/cache/queries/q-a8f3e2.json", extension: "json", modifiedAt: h(2) },
-          { id: "f-cache2", name: "q-c7d1b4.json", type: "file", size: 8500,  path: "~/.yyc3-cloudpivot/cache/queries/q-c7d1b4.json", extension: "json", modifiedAt: h(4) },
+          { id: "f-cache2", name: "q-c7d1b4.json", type: "file", size: 8500, path: "~/.yyc3-cloudpivot/cache/queries/q-c7d1b4.json", extension: "json", modifiedAt: h(4) },
         ],
       },
     ],
@@ -127,16 +127,16 @@ const DEFAULT_FILE_TREE: FileItem[] = [
 
 function loadFileTree(): FileItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = lsGet(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
   const defaults = JSON.parse(JSON.stringify(DEFAULT_FILE_TREE));
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults)); } catch { /* ignore */ }
+  try { lsSetJSON(STORAGE_KEY, defaults); } catch { /* ignore */ }
   return defaults;
 }
 
 function saveFileTree(tree: FileItem[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tree)); } catch { /* ignore */ }
+  lsSetJSON(STORAGE_KEY, tree);
 }
 
 // ============================================================
@@ -180,21 +180,21 @@ function removeItem(tree: FileItem[], id: string): boolean {
 function generateMockLogs(count: number = 50): LogEntry[] {
   const sources = ["GPU-A100-01", "GPU-A100-03", "GPU-H100-01", "system", "scheduler", "db-sync"];
   const messages: Array<{ level: LogLevel; msg: string }> = [
-    { level: "info",  msg: "推理任务完成 #12847, 延迟 820ms" },
-    { level: "info",  msg: "模型缓存命中 LLaMA-70B, 跳过加载" },
-    { level: "warn",  msg: "GPU 温度接近阈值 78°C > 75°C" },
+    { level: "info", msg: "推理任务完成 #12847, 延迟 820ms" },
+    { level: "info", msg: "模型缓存命中 LLaMA-70B, 跳过加载" },
+    { level: "warn", msg: "GPU 温度接近阈值 78°C > 75°C" },
     { level: "error", msg: "推理超时 task #12853, 超过 5000ms" },
-    { level: "info",  msg: "批次处理完成 batch_size=32, tokens=4096" },
-    { level: "warn",  msg: "内存使用率 89%, 建议清理缓存" },
+    { level: "info", msg: "批次处理完成 batch_size=32, tokens=4096" },
+    { level: "warn", msg: "内存使用率 89%, 建议清理缓存" },
     { level: "debug", msg: "WebSocket 心跳 ack, 延迟 12ms" },
-    { level: "info",  msg: "自动巡查完成, 健康度 96%" },
+    { level: "info", msg: "自动巡查完成, 健康度 96%" },
     { level: "error", msg: "数据库连接超时, 重试 1/3" },
     { level: "fatal", msg: "GPU 驱动崩溃, 节点进入降级模式" },
-    { level: "info",  msg: "配置热更新完成 patrol.interval=15" },
-    { level: "warn",  msg: "存储空间 85.8%, 接近告警阈值" },
-    { level: "info",  msg: "NAS 备份已完成 12.8GB → 192.168.3.200" },
+    { level: "info", msg: "配置热更新完成 patrol.interval=15" },
+    { level: "warn", msg: "存储空间 85.8%, 接近告警阈值" },
+    { level: "info", msg: "NAS 备份已完成 12.8GB → 192.168.3.200" },
     { level: "debug", msg: "推理队列长度 3, 平均等待 45ms" },
-    { level: "info",  msg: "Token 吞吐率 138K/s, 近 1h 稳定" },
+    { level: "info", msg: "Token 吞吐率 138K/s, 近 1h 稳定" },
   ];
 
   return Array.from({ length: count }, (_, i) => {
@@ -529,7 +529,7 @@ export function useLocalFileSystem() {
   // ═══ 文件内容编辑 ═══
   const getFileContent = useCallback((fileId: string): string => {
     try {
-      const raw = localStorage.getItem(FILE_CONTENT_KEY);
+      const raw = lsGet(FILE_CONTENT_KEY);
       const contents = raw ? JSON.parse(raw) : {};
       if (contents[fileId]) return contents[fileId];
     } catch { /* ignore */ }
@@ -545,10 +545,10 @@ export function useLocalFileSystem() {
 
   const saveFileContent = useCallback((fileId: string, content: string) => {
     try {
-      const raw = localStorage.getItem(FILE_CONTENT_KEY);
+      const raw = lsGet(FILE_CONTENT_KEY);
       const contents = raw ? JSON.parse(raw) : {};
       contents[fileId] = content;
-      localStorage.setItem(FILE_CONTENT_KEY, JSON.stringify(contents));
+      lsSetJSON(FILE_CONTENT_KEY, contents);
     } catch { /* ignore */ }
     // 更新 size 和 modifiedAt
     const tree = JSON.parse(JSON.stringify(fileTree)) as FileItem[];

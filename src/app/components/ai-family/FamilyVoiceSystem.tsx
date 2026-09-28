@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lsGet, lsSetJSON } from "../../lib/yyc3-storage";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
@@ -82,13 +83,13 @@ function getSpeechRecognitionCtor(): MinimalSpeechRecognitionCtor | undefined {
 
 function loadProfiles(): VoiceProfile[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = lsGet(STORAGE_KEY);
     return raw ? JSON.parse(raw) : DEFAULT_VOICE_PROFILES;
   } catch { return DEFAULT_VOICE_PROFILES; }
 }
 
 function saveProfiles(profiles: VoiceProfile[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles)); } catch { /* noop */ }
+  try { lsSetJSON(STORAGE_KEY, profiles); } catch { /* noop */ }
 }
 
 // ═══ 对话记录 ═══
@@ -103,14 +104,14 @@ interface VoiceConversation {
 
 function loadConversations(): VoiceConversation[] {
   try {
-    const raw = localStorage.getItem(CONV_STORAGE_KEY);
+    const raw = lsGet(CONV_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 function saveConversations(convs: VoiceConversation[]) {
   try {
-    localStorage.setItem(CONV_STORAGE_KEY, JSON.stringify(convs.slice(-100)));
+    lsSetJSON(CONV_STORAGE_KEY, convs.slice(-100));
   } catch { /* noop */ }
 }
 

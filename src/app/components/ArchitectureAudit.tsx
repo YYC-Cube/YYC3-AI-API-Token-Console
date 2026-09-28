@@ -261,7 +261,7 @@ const FEATURE_CHECKLIST: FeatureChecklist[] = [
     items: [
       { name: "Vitest 配置", status: "complete", detail: "双环境 (node/jsdom) + figma:asset mock + 覆盖率 80%", path: "vitest.config.ts" },
       { name: "测试 setup", status: "complete", detail: "matchMedia/ResizeObserver/IntersectionObserver/canvas mock", path: "src/app/__tests__/setup.ts" },
-      { name: "GitHub Actions CI", status: "complete", detail: "test + coverage + build 三阶段流水线", path: "src/app/ci/github-actions-ci.yml" },
+      { name: "GitHub Actions CI", status: "complete", detail: "test + coverage + build 三阶段流水线", path: "docs/archive/src-app-ci/github-actions-ci.yml" },
       { name: "测试文件 (~95 个)", status: "needs-verify", detail: "已创建但尚未全部运行验证，需 pnpm test 确认" },
       { name: "E2E 测试 (Playwright)", status: "partial", detail: "已创建 Playwright 配置模板 + 3 个 E2E 测试规格 (navigation/wifi-auto-reconnect/cross-page-data-flow)，待独立环境运行", path: "src/app/__tests__/e2e/" },
     ],

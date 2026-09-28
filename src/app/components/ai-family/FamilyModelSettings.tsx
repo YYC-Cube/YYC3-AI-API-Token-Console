@@ -7,19 +7,34 @@
  * 支持：多提供商 API Key 管理、模型分配、连接诊断、语音预览
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Server, Cloud, Shield, Cpu, Globe, Zap,
-  Search, Check, ChevronDown, ChevronRight,
-  Eye, EyeOff, AlertCircle, CheckCircle2, Loader2,
-  Activity, Settings2, Download, Upload,
-  Volume2, Bot, Sparkles, ArrowRight, X,
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronDown, ChevronRight,
+  Cloud,
+  Cpu,
+  Download,
+  Eye, EyeOff,
+  Globe,
+  Loader2,
+  Search,
+  Server,
+  Shield,
+  Sparkles,
+  Volume2,
+  Zap
 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { lsGet, lsSetJSON } from "../../lib/yyc3-storage";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, hexToRgb,
   DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES,
+  FAMILY_MEMBERS, hexToRgb,
   type FamilyMember, type MemberModelAssignment, type VoiceProfile,
 } from "./shared";
 
@@ -109,13 +124,13 @@ const STORAGE = {
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = lsGet(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch { return fallback; }
 }
 
 function saveJSON(key: string, value: unknown) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* noop */ }
+  try { lsSetJSON(key, value); } catch { /* noop */ }
 }
 
 // ═══ 诊断状态 ═══
@@ -211,8 +226,8 @@ function MemberModelCard({
 
   const statusColor = diagResult?.status === "success" ? "#00FF88"
     : diagResult?.status === "error" ? "#FF4444"
-    : diagResult?.status === "testing" ? "#FFD700"
-    : "rgba(255,255,255,0.2)";
+      : diagResult?.status === "testing" ? "#FFD700"
+        : "rgba(255,255,255,0.2)";
 
   return (
     <FadeIn delay={0.05}>
@@ -291,11 +306,10 @@ function MemberModelCard({
                           <button
                             key={`${p.id}-${m.id}`}
                             onClick={() => onChangeModel(p.id, m.id)}
-                            className={`w-full text-left px-2 py-1.5 rounded transition-all ${
-                              isActive
-                                ? "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)]"
-                                : "bg-white/[0.02] border border-transparent hover:bg-white/[0.05] hover:border-white/[0.08]"
-                            }`}
+                            className={`w-full text-left px-2 py-1.5 rounded transition-all ${isActive
+                              ? "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)]"
+                              : "bg-white/[0.02] border border-transparent hover:bg-white/[0.05] hover:border-white/[0.08]"
+                              }`}
                           >
                             <div className="flex items-center gap-1.5">
                               {isActive && <Check className="w-3 h-3 text-cyan-400" />}
@@ -342,11 +356,10 @@ function MemberModelCard({
 
               {diagResult && diagResult.status !== "idle" && (
                 <span
-                  className={`flex items-center gap-1 px-2 py-1 rounded ${
-                    diagResult.status === "success" ? "bg-emerald-500/10 text-emerald-400"
+                  className={`flex items-center gap-1 px-2 py-1 rounded ${diagResult.status === "success" ? "bg-emerald-500/10 text-emerald-400"
                     : diagResult.status === "error" ? "bg-red-500/10 text-red-400"
-                    : "bg-yellow-500/10 text-yellow-400"
-                  }`}
+                      : "bg-yellow-500/10 text-yellow-400"
+                    }`}
                   style={{ fontSize: "0.65rem" }}
                 >
                   {diagResult.status === "success" && <CheckCircle2 className="w-3 h-3" />}
@@ -633,11 +646,10 @@ export function FamilyModelSettings() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center ${
-                  activeTab === tab.key
-                    ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
-                    : "text-white/40 hover:text-white/60 border border-transparent"
-                }`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center ${activeTab === tab.key
+                  ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
+                  : "text-white/40 hover:text-white/60 border border-transparent"
+                  }`}
                 style={{ fontSize: "0.75rem" }}
               >
                 <tab.icon className="w-3.5 h-3.5" />

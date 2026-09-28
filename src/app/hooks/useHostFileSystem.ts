@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getAPIConfig } from "../lib/api-config";
-import { idbDelete, idbGetAll, idbPut } from "../lib/yyc3-storage";
+import { idbDelete, idbGetAll, idbPut, lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type { FileVersion, HostFileEntry } from "../types";
 
 /** Chrome File System Access API: window.showDirectoryPicker (尚未入 TS 标准 DOM lib) */
@@ -241,7 +241,7 @@ const MAX_RECENT = 20;
 
 function loadRecentFiles(): RecentFile[] {
   try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+    return JSON.parse(lsGet(RECENT_KEY) || "[]");
   } catch { return []; }
 }
 
@@ -249,7 +249,7 @@ function saveRecentFile(entry: HostFileEntry) {
   try {
     const recent = loadRecentFiles().filter(r => r.path !== entry.path);
     recent.unshift({ id: entry.id, name: entry.name, path: entry.path, size: entry.size, accessedAt: Date.now() });
-    localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+    lsSetJSON(RECENT_KEY, recent.slice(0, MAX_RECENT));
   } catch { /* ignore */ }
 }
 

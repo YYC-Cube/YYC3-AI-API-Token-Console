@@ -15,6 +15,8 @@
  *   1. ast-grep 裸 WebSocket (.ts)  → no-bare-websocket
  *   2. ast-grep 裸 WebSocket (.tsx) → no-bare-websocket-tsx
  *   3. eslint 分层契约 hooks→stores → boundaries/dependencies
+ *   4. ast-grep 裸 localStorage (.ts)  → no-raw-localstorage
+ *   5. ast-grep 裸 localStorage (.tsx) → no-raw-localstorage-tsx
  */
 
 import { execSync } from "node:child_process";
@@ -98,6 +100,20 @@ expectIntercepted(
   "eslint 分层契约 hooks→stores 跨层",
   [{ name: "probe-boundary.ts", content: 'import { nodeStore } from "../../stores/dashboard-stores";\nexport const probe = nodeStore;\n' }],
   () => run(`${ESLINT} ${join(PROBE_DIR, "probe-boundary.ts")}`)
+);
+
+// ── 探针 4: ast-grep 裸 localStorage (.ts) ──
+expectIntercepted(
+  "ast-grep 裸 localStorage (.ts)",
+  [{ name: "probe-ls.ts", content: 'const v = localStorage.getItem("k");\nvoid v;\n' }],
+  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, "probe-ls.ts"))}`)
+);
+
+// ── 探针 5: ast-grep 裸 localStorage (.tsx) ──
+expectIntercepted(
+  "ast-grep 裸 localStorage (.tsx)",
+  [{ name: "probe-ls.tsx", content: 'const v = localStorage.getItem("k");\nvoid v;\n' }],
+  () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, "probe-ls.tsx"))}`)
 );
 
 // ── 报告 ──

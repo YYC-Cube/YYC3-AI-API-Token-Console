@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lsGet, lsRemove, lsSetJSON } from "../lib/yyc3-storage";
 
 // ============================================================
 // 浏览器非标准/草案 API 类型扩展 (TS DOM 未收录)
@@ -83,7 +84,7 @@ const MAX_HISTORY = 100;
 
 function loadHistory(): PerfSnapshot[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = lsGet(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
   return [];
@@ -91,7 +92,7 @@ function loadHistory(): PerfSnapshot[] {
 
 function saveHistory(history: PerfSnapshot[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(-MAX_HISTORY)));
+    lsSetJSON(STORAGE_KEY, history.slice(-MAX_HISTORY));
   } catch { /* ignore */ }
 }
 
@@ -247,7 +248,7 @@ export function usePerformanceMonitor() {
 
   const clearHistory = useCallback(() => {
     setState((prev) => ({ ...prev, history: [] }));
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    lsRemove(STORAGE_KEY);
   }, []);
 
   const exportPerfData = useCallback((): string => {

@@ -11,19 +11,35 @@
  * - 支持 PostgreSQL / MySQL / SQLite / Redis / MongoDB / Custom
  */
 
-import React, { useState, useCallback, useContext } from "react";
 import {
-  Database, Plus, Trash2, Edit3, Check, Eye, EyeOff,
- Unplug, TestTube, Download, Upload, RotateCcw,
-  Loader2, CheckCircle2, XCircle, Server,
-  Settings2, Play, Clock, Layers,
+  Check,
+  CheckCircle2,
+  Clock,
+  Database,
+  Download,
+  Edit3,
+  Eye, EyeOff,
+  Layers,
+  Loader2,
+  Play,
+  Plus,
+  RotateCcw,
+  Server,
+  Settings2,
+  TestTube,
+  Trash2,
+  Unplug,
+  Upload,
+  XCircle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { SQLEditor } from "./CodeEditor";
-import { ViewContext } from "../lib/view-context";
-import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
-import { env } from "../lib/env-config";
+import React, { useCallback, useContext, useState } from "react";
 import { toast } from "sonner";
+import { env } from "../lib/env-config";
+import { ViewContext } from "../lib/view-context";
+import { lsGet, lsRemove, lsSetJSON } from "../lib/yyc3-storage";
+import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
+import { SQLEditor } from "./CodeEditor";
+import { GlassCard } from "./GlassCard";
 
 const toastStyle = {
   background: "rgba(8, 25, 55, 0.95)",
@@ -35,18 +51,18 @@ const DB_TYPES: DBConnection["type"][] = ["postgresql", "mysql", "sqlite", "redi
 
 const DB_TYPE_META: Record<string, { label: string; color: string; defaultPort: number }> = {
   postgresql: { label: "PostgreSQL", color: "#336791", defaultPort: 5432 },
-  mysql:      { label: "MySQL",      color: "#4479A1", defaultPort: 3306 },
-  sqlite:     { label: "SQLite",     color: "#003B57", defaultPort: 0 },
-  redis:      { label: "Redis",      color: "#DC382D", defaultPort: 6379 },
-  mongodb:    { label: "MongoDB",    color: "#4DB33D", defaultPort: 27017 },
-  custom:     { label: "Custom",     color: "#00d4ff", defaultPort: 0 },
+  mysql: { label: "MySQL", color: "#4479A1", defaultPort: 3306 },
+  sqlite: { label: "SQLite", color: "#003B57", defaultPort: 0 },
+  redis: { label: "Redis", color: "#DC382D", defaultPort: 6379 },
+  mongodb: { label: "MongoDB", color: "#4DB33D", defaultPort: 27017 },
+  custom: { label: "Custom", color: "#00d4ff", defaultPort: 0 },
 };
 
 const STATUS_META: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  connected:    { label: "已连接", color: "#00ff88", icon: CheckCircle2 },
+  connected: { label: "已连接", color: "#00ff88", icon: CheckCircle2 },
   disconnected: { label: "未连接", color: "rgba(0,212,255,0.4)", icon: Unplug },
-  error:        { label: "错误",   color: "#ff3366", icon: XCircle },
-  testing:      { label: "测试中", color: "#ffdd00", icon: Loader2 },
+  error: { label: "错误", color: "#ff3366", icon: XCircle },
+  testing: { label: "测试中", color: "#ffdd00", icon: Loader2 },
 };
 
 export function DatabaseConnectionPanel() {
@@ -375,14 +391,14 @@ const DEFAULT_POOL: PoolConfig = {
 
 function loadPoolConfig(): PoolConfig {
   try {
-    const raw = localStorage.getItem(POOL_STORAGE_KEY);
+    const raw = lsGet(POOL_STORAGE_KEY);
     if (raw) return { ...DEFAULT_POOL, ...JSON.parse(raw) };
   } catch { /* ignore */ }
   return { ...DEFAULT_POOL };
 }
 
 function savePoolConfig(config: PoolConfig): void {
-  try { localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(config)); } catch { /* ignore */ }
+  try { lsSetJSON(POOL_STORAGE_KEY, config); } catch { /* ignore */ }
 }
 
 function ConnectionPoolConfig() {
@@ -396,7 +412,7 @@ function ConnectionPoolConfig() {
   };
 
   const resetPool = () => {
-    localStorage.removeItem(POOL_STORAGE_KEY);
+    lsRemove(POOL_STORAGE_KEY);
     setPool({ ...DEFAULT_POOL });
     toast.info("连接池配置已重置", { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
   };
@@ -549,7 +565,7 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
   const [result, setResult] = useState<SQLResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>(() => {
-    try { const raw = localStorage.getItem(SQL_HISTORY_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
+    try { const raw = lsGet(SQL_HISTORY_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
   });
 
   const executeSQL = useCallback(async () => {
@@ -561,7 +577,7 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
     // 保存历史
     const newHistory = [sqlValue, ...history.filter((h) => h !== sqlValue)].slice(0, 20);
     setHistory(newHistory);
-    try { localStorage.setItem(SQL_HISTORY_KEY, JSON.stringify(newHistory)); } catch { /* ignore */ }
+    try { lsSetJSON(SQL_HISTORY_KEY, newHistory); } catch { /* ignore */ }
 
     // 模拟执行
     const delay = env("SQL_TEST_SIMULATE_DELAY");
@@ -584,7 +600,7 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
 
   const clearHistory = () => {
     setHistory([]);
-    localStorage.removeItem(SQL_HISTORY_KEY);
+    lsRemove(SQL_HISTORY_KEY);
     toast.info("历史已清除");
   };
 

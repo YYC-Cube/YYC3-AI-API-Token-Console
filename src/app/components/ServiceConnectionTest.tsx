@@ -26,6 +26,7 @@ import { useModelProvider } from "../hooks/useModelProvider";
 import { env } from "../lib/env-config";
 import { getOllamaChatUrl, getOllamaEndpointInfo, getOllamaTagsUrl } from "../lib/ollama-url";
 import { ViewContext } from "../lib/view-context";
+import { LOCALSTORAGE_KEYS, lsGet, lsRemove, lsSet, lsSetJSON } from "../lib/yyc3-storage";
 import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
 import { GlassCard } from "./GlassCard";
 
@@ -74,13 +75,13 @@ const RESULTS_KEY = "yyc3_connection_test_results";
 
 function loadResults(): TestResult[] {
   try {
-    const raw = localStorage.getItem(RESULTS_KEY);
+    const raw = lsGet(RESULTS_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 function saveResults(results: TestResult[]) {
-  try { localStorage.setItem(RESULTS_KEY, JSON.stringify(results)); } catch { }
+  try { lsSetJSON(RESULTS_KEY, results); } catch { }
 }
 
 // ============================================================
@@ -135,7 +136,7 @@ export function ServiceConnectionTest() {
   const [results, setResults] = useState<TestResult[]>(loadResults);
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [proxyUrl, setProxyUrl] = useState(() => localStorage.getItem("yyc3_cors_proxy") || "");
+  const [proxyUrl, setProxyUrl] = useState(() => lsGet(LOCALSTORAGE_KEYS.corsProxy) || "");
   const [showProxy, setShowProxy] = useState(false);
   const abortRef = useRef(false);
 
@@ -143,8 +144,8 @@ export function ServiceConnectionTest() {
 
   const saveProxy = (url: string) => {
     setProxyUrl(url);
-    if (url) localStorage.setItem("yyc3_cors_proxy", url);
-    else localStorage.removeItem("yyc3_cors_proxy");
+    if (url) lsSet(LOCALSTORAGE_KEYS.corsProxy, url);
+    else lsRemove(LOCALSTORAGE_KEYS.corsProxy);
   };
 
   // ============================================================
@@ -695,7 +696,7 @@ export function ServiceConnectionTest() {
 
   const clearResults = () => {
     setResults([]);
-    localStorage.removeItem(RESULTS_KEY);
+    lsRemove(RESULTS_KEY);
     toast.info("测试结果已清空", { style: toastStyle });
   };
 

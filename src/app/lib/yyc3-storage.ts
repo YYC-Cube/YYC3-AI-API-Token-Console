@@ -369,8 +369,8 @@ export const LOCALSTORAGE_KEYS = {
   ghost: "yyc3_ghost",             // 幽灵模式标记
   locale: "yyc3_locale",            // 语言偏好
   configuredModels: "yyc3_configured_models", // AI 模型配置
-  sdkSessions: "yyc3_sdk_sessions",      // 聊天会话
-  sdkStats: "yyc3_sdk_stats",         // SDK 使用统计
+  sdkSessions: "yyc3_chat_sessions",      // 聊天会话 (RF: 与 useBigModelSDK 实际 key 对齐)
+  sdkStats: "yyc3_sdk_usage_stats",       // SDK 使用统计 (RF: 与 useBigModelSDK 实际 key 对齐)
   syncQueue: "yyc3_sync_queue",        // 后台同步队列
   errorLog: "yyc3_error_log",         // 错误日志
   networkConfig: "network_config",         // 网络配置
@@ -378,7 +378,97 @@ export const LOCALSTORAGE_KEYS = {
   offlineTime: "offline_snapshot_time",  // 离线快照时间
   pwaInstallDismiss: "pwa_install_dismissed",  // PWA 安装提示
   dashboardState: "dashboard_state",        // 仪表盘状态 (用于离线快照)
+  // ── 2026-09-28 收口审计补录 (此前裸散在各组件/Hook, 未注册) ──
+  modelProviders: "yyc3_model_providers",       // 模型提供商配置 (useModelProvider)
+  systemSettings: "yyc3_system_settings",        // 系统设置 (useSettingsStore)
+  perfHistory: "yyc3_perf_history",            // 性能历史 (usePerformanceMonitor)
+  perfThresholds: "yyc3_perf_alert_thresholds",    // 性能告警阈值 (PerformanceMonitor)
+  fileTree: "yyc3_file_tree",                // 虚拟文件树 (useLocalFileSystem)
+  fileContents: "yyc3_file_contents",           // 文件内容缓存 (useLocalFileSystem)
+  mockLogs: "yyc3_mock_logs",               // 模拟日志 (useLocalFileSystem)
+  recentFiles: "yyc3_recent_files",            // 最近文件 (useHostFileSystem)
+  dbPoolConfig: "yyc3_db_pool_config",          // 数据库连接池 (DatabaseConnectionPanel)
+  sqlHistory: "yyc3_sql_history",             // SQL 历史 (DatabaseConnectionPanel)
+  terminalHeight: "yyc3_terminal_height",        // 终端面板高度 (IntegratedTerminal)
+  ideLayoutMode: "yyc3-ide-layout-mode",        // IDE 布局模式 (IDELayout)
+  connectionTestResults: "yyc3_connection_test_results", // 连接测试结果 (ServiceConnectionTest)
+  corsProxy: "yyc3_cors_proxy",              // CORS 代理地址 (ServiceConnectionTest)
+  familyVoiceProfiles: "yyc3-family-voice-profiles",     // Family 语音档案
+  familyVoiceConvs: "yyc3-family-voice-conversations",   // Family 语音会话
+  familyCommMessages: "yyc3-family-comm-messages",      // Family 通讯消息
+  familyUiConfig: "yyc3-family-ui-config",         // Family UI 配置
+  envConfig: "yyc3_env_config",              // 环境变量配置 (lib/env-config)
+  apiEndpoints: "yyc3_api_endpoints",           // API 端点 (lib/api-config)
+  gatewayConfig: "yyc3_gateway_config",         // 网关配置 (lib/api-config)
+  dbModels: "yyc3_db_models",               // 数据库模型 (lib/db-queries)
+  dbAgents: "yyc3_db_agents",               // 数据库代理 (lib/db-queries)
+  dbNodes: "yyc3_db_nodes",                // 数据库节点 (lib/db-queries)
 } as const;
+
+// ============================================================
+//  6. localStorage 安全读写封装 (组件/Hook 层唯一允许入口)
+//  ast-grep no-raw-localstorage 规则强制: components/hooks 禁止裸调 localStorage.*
+// ============================================================
+
+/** 读取原始字符串 (失败/缺失返回 null) */
+export function lsGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/** 写入原始字符串 (配额超限/隐私模式静默降级) */
+export function lsSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // storage full or unavailable
+  }
+}
+
+/** 删除 key */
+export function lsRemove(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
+/** 读取 JSON 值 (缺失/损坏返回 fallback) */
+export function lsGetJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** 写入 JSON 值 */
+export function lsSetJSON(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // storage full or unavailable
+  }
+}
+
+/** 枚举全部 key (存储用量统计等场景) */
+export function lsKeys(): string[] {
+  try {
+    const out: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k !== null) out.push(k);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
 
 /** 清除所有 YYC³ localStorage 数据 */
 export function clearAllLocalStorage(): void {

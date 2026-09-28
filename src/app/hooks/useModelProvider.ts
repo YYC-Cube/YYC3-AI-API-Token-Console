@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import builtinProvidersJson from "../config/providers/builtin-providers.json";
 import { builtinProvidersSchema } from "../config/providers/provider-schema";
 import { getOllamaTagsUrl } from "../lib/ollama-url";
+import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
   ConfiguredModel,
   ModelProviderDef,
@@ -53,7 +54,7 @@ const MODELS_KEY = "yyc3_configured_models";
 
 function loadProviders(): ModelProviderDef[] {
   try {
-    const raw = localStorage.getItem(PROVIDERS_KEY);
+    const raw = lsGet(PROVIDERS_KEY);
     if (raw) {
       const saved: ModelProviderDef[] = JSON.parse(raw);
       // 合并策略: 以 localStorage 为准, 但确保新增内置服务商被补入
@@ -70,13 +71,13 @@ function loadProviders(): ModelProviderDef[] {
 
 function saveProviders(providers: ModelProviderDef[]) {
   try {
-    localStorage.setItem(PROVIDERS_KEY, JSON.stringify(providers));
+    lsSetJSON(PROVIDERS_KEY, providers);
   } catch { /* Storage unavailable */ }
 }
 
 function loadModels(): ConfiguredModel[] {
   try {
-    const raw = localStorage.getItem(MODELS_KEY);
+    const raw = lsGet(MODELS_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -85,7 +86,7 @@ function loadModels(): ConfiguredModel[] {
 
 function saveModels(models: ConfiguredModel[]) {
   try {
-    localStorage.setItem(MODELS_KEY, JSON.stringify(models));
+    lsSetJSON(MODELS_KEY, models);
   } catch { /* Storage unavailable */ }
 }
 

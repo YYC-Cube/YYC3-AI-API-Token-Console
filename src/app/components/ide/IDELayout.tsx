@@ -16,7 +16,7 @@
  * 使用 react-resizable-panels 实现面板拖拽调节
  */
 
-import React, { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Panel,
   PanelGroup,
@@ -24,31 +24,29 @@ import {
 } from "react-resizable-panels";
 import { useNavigate } from "react-router";
 import { useI18n } from "../../hooks/useI18n";
+import { lsGet, lsSet } from "../../lib/yyc3-storage";
+import { AIChatPanel } from "./AIChatPanel";
+import { CodePreviewPanel } from "./CodePreviewPanel";
+import { FileExplorer } from "./FileExplorer";
+import { IDEStatusBar } from "./IDEStatusBar";
+import { IDETerminal } from "./IDETerminal";
 import { IDETopBar } from "./IDETopBar";
 import { IDEViewSwitcher } from "./IDEViewSwitcher";
-import { AIChatPanel } from "./AIChatPanel";
-import { FileExplorer } from "./FileExplorer";
-import { CodePreviewPanel } from "./CodePreviewPanel";
-import { IDETerminal } from "./IDETerminal";
-import { IDEStatusBar } from "./IDEStatusBar";
-import { MOCK_FILE_CONTENTS } from "./ide-mock-data";
-import { AI_MODELS } from "./ide-mock-data";
-import type { IDEViewMode, IDELayoutMode, OpenTab } from "./ide-types";
+import { AI_MODELS, MOCK_FILE_CONTENTS } from "./ide-mock-data";
+import type { IDELayoutMode, IDEViewMode, OpenTab } from "./ide-types";
 
 /** Resize handle styling */
 function ResizeHandle({ direction = "vertical" }: { direction?: "vertical" | "horizontal" }) {
   const isVertical = direction === "vertical";
   return (
     <PanelResizeHandle
-      className={`group relative flex items-center justify-center transition-all ${
-        isVertical ? "w-[3px] hover:w-[5px]" : "h-[3px] hover:h-[5px]"
-      }`}
+      className={`group relative flex items-center justify-center transition-all ${isVertical ? "w-[3px] hover:w-[5px]" : "h-[3px] hover:h-[5px]"
+        }`}
       style={{ background: "rgba(0,180,255,0.06)" }}
     >
       <div
-        className={`rounded-full bg-[rgba(0,212,255,0.15)] group-hover:bg-[rgba(0,212,255,0.4)] transition-all ${
-          isVertical ? "w-[2px] h-8" : "h-[2px] w-8"
-        }`}
+        className={`rounded-full bg-[rgba(0,212,255,0.15)] group-hover:bg-[rgba(0,212,255,0.4)] transition-all ${isVertical ? "w-[2px] h-8" : "h-[2px] w-8"
+          }`}
       />
     </PanelResizeHandle>
   );
@@ -62,9 +60,9 @@ export function IDELayout() {
   const [viewMode, setViewMode] = useState<IDEViewMode>("default");
   const [layoutMode, setLayoutMode] = useState<IDELayoutMode>(() => {
     try {
-      const stored = localStorage.getItem(LAYOUT_MODE_STORAGE_KEY);
+      const stored = lsGet(LAYOUT_MODE_STORAGE_KEY);
       if (stored === "edit" || stored === "preview") return stored;
-    } catch {}
+    } catch { }
     return "preview";
   });
   const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
@@ -76,8 +74,8 @@ export function IDELayout() {
   // Persist layoutMode to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_MODE_STORAGE_KEY, layoutMode);
-    } catch {}
+      lsSet(LAYOUT_MODE_STORAGE_KEY, layoutMode);
+    } catch { }
   }, [layoutMode]);
 
   const handleBack = useCallback(() => {
@@ -86,9 +84,9 @@ export function IDELayout() {
 
   const handleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
     } else {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
     }
   }, []);
 

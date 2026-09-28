@@ -13,6 +13,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
+import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
   ChatMessage,
   ChatRole,
@@ -52,24 +53,24 @@ export const PROVIDER_CAPABILITIES: SDKProviderCapabilities[] = [
 
 function loadSessions(): ChatSession[] {
   try {
-    const raw = localStorage.getItem(SESSIONS_KEY);
+    const raw = lsGet(SESSIONS_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 function saveSessions(sessions: ChatSession[]) {
-  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch { }
+  lsSetJSON(SESSIONS_KEY, sessions);
 }
 
 function loadStats(): SDKUsageStats {
   try {
-    const raw = localStorage.getItem(STATS_KEY);
+    const raw = lsGet(STATS_KEY);
     return raw ? JSON.parse(raw) : defaultStats();
   } catch { return defaultStats(); }
 }
 
 function saveStats(stats: SDKUsageStats) {
-  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch { }
+  lsSetJSON(STATS_KEY, stats);
 }
 
 function defaultStats(): SDKUsageStats {

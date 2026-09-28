@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { LOCALSTORAGE_KEYS, lsGet, lsSet } from "../lib/yyc3-storage";
 import type { BeforeInstallPromptEvent } from "../types";
 
 /** Navigator.standalone 扩展 — iOS Safari 检测 standalone 模式 (非标准属性) */
@@ -43,7 +44,7 @@ export function useInstallPrompt() {
     mediaQuery.addEventListener("change", handleChange);
 
     // 检查用户是否已关闭过安装提示
-    const wasDismissed = localStorage.getItem("pwa_install_dismissed");
+    const wasDismissed = lsGet(LOCALSTORAGE_KEYS.pwaInstallDismiss);
     if (wasDismissed) {
       setDismissed(true);
     }
@@ -70,7 +71,7 @@ export function useInstallPrompt() {
 
   const dismiss = useCallback(() => {
     setDismissed(true);
-    localStorage.setItem("pwa_install_dismissed", "true");
+    lsSet(LOCALSTORAGE_KEYS.pwaInstallDismiss, "true");
   }, []);
 
   return {

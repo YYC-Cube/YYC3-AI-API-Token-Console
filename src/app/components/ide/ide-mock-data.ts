@@ -4,7 +4,7 @@
  * IDE 页面 Mock 数据
  */
 
-import type { IDEFile, IDEProject, ChatMessage, GitChange, GitCommit, GitBranch } from "./ide-types";
+import type { ChatMessage, GitBranch, GitChange, GitCommit, IDEFile, IDEProject } from "./ide-types";
 
 export const MOCK_FILE_TREE: IDEFile[] = [
   {
@@ -311,7 +311,7 @@ const PACKS: Record<Lang, typeof zhCN> = {
 
 export function useI18n() {
   const [lang, setLang] = useState<Lang>(() => {
-    const stored = localStorage.getItem("yyc3-lang");
+    const stored = lsGet("yyc3-lang");
     return (stored === "en-US" ? "en-US" : "zh-CN") as Lang;
   });
 
@@ -338,7 +338,7 @@ export function useI18n() {
   const toggleLang = useCallback(() => {
     setLang((prev) => {
       const next = prev === "zh-CN" ? "en-US" : "zh-CN";
-      localStorage.setItem("yyc3-lang", next);
+      lsSet("yyc3-lang", next);
       return next;
     });
   }, []);
