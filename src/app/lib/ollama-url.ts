@@ -39,6 +39,20 @@ export function shouldUseProxy(): boolean {
   return isLocalDeployment();
 }
 
+/**
+ * 2026-09-27 公网部署形态：api.0379.world/console 由 console-server 托管，
+ * Ollama 经服务端多节点反代（n1/n2 Tailscale，浏览器不可直连）。
+ * 优先级：console 代理 > 同源代理 > 直连
+ */
+export function getConsoleOllamaUrl(subPath: string, node = "n1"): string {
+  return `/console/ollama/${node}/api/${subPath.replace(/^\//, "")}`;
+}
+
+export function isConsoleDeployment(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname.startsWith("/console");
+}
+
 // ============================================================
 // 端点解析
 // ============================================================
@@ -63,6 +77,7 @@ export function getOllamaChatUrl(): string {
  * - 其他环境: http://localhost:11434/api/tags
  */
 export function getOllamaTagsUrl(): string {
+  if (isConsoleDeployment()) return getConsoleOllamaUrl("tags");
   if (shouldUseProxy()) {
     const proxyPath = env("OLLAMA_PROXY_PATH").replace(/\/$/, "");
     return `${proxyPath}/tags`;

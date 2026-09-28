@@ -26,6 +26,12 @@ const GW_ORIGIN = "http://127.0.0.1:8800";
 // ADMIN 密钥：仅服务端环境变量（部署时由密钥文件注入，不落代码/仓库）
 const GW_ADMIN_KEY = process.env.GW_ADMIN_KEY || "";
 
+// Ollama 多节点反代（白名单常量，无 SSRF 面）：/console/ollama/<node>/* → 节点 /api/*
+const OLLAMA_NODES = {
+  n1: "http://100.65.64.49:11434",
+  n2: "http://100.76.167.103:11434",
+};
+
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
@@ -43,6 +49,32 @@ const MIME = {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const pathname = decodeURIComponent(url.pathname);
+
+  // ── Ollama 多节点反代：/console/ollama/<node>/api/* ──
+  if (pathname.startsWith("/console/ollama/")) {
+    const rest = pathname.replace("/console/ollama/", "");
+    const node = rest.split("/")[0];
+    const origin = OLLAMA_NODES[node];
+    if (!origin) { res.writeHead(404); return res.end(JSON.stringify({ error: `未知节点: ${node}` })); }
+    const sub = rest.slice(node.length); // "/api/tags" 等
+    try {
+      const chunks = [];
+      for await (const c of req) chunks.push(c);
+      const body = ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks);
+      const r = await fetch(origin + sub, {
+        method: req.method,
+        headers: { "Content-Type": req.headers["content-type"] || "application/json" },
+        body, signal: AbortSignal.timeout(20000),
+      });
+      res.writeHead(r.status, { "Content-Type": r.headers.get("content-type") || "application/json",
+                                "Access-Control-Allow-Origin": "https://api.0379.world" });
+      res.end(Buffer.from(await r.arrayBuffer()));
+    } catch (e) {
+      res.writeHead(502, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: `${node} ollama 不可达`, detail: String(e && e.message || e) }));
+    }
+    return;
+  }
 
   // ── 网关代理：/console/gw/* → 网关 /*（注入 X-API-Key） ──
   if (pathname.startsWith("/console/gw/")) {

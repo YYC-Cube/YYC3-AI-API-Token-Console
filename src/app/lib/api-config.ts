@@ -31,12 +31,14 @@ const DEFAULTS: APIEndpoints = {
   maxRetries: 2,
 };
 
-/** YYC³ 网关（0379-World）配置：默认 LAN 直连，可经设置页改为公网/Tailscale */
+/** YYC³ 网关（0379-World）配置：默认走同源 /console/gw 服务端代理
+ *  （生产部署 console-server.mjs 注入 ADMIN key，浏览器零暴露）；
+ *  内网直连可改为 http://192.168.3.45:8000/v1 + 真实 sk-admin 密钥 */
 export const GATEWAY_DEFAULTS = {
-  /** OpenAI 兼容 base（LAN 快通道；公网= https://api.0379.world/v1） */
-  gatewayBase: "http://192.168.3.45:8000/v1",
-  /** 管理面密钥（/v1/models、/v1/router/stats 需 sk-admin；仅内网使用，勿入公网前端） */
-  gatewayAdminKey: "",
+  /** OpenAI 兼容 base（默认=服务端代理同源路径） */
+  gatewayBase: "https://api.0379.world/console/gw/v1",
+  /** 管理面密钥：代理模式下填任意占位（服务端覆盖）；直连模式填真实 sk-admin */
+  gatewayAdminKey: "proxy",
   /** OpenAI 兼容调用密钥（chat 用） */
   gatewayApiKey: "",
 };
