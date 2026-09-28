@@ -335,7 +335,7 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 4. **[P2]** ~~Pages PWA 链路验证~~ ✅ 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200；深链 `/settings` 404 回退 **发现缺陷并已修复**：404.html 移入 `public/` 使其进入 dist 产物）；浏览器人工安装验证（iOS Safari / Chrome 添加到主屏 + 离线）仍待人工执行
 5. **[P2]** ~~剩余 4 个超标组件大文件拆分（首个：SystemSettings 1373）~~ ✅ 2026-09-24 完成：SystemSettings 1373 → 193 行主壳 + 6 领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行），基线 4 → 3；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化）
 6. **[P2]** ~~`no-explicit-any` 全量清零~~ ✅ 2026-09-24 完成：81 → 0（16 文件），catch 块统一 `err instanceof Error` 提取 + 浏览器非标准 API 最小契约 interface（`WindowWithDirectoryPicker`/`NavigatorWithConnection`/`PerformanceWithMemory`/`RegistrationWithSync`/`MinimalSpeechRecognition`）+ 动态数据具名联合收窄（`NodeStatusType`/`LogLevel`/`RecentOpEntry["status"]`）；lint 警告 216 → 121，1965 用例全绿
-7. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `exhaustive-deps`(22) 渐进治理
+7. **[P2]** ~~剩余 3 个超标组件拆分~~ 🔄 批7 已完成 2/3（ServiceConnectionTest + AIFamilyDesignDoc，见第 11 项）；剩 DataEditorPanel 1189（10 useState + 17 useCallback + 35 内函数深耦合，需先绘状态依赖图）+ `exhaustive-deps`(22) 渐进治理
 8. **[P1]** ~~架构审计四批路线图（第五轮 2026-09-28）~~ ✅ 全部完成：
    - **批1 依赖卫生**（`457da2e`）: 精确锁定 + catalog 收敛 + knip 死依赖基线下降（deps 48→31 / devDeps 5→4）
    - **批2 路由级代码分割**（`b0cf4a6`）: 全路由 lazy 全覆盖，主包 gzip 752 → 157 kB（**-79%**）
@@ -353,6 +353,13 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 - **批6-zod**: `zod/mini` 切换 —— provider-schema.ts 单文件（唯一消费点），API 改写为 mini 形态（`z.string().check(z.minLength(1))` / `z.url()` / `z.optional(z.literal(true))`，语义与 classic 等价）；zod 219 → 57 kB（-74%，to-json-schema 27.9 + json-schema-processors 16.1 + memoizer 11.5 等全摇掉；批5「含全量 locales」归因有误——locales 实际只打了 en 5.1 kB）
 - **测试适配**: TopBar/Layout 两处 `vi.mock("motion/react")` 工厂补 `m` 键（组件已切 m._，mock 缺键导致 6 例弹层用例渲染 throw）；踩坑记录——motion m._ 组件无 LazyMotion 祖先时渲染期 throw（非静默降级）；RTL 16 `configure()` 不支持全局 wrapper（Config 无 wrapper 字段），test-utils 中间方案已回退，最终以补 mock 键最小闭环
 - **构建产物**: 主包 index 509 → 400 kB（同步 domAnimation）→ **365 kB**（异步 features）；chunks 97 → 98
+
+ 1. **[P2]** ~~第六轮批7 —— 三超标组件拆分（2/3）~~ ✅ 2026-09-28 完成（`37fe765`）：
+
+- **批7-AIFamilyDesignDoc 1217 → 88 行**: Facade+Siblings —— 内容数据/接口拆至 `ai-family-doc/content.ts`（CORE_PHILOSOPHY/DESIGN_SECTIONS/FAMILY_MEMBERS/ROADMAP + hexToRgb/getModuleDetails），分节组件拆至 shared.tsx（FadeIn 纯 CSS transition 沙箱安全 + SectionHeader）/ sections-a.tsx（Hero/Philosophy/Modules/Wireframe）/ sections-b.tsx（FamilyMembers/Architecture/Roadmap）/ sections-c.tsx（Song/Dedication/TOC）
+- **批7-ServiceConnectionTest 1265 → 406 行**: 纯函数化范式 —— 四类测试执行器由 useCallback 闭包改模块级纯函数拆至 `service-test/`（tests.ts: runAIProviderTest/runDBTest/runWebSocketTest/runNetworkTest，全依赖参数化无状态耦合；test-fetch.ts: 超时+错误分类 fetch；types.ts: 类型+STATUS_META+持久化收敛 yyc3-storage 封装修 no-raw-localstorage 隐患；panels.tsx: QuickTestButton/DiagnosticCard/EnvironmentDetectionPanel；results-view.tsx: ResultCard）；主壳保留状态编排（runAllTests）与骨架组装
+- **门禁全绿**: typecheck 0 / lint 0 errors / 单测 2005 例 / coverage 四指标达标（lines 40.47/functions 32.94/branches 37.69/statements 37.83，门槛 38/31/36/36）/ build / ast-grep / size:check 基线 **-1988 行** / knip / guardrail-probe 5/5
+- **挂账**: DataEditorPanel 1189 留批8（深耦合需先绘状态依赖图再动手）
 
 ---
 
@@ -388,12 +395,12 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-28 第六轮批6（motion/zod 主包减包）已完成: 主包 509 → 365 kB（-28.3%）；zod 219 → 57 kB；LazyMotion 异步 features 模式落地。无未完成挂账。
+2026-09-28 第六轮批7（三超标组件拆分 2/3）已完成并推送（`37fe765`）: AIFamilyDesignDoc 1217 → 88 行（ai-family-doc/ ×5 sibling）、ServiceConnectionTest 1265 → 406 行（service-test/ ×5 sibling，测试执行器纯函数化）；九项门禁全绿。无未完成代码挂账。
 
-### 8.3 当前优先级（2026-09-28 第六轮批6 执行后）
+### 8.3 当前优先级（2026-09-28 第六轮批7 执行后）
 
 1. **[P1]** Playwright 最小 e2e（auth 链路 ×3: 登录 401/成功 → gw 未认证 401 → 路由冒烟），替代手搓 curl 烟测
-2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1241 / AIFamilyDesignDoc 1218 / DataEditorPanel 1189，复制 SystemSettings 主壳+sibling 范式）→ `exhaustive-deps`(22) 渐进治理
+2. **[P2]** 批8: DataEditorPanel 1189 拆分（10 useState + 17 useCallback + 35 内函数深耦合，**先绘状态依赖图**再定拆分粒度；勿照搬纯函数化范式）→ `exhaustive-deps`(22) 渐进治理
 3. **[P2]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权自动启用）
 4. **[P3]** Pages PWA 浏览器人工验证（注意 GAP-006 — sw.js 未注册，建议正式决策关闭或补注册）；CI actions Node20 deprecation 告警顺势升级
 5. **[P3]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
@@ -423,6 +430,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-28 | v2.2.0 | 第五轮架构审计四批路线图全交付：批1 依赖卫生（`457da2e`）/ 批2 路由级代码分割（`b0cf4a6`，主包 gzip -79%）/ 批3 架构收口（`16b0169`+`43db9ed`，归档迁出 + localStorage 收口 + ast-grep 封禁规则 #7）/ 批4 console 服务端鉴权（`25288db`+`97e9b7a`，HMAC 令牌 + HttpOnly Cookie + 限流 + 代理端点门控 + Ghost 封禁）；测试 1965 → 2002 用例 | §6.3 第 8 项四批闭环 |
 | 2026-09-28 | v2.3.0 | 第六轮: 五维架构分析（总分 87.6）+ 批5 四小项（AGENTS.md MUI 失真修正 / serve:console 入口 + 双服务拓扑注释 / i18n key 对齐守卫 3 用例 / rollup-plugin-visualizer@7.1.1 字节可见性）；首次 bundle 归因: 主包 rendered 1085 kB = src 33% + motion 集群 36% + zod 20%；测试 2002 → 2005 用例 | 用户指令「分析架构 + 执行批5 + 同步结论」 |
 | 2026-09-28 | v2.4.0 | 第六轮批6: motion/zod 主包减包 —— LazyMotion 异步 features + m.* 别名（motion 390→~249 kB）+ zod/mini 切换（219→57 kB）；主包 index 509 → 365 kB（**-28.3%**, gzip 约 157 → 113 kB）；TopBar/Layout mock 补 m 键 | 用户指令「执行批6 的 motion 和 zod 优化」 |
+| 2026-09-28 | v2.5.0 | 第六轮批7: 三超标组件拆分 2/3（`37fe765`）—— AIFamilyDesignDoc 1217 → 88 主壳 + ai-family-doc/ ×5 sibling（Facade 范式）；ServiceConnectionTest 1265 → 406 主壳 + service-test/ ×5 sibling（测试执行器纯函数化，localStorage 收口 yyc3-storage）；size:check 基线 **-1988 行**；DataEditorPanel 留批8 | 用户指令「执行批7 的架构优化」 |
 
 ---
 
