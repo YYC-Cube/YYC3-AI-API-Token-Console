@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference types="node" />
 /**
  * console-server.mjs
  * ==================
@@ -12,8 +14,8 @@
  *       /gw 路径外的代理请求一律 404；请求体大小限制 10MB。
  */
 
-import http from "node:http";
 import { promises as fs } from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -27,11 +29,13 @@ const GW_ORIGIN = "http://127.0.0.1:8800";
 const GW_ADMIN_KEY = process.env.GW_ADMIN_KEY || "";
 
 // Ollama 多节点反代（白名单常量，无 SSRF 面）：/console/ollama/<node>/* → 节点 /api/*
+/** @type {Record<string, string>} */
 const OLLAMA_NODES = {
   n1: "http://100.65.64.49:11434",
   n2: "http://100.76.167.103:11434",
 };
 
+/** @type {Record<string, string>} */
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
@@ -46,8 +50,9 @@ const MIME = {
   ".webmanifest": "application/manifest+json",
 };
 
+/** @param {import("node:http").IncomingMessage} req @param {import("node:http").ServerResponse} res */
 const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, "http://x");
+  const url = new URL(req.url || "/", "http://x");
   const pathname = decodeURIComponent(url.pathname);
 
   // ── Ollama 多节点反代：/console/ollama/<node>/api/* ──
@@ -58,20 +63,24 @@ const server = http.createServer(async (req, res) => {
     if (!origin) { res.writeHead(404); return res.end(JSON.stringify({ error: `未知节点: ${node}` })); }
     const sub = rest.slice(node.length); // "/api/tags" 等
     try {
+      /** @type {Buffer[]} */
       const chunks = [];
       for await (const c of req) chunks.push(c);
-      const body = ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks);
+      const method = req.method || "GET";
+      const body = ["GET", "HEAD"].includes(method) ? undefined : Buffer.concat(chunks);
       const r = await fetch(origin + sub, {
-        method: req.method,
+        method,
         headers: { "Content-Type": req.headers["content-type"] || "application/json" },
         body, signal: AbortSignal.timeout(20000),
       });
-      res.writeHead(r.status, { "Content-Type": r.headers.get("content-type") || "application/json",
-                                "Access-Control-Allow-Origin": "https://api.0379.world" });
+      res.writeHead(r.status, {
+        "Content-Type": r.headers.get("content-type") || "application/json",
+        "Access-Control-Allow-Origin": "https://api.0379.world"
+      });
       res.end(Buffer.from(await r.arrayBuffer()));
     } catch (e) {
       res.writeHead(502, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: `${node} ollama 不可达`, detail: String(e && e.message || e) }));
+      res.end(JSON.stringify({ error: `${node} ollama 不可达`, detail: String(e instanceof Error ? e.message : e) }));
     }
     return;
   }
@@ -89,15 +98,19 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify({ error: "GW_ADMIN_KEY 未配置（服务端环境变量）" }));
     }
     const targetPath = pathname.replace("/console/gw", "") + url.search;
-    const headers = { "Content-Type": req.headers["content-type"] || "application/json",
-                      "X-API-Key": GW_ADMIN_KEY, "X-YYC3-Console-Proxy": "1" };
+    const headers = {
+      "Content-Type": req.headers["content-type"] || "application/json",
+      "X-API-Key": GW_ADMIN_KEY, "X-YYC3-Console-Proxy": "1"
+    };
+    /** @type {Buffer[]} */
     const chunks = [];
     let size = 0;
     for await (const c of req) { size += c.length; if (size > 10 * 1024 * 1024) { res.writeHead(413); return res.end(); } chunks.push(c); }
-    const body = ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks);
+    const method = req.method || "GET";
+    const body = ["GET", "HEAD"].includes(method) ? undefined : Buffer.concat(chunks);
     try {
       const r = await fetch(GW_ORIGIN + targetPath, {
-        method: req.method, headers, body,
+        method, headers, body,
         signal: AbortSignal.timeout(120000),
       });
       res.writeHead(r.status, {
@@ -109,7 +122,7 @@ const server = http.createServer(async (req, res) => {
       res.end(buf);
     } catch (e) {
       res.writeHead(502, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "网关不可达", detail: String(e && e.message || e) }));
+      res.end(JSON.stringify({ error: "网关不可达", detail: String(e instanceof Error ? e.message : e) }));
     }
     return;
   }
