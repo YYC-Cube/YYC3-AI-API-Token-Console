@@ -185,12 +185,8 @@ export function ServiceConnectionTest() {
       // Use proxy endpoint when available (same-origin, zero CORS)
       const ollamaInfo = getOllamaEndpointInfo();
       const testUrl = ollamaInfo.mode !== "direct" ? getOllamaTagsUrl() : `${base}/api/tags`;
-      addStep("端点模式", "pass", ollamaInfo.mode === "console"
-        ? `Console 反代模式: ${ollamaInfo.tagsUrl} (服务端多节点反代)`
-        : ollamaInfo.mode === "proxy"
-          ? `同源代理模式: ${ollamaInfo.tagsUrl} (零 CORS 开销)`
-          : `直连模式: ${testUrl}`,
-      );
+      const modeDetail = { console: `Console 反代模式: ${ollamaInfo.tagsUrl} (服务端多节点反代)`, proxy: `同源代理模式: ${ollamaInfo.tagsUrl} (零 CORS 开销)`, direct: `直连模式: ${testUrl}` }[ollamaInfo.mode];
+      addStep("端点模式", "pass", modeDetail);
 
       result.steps[0] = { label: "DNS 解析", status: "running", detail: `检测 Ollama 端点...`, timestamp: Date.now() };
       const r = await testFetch(testUrl, {}, 5000);
