@@ -1,7 +1,7 @@
 /**
  * routes.ts
  * ==========
- * YYC³ 路由配置 (v4 — 2026-03-17 精简盘点版)
+ * YYC³ 路由配置 (v5 — 路由级代码分割全覆盖)
  *
  * 精简收拢原则:
  *   1. 监控中心: / (数据监控), /follow-up (一键跟进), /patrol (巡查模式), /alerts (告警规则)
@@ -11,48 +11,73 @@
  *   5. 开发规范: /design-system (设计系统), /dev-guide (开发指南)
  *   6. 系统管理: /audit (操作审计), /users (用户管理), /settings (系统设置), /security (安全监控), /pwa (PWA管理), /env-config (环境变量)
  *
- * 重叠/开发冗余路由重定向/兼容处理，核心组件按需 lazy 加载。
+ * v5 变更 (性能维度):
+ *   - 页面组件全量 React.lazy 化 (主包仅保留 Layout 壳 + NotFound 兜底),
+ *     CodeMirror/Recharts 等重型依赖随路由 chunk 按需加载
+ *   - lazyPage 泛型 helper: 导出名拼写错误在编译期暴露
+ *   - 重叠/开发冗余路由重定向/兼容处理保持不变
  */
 
 import React from "react";
 import { createBrowserRouter, Navigate } from "react-router";
-import { AIFamilyRouter } from "./components/ai-family/AIFamilyRouter";
 import { LazyWrap } from "./components/ai-family/LazyWrap";
-import { AIDiagnostics } from "./components/AIDiagnostics";
-import { AISuggestionPanel } from "./components/AISuggestionPanel";
-import { AlertRulesPanel } from "./components/AlertRulesPanel";
-import { DatabaseManager } from "./components/DatabaseManager";
-import { DataMonitoring } from "./components/DataMonitoring";
-import { DesignSystemPage } from "./components/design-system/DesignSystemPage";
-import { DevGuidePage } from "./components/DevGuidePage";
-import { EnvConfigEditor } from "./components/EnvConfigEditor";
-import { FollowUpPanel } from "./components/FollowUpPanel";
 import { Layout } from "./components/Layout";
-import { LocalFileManager } from "./components/LocalFileManager";
-import { ModelProviderPanel } from "./components/ModelProviderPanel";
-import { GatewayKeysPanel } from "./components/GatewayKeysPanel";
 import { NotFound } from "./components/NotFound";
-import { OperationAudit } from "./components/OperationAudit";
-import { OperationCenter } from "./components/OperationCenter";
-import { PatrolDashboard } from "./components/PatrolDashboard";
-import { PWAStatusPanel } from "./components/PWAStatusPanel";
-import { ReportExporter } from "./components/ReportExporter";
-import { SecurityMonitor } from "./components/SecurityMonitor";
-import { ServiceConnectionTest } from "./components/ServiceConnectionTest";
-import { ServiceLoopPanel } from "./components/ServiceLoopPanel";
-import { SystemSettings } from "./components/SystemSettings";
-import { UserManagement } from "./components/UserManagement";
 
-// AI Family 独立入口页 — lazy load
-const AIFamilyPageLazy = React.lazy(() =>
-  import("./components/AIFamilyPage").then(m => ({ default: m.AIFamilyPage }))
-);
-const AIFamilyDesignDocLazy = React.lazy(() =>
-  import("./components/AIFamilyDesignDoc").then(m => ({ default: m.AIFamilyDesignDoc }))
-);
-const AIFamilyCenterPageLazy = React.lazy(() =>
-  import("./components/AIFamilyCenterPage").then(m => ({ default: m.AIFamilyCenterPage }))
-);
+// ────────────────────────────────────────────
+//  路由级代码分割 (lazy 声明区)
+// ────────────────────────────────────────────
+
+/** lazy 组件声明: loader + 命名导出名 (拼写受 keyof 约束, 编译期校验) */
+function lazyPage<T extends Record<string, React.ComponentType>>(
+  loader: () => Promise<T>,
+  name: keyof T & string
+): React.LazyExoticComponent<React.ComponentType> {
+  return React.lazy(() => loader().then(m => ({ default: m[name] })));
+}
+
+/** Suspense 包装的路由 element (复用 ai-family LazyWrap 壳) */
+function lazyEl(Component: React.LazyExoticComponent<React.ComponentType>) {
+  return React.createElement(LazyWrap, { Component });
+}
+
+// 1. 监控中心
+const DataMonitoring = lazyPage(() => import("./components/DataMonitoring"), "DataMonitoring");
+const FollowUpPanel = lazyPage(() => import("./components/FollowUpPanel"), "FollowUpPanel");
+const PatrolDashboard = lazyPage(() => import("./components/PatrolDashboard"), "PatrolDashboard");
+const AlertRulesPanel = lazyPage(() => import("./components/AlertRulesPanel"), "AlertRulesPanel");
+
+// 2. 运维管理
+const OperationCenter = lazyPage(() => import("./components/OperationCenter"), "OperationCenter");
+const LocalFileManager = lazyPage(() => import("./components/LocalFileManager"), "LocalFileManager");
+const DatabaseManager = lazyPage(() => import("./components/DatabaseManager"), "DatabaseManager");
+const ServiceConnectionTest = lazyPage(() => import("./components/ServiceConnectionTest"), "ServiceConnectionTest");
+const ServiceLoopPanel = lazyPage(() => import("./components/ServiceLoopPanel"), "ServiceLoopPanel");
+const ReportExporter = lazyPage(() => import("./components/ReportExporter"), "ReportExporter");
+
+// 3. AI 智能 (API 矩阵与模型)
+const ModelProviderPanel = lazyPage(() => import("./components/ModelProviderPanel"), "ModelProviderPanel");
+const GatewayKeysPanel = lazyPage(() => import("./components/GatewayKeysPanel"), "GatewayKeysPanel");
+const AISuggestionPanel = lazyPage(() => import("./components/AISuggestionPanel"), "AISuggestionPanel");
+const AIDiagnostics = lazyPage(() => import("./components/AIDiagnostics"), "AIDiagnostics");
+
+// 4. AI Family
+const AIFamilyPage = lazyPage(() => import("./components/AIFamilyPage"), "AIFamilyPage");
+const AIFamilyCenterPage = lazyPage(() => import("./components/AIFamilyCenterPage"), "AIFamilyCenterPage");
+const AIFamilyDesignDoc = lazyPage(() => import("./components/AIFamilyDesignDoc"), "AIFamilyDesignDoc");
+const AIFamilyRouter = lazyPage(() => import("./components/ai-family/AIFamilyRouter"), "AIFamilyRouter");
+
+// 5. 开发规范
+const DesignSystemPage = lazyPage(() => import("./components/design-system/DesignSystemPage"), "DesignSystemPage");
+const DevGuidePage = lazyPage(() => import("./components/DevGuidePage"), "DevGuidePage");
+
+// 6. 系统管理
+const OperationAudit = lazyPage(() => import("./components/OperationAudit"), "OperationAudit");
+const UserManagement = lazyPage(() => import("./components/UserManagement"), "UserManagement");
+const SystemSettings = lazyPage(() => import("./components/SystemSettings"), "SystemSettings");
+const SecurityMonitor = lazyPage(() => import("./components/SecurityMonitor"), "SecurityMonitor");
+const PWAStatusPanel = lazyPage(() => import("./components/PWAStatusPanel"), "PWAStatusPanel");
+const EnvConfigEditor = lazyPage(() => import("./components/EnvConfigEditor"), "EnvConfigEditor");
 
 // ────────────────────────────────────────────
 //  路由表
@@ -69,18 +94,18 @@ export const router = createBrowserRouter(
       Component: Layout,
       children: [
         // 1. 监控中心
-        { index: true, Component: DataMonitoring },
-        { path: "follow-up", Component: FollowUpPanel },
-        { path: "patrol", Component: PatrolDashboard },
-        { path: "alerts", Component: AlertRulesPanel },
+        { index: true, element: lazyEl(DataMonitoring) },
+        { path: "follow-up", element: lazyEl(FollowUpPanel) },
+        { path: "patrol", element: lazyEl(PatrolDashboard) },
+        { path: "alerts", element: lazyEl(AlertRulesPanel) },
 
         // 2. 运维管理
-        { path: "operations", Component: OperationCenter },
-        { path: "files", Component: LocalFileManager },
-        { path: "database", Component: DatabaseManager },
-        { path: "connection-test", Component: ServiceConnectionTest },
-        { path: "loop", Component: ServiceLoopPanel },
-        { path: "reports", Component: ReportExporter },
+        { path: "operations", element: lazyEl(OperationCenter) },
+        { path: "files", element: lazyEl(LocalFileManager) },
+        { path: "database", element: lazyEl(DatabaseManager) },
+        { path: "connection-test", element: lazyEl(ServiceConnectionTest) },
+        { path: "loop", element: lazyEl(ServiceLoopPanel) },
+        { path: "reports", element: lazyEl(ReportExporter) },
 
         // 重叠文件/数据库页面自动重定向
         { path: "host-files", element: React.createElement(Navigate, { to: "/files", replace: true }) },
@@ -88,46 +113,37 @@ export const router = createBrowserRouter(
         { path: "data-editor", element: React.createElement(Navigate, { to: "/database", replace: true }) },
 
         // 3. AI 智能 (API 矩阵与模型)
-        { path: "models", Component: ModelProviderPanel },
-        { path: "gateway-keys", Component: GatewayKeysPanel },
-        { path: "ai", Component: AISuggestionPanel },
-        { path: "ai-diagnosis", Component: AIDiagnostics },
+        { path: "models", element: lazyEl(ModelProviderPanel) },
+        { path: "gateway-keys", element: lazyEl(GatewayKeysPanel) },
+        { path: "ai", element: lazyEl(AISuggestionPanel) },
+        { path: "ai-diagnosis", element: lazyEl(AIDiagnostics) },
 
         // 4. AI Family
-        {
-          path: "ai-family",
-          element: React.createElement(LazyWrap, { Component: AIFamilyPageLazy }),
-        },
-        {
-          path: "ai-family-center",
-          element: React.createElement(LazyWrap, { Component: AIFamilyCenterPageLazy }),
-        },
-        {
-          path: "ai-family-design",
-          element: React.createElement(LazyWrap, { Component: AIFamilyDesignDocLazy }),
-        },
-        { path: "ai-family-sub/:subpage", Component: AIFamilyRouter },
+        { path: "ai-family", element: lazyEl(AIFamilyPage) },
+        { path: "ai-family-center", element: lazyEl(AIFamilyCenterPage) },
+        { path: "ai-family-design", element: lazyEl(AIFamilyDesignDoc) },
+        { path: "ai-family-sub/:subpage", element: lazyEl(AIFamilyRouter) },
 
         // 旧兼容路径重定向至子分发器
-        { path: "ai-family-home", Component: AIFamilyRouter },
-        { path: "ai-family-chat", Component: AIFamilyRouter },
-        { path: "ai-family-share", Component: AIFamilyRouter },
-        { path: "ai-family-learn", Component: AIFamilyRouter },
-        { path: "ai-family-music", Component: AIFamilyRouter },
-        { path: "ai-family-growth", Component: AIFamilyRouter },
-        { path: "ai-family-phone", Component: AIFamilyRouter },
-        { path: "ai-family-fun", Component: AIFamilyRouter },
-        { path: "ai-family-activities", Component: AIFamilyRouter },
-        { path: "ai-family-models", Component: AIFamilyRouter },
-        { path: "ai-family-voice", Component: AIFamilyRouter },
-        { path: "ai-family-data", Component: AIFamilyRouter },
-        { path: "ai-family-comm", Component: AIFamilyRouter },
-        { path: "ai-family-settings", Component: AIFamilyRouter },
-        { path: "ai-family-drama", Component: AIFamilyRouter },
+        { path: "ai-family-home", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-chat", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-share", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-learn", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-music", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-growth", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-phone", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-fun", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-activities", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-models", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-voice", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-data", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-comm", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-settings", element: lazyEl(AIFamilyRouter) },
+        { path: "ai-family-drama", element: lazyEl(AIFamilyRouter) },
 
         // 5. 开发规范
-        { path: "design-system", Component: DesignSystemPage },
-        { path: "dev-guide", Component: DevGuidePage },
+        { path: "design-system", element: lazyEl(DesignSystemPage) },
+        { path: "dev-guide", element: lazyEl(DevGuidePage) },
 
         // 隐藏/精简掉的纯展示开发工具重定向至 dev-guide
         { path: "terminal", element: React.createElement(Navigate, { to: "/dev-guide", replace: true }) },
@@ -137,12 +153,12 @@ export const router = createBrowserRouter(
         { path: "architecture", element: React.createElement(Navigate, { to: "/dev-guide", replace: true }) },
 
         // 6. 系统管理
-        { path: "audit", Component: OperationAudit },
-        { path: "users", Component: UserManagement },
-        { path: "settings", Component: SystemSettings },
-        { path: "security", Component: SecurityMonitor },
-        { path: "pwa", Component: PWAStatusPanel },
-        { path: "env-config", Component: EnvConfigEditor },
+        { path: "audit", element: lazyEl(OperationAudit) },
+        { path: "users", element: lazyEl(UserManagement) },
+        { path: "settings", element: lazyEl(SystemSettings) },
+        { path: "security", element: lazyEl(SecurityMonitor) },
+        { path: "pwa", element: lazyEl(PWAStatusPanel) },
+        { path: "env-config", element: lazyEl(EnvConfigEditor) },
         { path: "performance", element: React.createElement(Navigate, { to: "/security", replace: true }) },
 
         { path: "*", Component: NotFound },

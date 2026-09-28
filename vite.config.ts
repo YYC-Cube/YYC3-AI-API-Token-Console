@@ -42,4 +42,30 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  build: {
+    rollupOptions: {
+      output: {
+        // Vendor 分离: 重型库独立 chunk (业务路由 chunk 变更不影响其缓存)
+        manualChunks: {
+          charts: ['recharts'],
+          editor: [
+            '@uiw/react-codemirror',
+            '@codemirror/state',
+            '@codemirror/view',
+            '@codemirror/lang-javascript',
+            '@codemirror/lang-json',
+            '@codemirror/lang-python',
+            '@codemirror/lang-sql',
+            '@codemirror/lang-markdown',
+            '@codemirror/lang-html',
+            '@codemirror/lang-css',
+            '@codemirror/lang-xml',
+            '@codemirror/lang-yaml',
+          ],
+          router: ['react-router'],
+        },
+      },
+    },
+  },
 })

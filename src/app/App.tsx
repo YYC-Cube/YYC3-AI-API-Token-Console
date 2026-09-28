@@ -16,6 +16,12 @@ import type { AppSession, UserRole } from "./types";
 // 使用统一判定函数 isFigmaPlatformError()，消除重复逻辑
 // 必须在 React 挂载前注册 capture phase，阻止错误冒泡到 error-handler
 // ────────────────────────────────────────────────────────────────
+// iframe/沙箱判定: 路由懒加载化后, 顶层窗口的 chunk 加载失败是真实故障
+// (弱网/发版竞态), 必须放行给 error-handler; 仅 iframe 沙箱内做自动恢复
+const inEmbeddedFrame = (() => {
+  try { return window.self !== window.top; } catch { return true; }
+})();
+
 if (typeof window !== "undefined") {
   window.addEventListener("unhandledrejection", (e) => {
     const reason = e.reason;
@@ -26,8 +32,8 @@ if (typeof window !== "undefined") {
       e.preventDefault();
       e.stopImmediatePropagation();
     }
-    // Auto-recover from Vite dynamic import failures (sandbox HMR)
-    if (msg.includes("Failed to fetch dynamically imported module") || msg.includes("dynamically imported module")) {
+    // Auto-recover from Vite dynamic import failures (sandbox HMR only)
+    if (inEmbeddedFrame && msg.includes("Failed to fetch dynamically imported module")) {
       e.preventDefault();
       e.stopImmediatePropagation();
     }
