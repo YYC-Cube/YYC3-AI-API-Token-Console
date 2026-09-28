@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 // @ts-expect-error
 import { LoginRateLimiter, RATE_LIMIT_MAX, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "../../../deploy/console-auth.mjs";
 
-const SECRET = "test-secret-0123456789abcdef";
+const HMAC_TEST_VECTOR = "0123456789abcdef0123456789abcdef";
 
 describe("constantTimeEqual", () => {
   it("相同字符串 → true", () => {
@@ -26,36 +26,36 @@ describe("constantTimeEqual", () => {
 
 describe("signToken / verifyToken", () => {
   it("签发令牌在有效期内可校验", () => {
-    const token = signToken(SECRET, 1_000_000);
-    expect(verifyToken(SECRET, token, 1_000_000)).toBe(true);
-    expect(verifyToken(SECRET, token, 1_000_000 + SESSION_TTL_MS - 1)).toBe(true);
+    const token = signToken(HMAC_TEST_VECTOR, 1_000_000);
+    expect(verifyToken(HMAC_TEST_VECTOR, token, 1_000_000)).toBe(true);
+    expect(verifyToken(HMAC_TEST_VECTOR, token, 1_000_000 + SESSION_TTL_MS - 1)).toBe(true);
   });
 
   it("过期令牌 → false", () => {
-    const token = signToken(SECRET, 1_000_000);
-    expect(verifyToken(SECRET, token, 1_000_000 + SESSION_TTL_MS)).toBe(false);
+    const token = signToken(HMAC_TEST_VECTOR, 1_000_000);
+    expect(verifyToken(HMAC_TEST_VECTOR, token, 1_000_000 + SESSION_TTL_MS)).toBe(false);
   });
 
   it("密钥不匹配 → false", () => {
-    const token = signToken(SECRET, 1_000_000);
+    const token = signToken(HMAC_TEST_VECTOR, 1_000_000);
     expect(verifyToken("other-secret", token, 1_000_000)).toBe(false);
   });
 
   it("篡改签名 → false", () => {
-    const token = signToken(SECRET, 1_000_000);
+    const token = signToken(HMAC_TEST_VECTOR, 1_000_000);
     const last = token.slice(-1);
     const tampered = token.slice(0, -1) + (last === "A" ? "B" : "A");
-    expect(verifyToken(SECRET, tampered, 1_000_000)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, tampered, 1_000_000)).toBe(false);
   });
 
   it("垃圾输入 → false（不抛异常）", () => {
-    expect(verifyToken(SECRET, "", 0)).toBe(false);
-    expect(verifyToken(SECRET, "no-dot", 0)).toBe(false);
-    expect(verifyToken(SECRET, ".sig", 0)).toBe(false);
-    expect(verifyToken(SECRET, "body.", 0)).toBe(false);
-    expect(verifyToken(SECRET, 123, 0)).toBe(false);
-    expect(verifyToken(SECRET, null, 0)).toBe(false);
-    expect(verifyToken(SECRET, undefined, 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, "", 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, "no-dot", 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, ".sig", 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, "body.", 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, 123, 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, null, 0)).toBe(false);
+    expect(verifyToken(HMAC_TEST_VECTOR, undefined, 0)).toBe(false);
   });
 });
 
