@@ -691,28 +691,6 @@ export function ServiceConnectionTest() {
     toast.success(`测试完成: ${passCount} 通过 / ${warnCount} 警告 / ${failCount} 失败`, { style: toastStyle, duration: 4000 });
   }, [testNetwork, testWebSocket, testAIProvider, testDB, configuredModels, providers, dbConnections, proxyUrl]);
 
-  // Run single test
-  const runSingleTest = useCallback(async (testId: string) => {
-    // Parse the test type
-    if (testId === "network-general") {
-      const res = await testNetwork();
-      setResults((prev) => {
-        const next = prev.filter((r) => r.id !== testId);
-        next.unshift(res);
-        saveResults(next);
-        return next;
-      });
-    } else if (testId === "ws-main") {
-      const res = await testWebSocket();
-      setResults((prev) => {
-        const next = prev.filter((r) => r.id !== testId);
-        next.unshift(res);
-        saveResults(next);
-        return next;
-      });
-    }
-  }, [testNetwork, testWebSocket]);
-
   const stopTests = () => { abortRef.current = true; };
 
   const clearResults = () => {
