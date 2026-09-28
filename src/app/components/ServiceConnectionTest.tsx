@@ -184,16 +184,18 @@ export function ServiceConnectionTest() {
     if (isLocal) {
       // Use proxy endpoint when available (same-origin, zero CORS)
       const ollamaInfo = getOllamaEndpointInfo();
-      const testUrl = ollamaInfo.mode === "proxy" ? getOllamaTagsUrl() : `${base}/api/tags`;
-      addStep("端点模式", "pass", ollamaInfo.mode === "proxy"
-        ? `同源代理模式: ${ollamaInfo.tagsUrl} (零 CORS 开销)`
-        : `直连模式: ${testUrl}`,
+      const testUrl = ollamaInfo.mode !== "direct" ? getOllamaTagsUrl() : `${base}/api/tags`;
+      addStep("端点模式", "pass", ollamaInfo.mode === "console"
+        ? `Console 反代模式: ${ollamaInfo.tagsUrl} (服务端多节点反代)`
+        : ollamaInfo.mode === "proxy"
+          ? `同源代理模式: ${ollamaInfo.tagsUrl} (零 CORS 开销)`
+          : `直连模式: ${testUrl}`,
       );
 
       result.steps[0] = { label: "DNS 解析", status: "running", detail: `检测 Ollama 端点...`, timestamp: Date.now() };
       const r = await testFetch(testUrl, {}, 5000);
       if (r.ok) {
-        result.steps[0] = { label: "DNS / 网络", status: "pass", detail: `Ollama 端点可达 (${r.latencyMs}ms)${ollamaInfo.mode === "proxy" ? " [via proxy]" : ""}`, latencyMs: r.latencyMs, timestamp: Date.now() };
+        result.steps[0] = { label: "DNS / 网络", status: "pass", detail: `Ollama 端点可达 (${r.latencyMs}ms)${ollamaInfo.mode !== "direct" ? ` [via ${ollamaInfo.mode}]` : ""}`, latencyMs: r.latencyMs, timestamp: Date.now() };
       } else if (r.errorType === "cors") {
         result.steps[0] = { label: "DNS / 网络", status: "warn", detail: `Ollama 返回 CORS 错误。请设置 OLLAMA_ORIGINS="*" 后重启 Ollama`, latencyMs: r.latencyMs, timestamp: Date.now() };
         // Try with no-cors mode
@@ -211,7 +213,7 @@ export function ServiceConnectionTest() {
       if (result.steps[0].status === "pass") {
         addStep("模型列表", "running", "获取已安装模型...");
         try {
-          const tagsUrl = ollamaInfo.mode === "proxy" ? getOllamaTagsUrl() : `${base}/api/tags`;
+          const tagsUrl = ollamaInfo.mode !== "direct" ? getOllamaTagsUrl() : `${base}/api/tags`;
           const r = await testFetch(tagsUrl);
           if (r.ok) {
             const data = JSON.parse(r.body || "{}");
@@ -228,7 +230,7 @@ export function ServiceConnectionTest() {
 
         // Step 3: Chat test
         addStep("推理测试", "running", "发送 ping 请求...");
-        const chatUrl = ollamaInfo.mode === "proxy" ? getOllamaChatUrl() : `${base}/api/chat`;
+        const chatUrl = ollamaInfo.mode !== "direct" ? getOllamaChatUrl() : `${base}/api/chat`;
         const chatRes = await testFetch(chatUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

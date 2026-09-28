@@ -59,10 +59,12 @@ export function isConsoleDeployment(): boolean {
 
 /**
  * 获取 Ollama Chat 端点
+ * - console 部署: /console/ollama/{node}/api/chat (服务端多节点反代)
  * - 本地部署: /api/v1/llm/ollama/chat (同源代理, 零 CORS)
  * - 其他环境: http://localhost:11434/api/chat (直连)
  */
 export function getOllamaChatUrl(): string {
+  if (isConsoleDeployment()) return getConsoleOllamaUrl("chat");
   if (shouldUseProxy()) {
     const proxyPath = env("OLLAMA_PROXY_PATH").replace(/\/$/, "");
     return `${proxyPath}/chat`;
@@ -88,10 +90,12 @@ export function getOllamaTagsUrl(): string {
 
 /**
  * 获取 Ollama 任意子路径端点
+ * 优先级: console 代理 > 同源代理 > 直连 (与 getOllamaTagsUrl 一致)
  * @param subPath 子路径, 如 "show", "generate", "embeddings"
  */
 export function getOllamaUrl(subPath: string): string {
   const path = subPath.replace(/^\//, "");
+  if (isConsoleDeployment()) return getConsoleOllamaUrl(path);
   if (shouldUseProxy()) {
     const proxyPath = env("OLLAMA_PROXY_PATH").replace(/\/$/, "");
     return `${proxyPath}/${path}`;
@@ -102,16 +106,17 @@ export function getOllamaUrl(subPath: string): string {
 
 /**
  * 获取诊断信息 (供连接测试面板使用)
+ * mode 优先级: console 反代 > 同源代理 > 直连 (与端点解析函数一致)
  */
 export function getOllamaEndpointInfo(): {
-  mode: "proxy" | "direct";
+  mode: "console" | "proxy" | "direct";
   chatUrl: string;
   tagsUrl: string;
   proxyPath: string;
   directBase: string;
 } {
   return {
-    mode: shouldUseProxy() ? "proxy" : "direct",
+    mode: isConsoleDeployment() ? "console" : shouldUseProxy() ? "proxy" : "direct",
     chatUrl: getOllamaChatUrl(),
     tagsUrl: getOllamaTagsUrl(),
     proxyPath: env("OLLAMA_PROXY_PATH"),
