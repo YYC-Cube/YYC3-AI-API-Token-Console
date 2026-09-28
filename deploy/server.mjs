@@ -10,6 +10,9 @@
  *   4. CORS 收敛 (默认仅同源; ALLOW_ORIGIN / ALLOW_ORIGIN_CIDR 按需放行)
  *   5. Gzip 压缩 (可选)
  *
+ * 拓扑: 本文件 = LAN 形态入口（`pnpm serve:local`）；公网形态入口见 ./console-server.mjs
+ *       （带 /console/auth 鉴权 + gw/ollama 代理门控）。改动托管行为时须同步评估另一份。
+ *
  * 零依赖 — 仅使用 Node.js 内置模块 (http, fs, path, url)
  *
  * 用法:

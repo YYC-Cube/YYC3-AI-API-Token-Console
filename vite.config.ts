@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -32,6 +33,14 @@ export default defineConfig({
     // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
+    // Bundle 字节级归因: 每次构建输出 stats.html（gitignored, 不入产物）
+    // 打开查看主包/路由包构成 → 优化 manualChunks 或拆分巨石组件的决策依据
+    visualizer({
+      filename: 'stats.html',
+      template: 'sunburst',
+      gzipSize: true,
+      brotliSize: true,
+    }),
   ],
   resolve: {
     alias: {

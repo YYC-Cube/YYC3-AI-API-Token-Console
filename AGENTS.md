@@ -12,7 +12,7 @@ YYC³ AI API Token Console — 本地闭环多端推理矩阵数据看盘系统�
 | 层 | 技术 |
 | --- | --- |
 | 构建 | Vite 6 + @vitejs/plugin-react（版本统一在 `pnpm-workspace.yaml` catalog） |
-| UI | React 18 + Tailwind 4 + Radix UI 全家桶 + shadcn/ui + MUI 7 + Recharts + CodeMirror 6 |
+| UI | React 18 + Tailwind 4 + Radix UI 全家桶 + shadcn/ui + Recharts + CodeMirror 6 |
 | 路由 | react-router 7（`createBrowserRouter`，SPA + NotFound 兜底） |
 | 测试 | Vitest 4（projects: unit-dom/unit-node/integration）+ Testing Library + @vitest/coverage-v8 |
 | 包管理 | pnpm 11（严格供应链策略，见 `pnpm-workspace.yaml`） |

@@ -341,6 +341,12 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
    - **批2 路由级代码分割**（`b0cf4a6`）: 全路由 lazy 全覆盖，主包 gzip 752 → 157 kB（**-79%**）
    - **批3 架构收口**（`16b0169` + `43db9ed`）: 伪文档/归档迁出 src（docs/ci/imports → docs/archive/，32 files）；localStorage 裸调全量收口（19 hooks/components → yyc3-storage 封装 + LOCALSTORAGE_KEYS 注册表）；ast-grep 规则库 #7 `no-raw-localstorage`（ts/tsx 双语言）+ guardrail-probe 扩至 5 探针全拦截
    - **批4 console 服务端鉴权**（`25288db` + `97e9b7a`）: `deploy/console-auth.mjs`（HMAC-SHA256 令牌 + constant-time 比较 + 登录限流 5次/5min/IP）；`/console/auth/{login,logout,status}` + ollama/gw 代理端点会话门控（401）；HttpOnly Cookie（SameSite=Strict，https 加 Secure）；未配置 `CONSOLE_AUTH_SECRET`+`CONSOLE_ADMIN_PASSWORD` 时鉴权禁用（本地/LAN 兼容）；客户端 CONSOLE_MODE 门控（Ghost 四点封禁 + 登录页收敛）；25 新测试用例；烟测实测未认证/伪造/篡改均 401、有效会话穿门进业务逻辑；CI 全绿闭环
+9. **[P1]** ~~第六轮架构分析 + 批5 小项（2026-09-28）~~ ✅ 全部完成：
+   - **五维架构分析**: 总分 87.6；事件维度最健康（93），短板在可见性/巨石尾部/e2e 空洞
+   - **批5-1 AGENTS.md 修正**: 技术栈表移除 MUI 7 失真项（批1 已移除依赖，文档未同步）
+   - **批5-2 双服务入口收口**: package.json 增 `serve:console` 脚本；server.mjs/console-server.mjs 头部互引拓扑注释（LAN 形态 vs 公网形态边界声明）
+   - **批5-3 i18n key 对齐守卫**: 新增 `i18n-keys.test.ts` 3 用例（key 集合对齐 + 非空串叶子 + 防空包真空断言）——编译期 `TranslationKeys` 类型守卫之外的运行时防线，防 `as` 强转绕过
+   - **批5-4 bundle 字节可见性**: `rollup-plugin-visualizer@7.1.1`（精确锁定）接入 vite.config；每次构建输出 `stats.html`（gitignored）；首次归因实测主包 rendered 1085 kB 构成: 业务代码 360 kB(33%) + **motion 集群 390 kB(36%: motion-dom 284 + framer-motion 99 + motion-utils 7)** + **zod 219 kB(20%, 含全量 locales)** + sonner 62 + lucide 53
 
 ---
 
@@ -376,14 +382,16 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-28 第五轮（架构审计四批路线图）**全部完成并推送**：批1 依赖卫生 `457da2e` / 批2 路由分割 `b0cf4a6` / 批3 架构收口 `16b0169`+`43db9ed` / 批4 服务端鉴权 `25288db`+`97e9b7a`（gitleaks 误报修复：测试向量常量 SECRET → HMAC_TEST_VECTOR）。九项本地门禁全绿 + CI run 36430422340 全绿闭环。无未完成挂账；console 公网上线前仅需在服务端配置 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD` 两个环境变量即启用鉴权。
+2026-09-28 第六轮（架构分析 + 批5）已完成: 批5 四小项全部落地（AGENTS.md 修正 / serve:console 入口 / i18n 守卫 3 用例 / rollup-plugin-visualizer 字节可见性），数据驱动发现主包两大优化点（motion 集群 390 kB、zod 219 kB）已挂账批6。无未完成挂账。
 
-### 8.3 当前优先级（2026-09-28 第五轮执行后）
+### 8.3 当前优先级（2026-09-28 第六轮执行后）
 
-1. **[P1]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权即自动启用；未配置则鉴权禁用仅限本地/LAN 场景）
-2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1241 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
-3. **[P2]** Pages PWA 浏览器人工验证（清单已生成：[YYC3-PWA浏览器人工验证清单.md](./YYC3-PWA浏览器人工验证清单.md)，覆盖桌面 Chrome / iOS Safari / Android Chrome / 离线降级四场景；注意 GAP-006 — sw.js 未注册，离线项为预期失败基线）
-4. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
+1. **[P1]** 批6 数据驱动优化: motion 集群 390 kB 评估（TopBar/BottomNav 启动必载是根因，评估 CSS 动画替代或按需 lazy）；zod 219 kB 评估（provider-schema 配置校验，评估 locales 裁剪/延后校验）
+2. **[P1]** Playwright 最小 e2e（auth 链路 ×3: 登录 401/成功 → gw 未认证 401 → 路由冒烟），替代手搓 curl 烟测
+3. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1241 / AIFamilyDesignDoc 1218 / DataEditorPanel 1189，复制 SystemSettings 主壳+sibling 范式）→ `exhaustive-deps`(22) 渐进治理
+4. **[P2]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权自动启用）
+5. **[P3]** Pages PWA 浏览器人工验证（清单已生成；注意 GAP-006 — sw.js 未注册，离线项为预期失败基线，建议正式决策关闭或补注册）；CI actions Node20 deprecation 告警顺势升级
+6. **[P3]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
 ### 8.4 文档资产索引
 
@@ -408,6 +416,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-24 | v2.1.0 | SystemSettings 1373 → 193 主壳 + 6 sibling（基线 4→3）；boundaries v7 语法重写（组合根/tests 增 file categories entry，例外清单保持为空）；knip StoredNode 死类型清零 | §8.3 第四轮 TOP 3 执行 |
 | 2026-09-24 | v2.1.1 | `no-explicit-any` 全量清零 81 → 0（16 文件：错误处理类型化 + 浏览器 API 最小契约 + 具名联合收窄）；lint 警告 216 → 121 | §6.3 第 6 项闭环 |
 | 2026-09-28 | v2.2.0 | 第五轮架构审计四批路线图全交付：批1 依赖卫生（`457da2e`）/ 批2 路由级代码分割（`b0cf4a6`，主包 gzip -79%）/ 批3 架构收口（`16b0169`+`43db9ed`，归档迁出 + localStorage 收口 + ast-grep 封禁规则 #7）/ 批4 console 服务端鉴权（`25288db`+`97e9b7a`，HMAC 令牌 + HttpOnly Cookie + 限流 + 代理端点门控 + Ghost 封禁）；测试 1965 → 2002 用例 | §6.3 第 8 项四批闭环 |
+| 2026-09-28 | v2.3.0 | 第六轮: 五维架构分析（总分 87.6）+ 批5 四小项（AGENTS.md MUI 失真修正 / serve:console 入口 + 双服务拓扑注释 / i18n key 对齐守卫 3 用例 / rollup-plugin-visualizer@7.1.1 字节可见性）；首次 bundle 归因: 主包 rendered 1085 kB = src 33% + motion 集群 36% + zod 20%；测试 2002 → 2005 用例 | 用户指令「分析架构 + 执行批5 + 同步结论」 |
 
 ---
 

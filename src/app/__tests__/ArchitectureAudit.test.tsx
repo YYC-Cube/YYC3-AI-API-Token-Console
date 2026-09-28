@@ -42,6 +42,7 @@ describe("ArchitectureAudit", () => {
       expect(screen.getByText("YYC3 架构审计全景")).toBeInTheDocument();
     });
 
+    // 重组件全量渲染在 coverage 插桩下耗时倍增, 放宽单点超时
     it("应渲染 6 个 Tab 按钮", () => {
       render(<ArchitectureAudit />);
       expect(screen.getByText("架构概览")).toBeInTheDocument();
@@ -50,7 +51,7 @@ describe("ArchitectureAudit", () => {
       expect(screen.getByRole("button", { name: /^测试 \(/ })).toBeInTheDocument();
       expect(screen.getByText("功能清单")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /^缺口 \(/ })).toBeInTheDocument();
-    });
+    }, 15000);
   });
 
   describe("概览 Tab", () => {

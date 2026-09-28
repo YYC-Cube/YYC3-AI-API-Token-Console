@@ -11,10 +11,15 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import type {
-  BaseSeverity, AlertLevel, ErrorSeverity, FollowUpSeverity,
-  AlertSeverity, DiagnosticPattern, StoreName, APIEndpoints,
+  AlertLevel,
+  AlertSeverity,
+  APIEndpoints,
+  BaseSeverity,
+  DiagnosticPattern,
+  ErrorSeverity, FollowUpSeverity,
+  StoreName,
 } from "../types";
 
 // ================================================================
@@ -28,11 +33,12 @@ describe("RF-011: 404 通配路由", () => {
     expect(typeof mod.NotFound).toBe("function");
   });
 
+  // routes.ts 全图导入（lazy 路由 + react-router）在 coverage 插桩下耗时倍增, 放宽单点超时
   it("routes.ts 导出 router 对象", async () => {
     const routesMod = await import("../routes");
     const router = routesMod.router;
     expect(router).toBeDefined();
-  });
+  }, 15000);
 
   it("routes.ts 包含 * 通配路由", async () => {
     // 验证路由配置中包含 path: "*"

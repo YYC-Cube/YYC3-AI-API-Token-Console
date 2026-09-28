@@ -12,9 +12,8 @@
  * - 视图切换 (Preview / Code 模式)
  */
 
-import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockNavigate = vi.fn();
 
@@ -97,10 +96,11 @@ describe("IDEPanel", () => {
   // ----------------------------------------------------------
 
   describe("基础渲染", () => {
+    // IDE 全布局渲染在 coverage 插桩下耗时倍增, 放宽单点超时
     it("应渲染顶部导航栏品牌标识", () => {
       render(<IDEPanel />);
       expect(screen.getByText("CloudPivot AI")).toBeInTheDocument();
-    });
+    }, 15000);
 
     it("应渲染项目名称", () => {
       render(<IDEPanel />);

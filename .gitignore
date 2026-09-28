@@ -50,6 +50,9 @@ tmp/
 /docs/YYC3-APP-HUB.html
 /docs/YYC3-AI-Family-Token-Console-主题设计
 
+# ── 构建分析产物（rollup-plugin-visualizer, 不入库）─────────
+/stats.html
+
 # ── 设计资产（导航截图, 本地参考, 不入库）──────────────────
 public/一级导航-*/
 

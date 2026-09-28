@@ -8,6 +8,9 @@
  *   - /console/gw/* → 反代家族 API 网关（frp 隧道端点）并注入 ADMIN 密钥
  *     （密钥只存服务端环境变量，浏览器零暴露；前端 gatewayAdminKey 填任意占位即可）
  *
+ * 拓扑: 本文件 = 公网形态入口（`pnpm serve:console`）；LAN 形态入口见 ./server.mjs。
+ *       静态托管/SPA 回退逻辑两处各自独立维护，改动托管行为时须同步评估另一份。
+ *
  * 启动: NODE_ENV=production GW_ADMIN_KEY=sk-admin-... CONSOLE_AUTH_SECRET=... CONSOLE_ADMIN_PASSWORD=... node console-server.mjs
  * 端口: 3100（Traefik: api.0379.world/console → 本服务）
  * 安全: 上游为固定常量（frp 隧道回环端点，非用户输入，无 SSRF 面）；
