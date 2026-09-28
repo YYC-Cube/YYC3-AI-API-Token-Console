@@ -11,8 +11,9 @@
  *   dev@cloudpivot.local   / dev123
  */
 
-import React, { useState, useCallback } from "react";
-import { Lock, Mail, Eye, EyeOff, AlertCircle, Zap, Ghost } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Ghost, Lock, Mail, Zap } from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { isConsoleDeployment } from "../lib/ollama-url";
 import { supabase } from "../lib/supabaseClient";
 import { YYC3Logo } from "./YYC3Logo";
 
@@ -22,6 +23,7 @@ interface LoginProps {
 }
 
 export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
+  const consoleMode = isConsoleDeployment(); // console 公网形态: 密码直登，隐藏邮箱/演示账号
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -119,24 +121,26 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="block text-[rgba(0,212,255,0.5)] mb-1.5" style={{ fontSize: "0.72rem" }}>
-                登录邮箱
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(0,212,255,0.3)]" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@cloudpivot.local"
-                  required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.25)] focus:outline-none focus:border-[rgba(0,212,255,0.5)] focus:shadow-[0_0_15px_rgba(0,180,255,0.1)] transition-all"
-                  style={{ fontSize: "0.85rem" }}
-                />
+            {/* Email（console 形态下服务端仅校验密码，隐藏邮箱输入） */}
+            {!consoleMode && (
+              <div>
+                <label className="block text-[rgba(0,212,255,0.5)] mb-1.5" style={{ fontSize: "0.72rem" }}>
+                  登录邮箱
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(0,212,255,0.3)]" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@cloudpivot.local"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.25)] focus:outline-none focus:border-[rgba(0,212,255,0.5)] focus:shadow-[0_0_15px_rgba(0,180,255,0.1)] transition-all"
+                    style={{ fontSize: "0.85rem" }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Password */}
             <div>
@@ -282,7 +286,7 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
             </div>
             <div className="mt-2 px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
               <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>
-                Demo 账号: admin@cloudpivot.local / admin123
+                {consoleMode ? "受服务端鉴权保护 · HttpOnly Cookie 会话" : "Demo 账号: admin@cloudpivot.local / admin123"}
               </p>
             </div>
           </div>

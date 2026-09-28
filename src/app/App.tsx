@@ -7,9 +7,14 @@ import { useYYC3Head } from "./hooks/useYYC3Head";
 import { AuthContext } from "./lib/authContext";
 import { installGlobalErrorListeners } from "./lib/error-handler";
 import { isFigmaPlatformError } from "./lib/figma-error-filter";
+import { isConsoleDeployment } from "./lib/ollama-url";
 import { ghostSignIn, isGhostMode, supabase } from "./lib/supabaseClient";
 import { router } from "./routes";
 import type { AppSession, UserRole } from "./types";
+
+// console 公网部署形态（模块级常量 — pathname 前缀在 SPA 存续期不变）:
+// Ghost 兜底全链路封禁，未认证一律进登录页（真实鉴权在 /console/auth/*）。
+const CONSOLE_MODE = isConsoleDeployment();
 
 // ────────────────────────────────────────────────────────────────
 // RF-003: Figma 平台 iframe 通信错误静默拦截
@@ -156,10 +161,10 @@ export default function App() {
   useEffect(() => {
     // 检查现有会话（带超时保护，防止 iframe 沙盒阻塞）
     const timeout = setTimeout(() => {
-      // 超时兜底：3 秒内未完成认证检查，自动 Ghost 登录
+      // 超时兜底：console 公网形态 → 登录页；本地形态 → 自动 Ghost 登录（Figma 沙箱友好）
       setAuthenticated((prev) => {
         if (prev === null) {
-          // 超时 → 自动 Ghost 登录（Figma 沙箱友好）
+          if (CONSOLE_MODE) return false; // console 形态: Ghost 封禁
           const session = ghostSignIn();
           setUserEmail(session.user.email);
           setUserRole(session.user.role as UserRole);
@@ -180,6 +185,8 @@ export default function App() {
           setUserRole(session.user?.role ?? "admin");
           setIsGhost(isGhostMode());
           setAuthenticated(true);
+        } else if (CONSOLE_MODE) {
+          setAuthenticated(false); // console 形态: 无会话 → 登录页
         } else {
           // 无会话 → 自动 Ghost 登录（沙箱环境无需手动登录）
           const gs = ghostSignIn();
@@ -191,6 +198,7 @@ export default function App() {
       })
       .catch(() => {
         clearTimeout(timeout);
+        if (CONSOLE_MODE) { setAuthenticated(false); return; } // console 形态: 异常 → 登录页
         // 异常 → 自动 Ghost 登录
         const gs = ghostSignIn();
         setUserEmail(gs.user.email);
@@ -214,6 +222,7 @@ export default function App() {
 
   /** 灵登录 · 跳过认证直接进入 */
   const handleGhostLogin = useCallback(() => {
+    if (CONSOLE_MODE) return; // console 公网形态: Ghost 封禁（Login 按钮已隐藏，双保险）
     const session = ghostSignIn();
     setUserEmail(session.user.email);
     setUserRole(session.user.role as UserRole);
@@ -248,7 +257,7 @@ export default function App() {
 
   // 未登录 - 显示登录页
   if (!authenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} onGhostLogin={handleGhostLogin} />;
+    return <Login onLoginSuccess={handleLoginSuccess} onGhostLogin={CONSOLE_MODE ? undefined : handleGhostLogin} />;
   }
 
   // 已登录 - 显示主应用

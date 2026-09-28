@@ -8,16 +8,21 @@
  *   - /console/gw/* → 反代家族 API 网关（frp 隧道端点）并注入 ADMIN 密钥
  *     （密钥只存服务端环境变量，浏览器零暴露；前端 gatewayAdminKey 填任意占位即可）
  *
- * 启动: NODE_ENV=production GW_ADMIN_KEY=sk-admin-... node console-server.mjs
+ * 启动: NODE_ENV=production GW_ADMIN_KEY=sk-admin-... CONSOLE_AUTH_SECRET=... CONSOLE_ADMIN_PASSWORD=... node console-server.mjs
  * 端口: 3100（Traefik: api.0379.world/console → 本服务）
  * 安全: 上游为固定常量（frp 隧道回环端点，非用户输入，无 SSRF 面）；
  *       /gw 路径外的代理请求一律 404；请求体大小限制 10MB。
+ *       鉴权（批4）: 配置 CONSOLE_AUTH_SECRET + CONSOLE_ADMIN_PASSWORD 后启用 —
+ *       POST /console/auth/login 签发 HttpOnly Cookie（SameSite=Strict，HTTPS 下 Secure），
+ *       /console/gw/* 与 /console/ollama/* 校验会话 Cookie，未认证一律 401；
+ *       登录限流 5 次/5 分钟/IP；未配置时鉴权禁用（本地/LAN 开发形态不受影响）。
  */
 
 import { promises as fs } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "./console-auth.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "dist");
@@ -27,6 +32,14 @@ const PORT = Number(process.env.PORT || 3100);
 const GW_ORIGIN = "http://127.0.0.1:8800";
 // ADMIN 密钥：仅服务端环境变量（部署时由密钥文件注入，不落代码/仓库）
 const GW_ADMIN_KEY = process.env.GW_ADMIN_KEY || "";
+
+// ── 鉴权（批4）: 二者同时配置才启用 ──
+const AUTH_SECRET = process.env.CONSOLE_AUTH_SECRET || "";
+const ADMIN_PASSWORD = process.env.CONSOLE_ADMIN_PASSWORD || "";
+const AUTH_ENABLED = Boolean(AUTH_SECRET && ADMIN_PASSWORD);
+const SESSION_COOKIE = "console_session";
+/** @type {LoginRateLimiter} */
+const loginLimiter = new LoginRateLimiter();
 
 // Ollama 多节点反代（白名单常量，无 SSRF 面）：/console/ollama/<node>/* → 节点 /api/*
 /** @type {Record<string, string>} */
@@ -55,8 +68,61 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", "http://x");
   const pathname = decodeURIComponent(url.pathname);
 
+  // ── 鉴权 API：/console/auth/*（批4） ──
+  if (pathname.startsWith("/console/auth/")) {
+    if (!AUTH_ENABLED) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "鉴权未启用（需配置 CONSOLE_AUTH_SECRET + CONSOLE_ADMIN_PASSWORD）" }));
+    }
+    const secure = req.headers["x-forwarded-proto"] === "https" ? "; Secure" : "";
+    if (pathname === "/console/auth/login" && req.method === "POST") {
+      const ip = req.socket.remoteAddress || "unknown";
+      if (!loginLimiter.allow(ip)) {
+        res.writeHead(429, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "尝试过于频繁，请 5 分钟后再试" }));
+      }
+      /** @type {Buffer[]} */
+      const chunks = [];
+      let size = 0;
+      for await (const c of req) { size += c.length; if (size > 4096) { res.writeHead(413); return res.end(); } chunks.push(c); }
+      let password = "";
+      try { password = String(JSON.parse(Buffer.concat(chunks).toString("utf8")).password || ""); } catch { /* 解析失败按空密码 */ }
+      if (!password || !constantTimeEqual(password, ADMIN_PASSWORD)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "密码不正确" }));
+      }
+      loginLimiter.reset(ip);
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Set-Cookie": `${SESSION_COOKIE}=${signToken(AUTH_SECRET)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}${secure}`,
+      });
+      return res.end(JSON.stringify({ ok: true }));
+    }
+    if (pathname === "/console/auth/logout" && req.method === "POST") {
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`,
+      });
+      return res.end(JSON.stringify({ ok: true }));
+    }
+    if (pathname === "/console/auth/status" && req.method === "GET") {
+      const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+      res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ enabled: true, authenticated: verifyToken(AUTH_SECRET, token) }));
+    }
+    res.writeHead(404);
+    return res.end();
+  }
+
+  // ── 会话校验（鉴权启用时，代理端点全部要求登录态） ──
+  const denyUnauthenticated = () => {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "未认证 — 请先登录 Console（Cookie 会话）" }));
+  };
+
   // ── Ollama 多节点反代：/console/ollama/<node>/api/* ──
   if (pathname.startsWith("/console/ollama/")) {
+    if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
     const rest = pathname.replace("/console/ollama/", "");
     const node = rest.split("/")[0];
     const origin = OLLAMA_NODES[node];
@@ -93,6 +159,7 @@ const server = http.createServer(async (req, res) => {
 
   // ── 网关代理：/console/gw/* → 网关 /*（注入 X-API-Key） ──
   if (pathname.startsWith("/console/gw/")) {
+    if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
     if (!GW_ADMIN_KEY) {
       res.writeHead(503, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ error: "GW_ADMIN_KEY 未配置（服务端环境变量）" }));
@@ -151,5 +218,8 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`[console-server] http://127.0.0.1:${PORT}/console  (gw proxy → ${GW_ORIGIN})`);
+  console.log(`[console-server] http://127.0.0.1:${PORT}/console  (gw proxy → ${GW_ORIGIN}; auth: ${AUTH_ENABLED ? "enabled" : "disabled"})`);
+  if (!AUTH_ENABLED) {
+    console.warn("[console-server] ⚠️ 鉴权未启用 — 公网部署请配置 CONSOLE_AUTH_SECRET + CONSOLE_ADMIN_PASSWORD");
+  }
 });

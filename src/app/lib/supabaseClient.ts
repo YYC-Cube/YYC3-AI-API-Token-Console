@@ -26,7 +26,8 @@
  *   3. App.tsx 中移除 `as AppSession` 类型断言，改用 adapter 函数
  *   4. 更新 auth.onAuthStateChange 回调签名以匹配 Supabase SDK
  */
-import type { AppUser, AppSession } from "../types";
+import type { AppSession, AppUser } from "../types";
+import { isConsoleDeployment } from "./ollama-url";
 
 // RF-011: Legacy type aliases (MockUser/MockSession) 已移除
 // 所有类型统一从 types/index.ts 导入 AppUser / AppSession
@@ -53,10 +54,54 @@ const GHOST_USER: AppUser = {
 
 const SESSION_KEY = "yyc3_session";
 
+// ── Console 公网部署形态（批4 鉴权） ──
+// 真实鉴权在服务端（/console/auth/*，HttpOnly Cookie，浏览器不可读）；
+// 本地 SESSION_KEY 仅承载 UI 展示态（用户名/角色），不承载凭证。
+const CONSOLE_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const CONSOLE_USER: AppUser = {
+  id: "console-admin",
+  email: "admin@console.local",
+  role: "admin",
+  name: "Console Admin",
+};
+
+function newConsoleSession(): AppSession {
+  return { user: CONSOLE_USER, token: "console-session", expiresAt: Date.now() + CONSOLE_SESSION_TTL_MS };
+}
+
+/** console 形态登录 — 密码直登，会话 Cookie 由服务端 Set-Cookie 写入 */
+async function consoleSignIn(password: string): Promise<{
+  data: { user: AppUser; session: AppSession } | null;
+  error: { message: string } | null;
+}> {
+  try {
+    const r = await fetch("/console/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!r.ok) {
+      const j = (await r.json().catch(() => ({}))) as { error?: string };
+      const message = r.status === 401 ? "密码不正确"
+        : r.status === 429 ? "尝试过于频繁，请 5 分钟后再试"
+          : j.error || `登录失败 (${r.status})`;
+      return { data: null, error: { message } };
+    }
+    const session = newConsoleSession();
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    return { data: { user: CONSOLE_USER, session }, error: null };
+  } catch {
+    return { data: null, error: { message: "登录服务不可达" } };
+  }
+}
+
 class MockSupabaseClient {
   auth = {
     /** 邮箱密码登录 */
     signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
+      if (isConsoleDeployment()) {
+        return consoleSignIn(password); // console 形态: 密码直登（服务端 constant-time 校验）
+      }
       const entry = MOCK_USERS[email];
       if (!entry || entry.password !== password) {
         return { data: null, error: { message: "邮箱或密码不正确" } };
@@ -72,6 +117,29 @@ class MockSupabaseClient {
 
     /** 获取当前会话 */
     getSession: async () => {
+      if (isConsoleDeployment()) {
+        // console 形态: 会话有效性以服务端 Cookie 为准（/console/auth/status）
+        try {
+          const r = await fetch("/console/auth/status");
+          if (r.ok) {
+            const s = (await r.json()) as { authenticated?: boolean };
+            if (s.authenticated) {
+              try {
+                const raw = localStorage.getItem(SESSION_KEY);
+                if (raw) {
+                  const session = JSON.parse(raw) as AppSession;
+                  if (Date.now() <= session.expiresAt) return { data: { session }, error: null };
+                }
+              } catch { /* 本地 UI 会话损坏则重建 */ }
+              const session = newConsoleSession();
+              localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+              return { data: { session }, error: null };
+            }
+          }
+        } catch { /* 状态接口不可达按未登录处理 */ }
+        localStorage.removeItem(SESSION_KEY);
+        return { data: { session: null }, error: null };
+      }
       try {
         const raw = localStorage.getItem(SESSION_KEY);
         if (!raw) return { data: { session: null }, error: null };
@@ -97,6 +165,9 @@ class MockSupabaseClient {
 
     /** 登出 */
     signOut: async () => {
+      if (isConsoleDeployment()) {
+        try { await fetch("/console/auth/logout", { method: "POST" }); } catch { /* 服务端清理失败不阻塞登出 */ }
+      }
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem("yyc3_ghost");
       return { error: null };
@@ -116,7 +187,7 @@ class MockSupabaseClient {
       } else {
         callback("SIGNED_OUT", null);
       }
-      return { data: { subscription: { unsubscribe: () => {} } } };
+      return { data: { subscription: { unsubscribe: () => { } } } };
     },
   };
 
@@ -147,6 +218,9 @@ export const supabase = new MockSupabaseClient();
  * 功能完全不受限，适用于本地开发 / 演示 / 紧急运维
  */
 export function ghostSignIn(): AppSession {
+  if (isConsoleDeployment()) {
+    throw new Error("Ghost 模式在 console 公网部署下已禁用");
+  }
   const session: AppSession = {
     user: GHOST_USER,
     token: `ghost_${Date.now()}_${Math.random().toString(36).slice(2)}`,
