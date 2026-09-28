@@ -7,17 +7,19 @@
  * (用户级自定义提供商仍走 localStorage, 不受本文件约束)
  */
 
-import { z } from "zod";
+import { z } from "zod/mini";
 
+// zod/mini 形态 (批6 减包): 无链式方法, 长度/可选等校验走 check(顶层构造器) ——
+// 语义与 classic 等价 (min(1)=minLength(1), url=z.url(), literal().optional=z.optional(literal))
 export const builtinProviderSchema = z.object({
-  id: z.string().min(1),
-  label: z.string().min(1),
-  baseUrl: z.string().url(),
+  id: z.string().check(z.minLength(1)),
+  label: z.string().check(z.minLength(1)),
+  baseUrl: z.url(),
   authType: z.enum(["bearer", "api-key", "none"]),
   models: z.array(z.string()),
   requiresApiKey: z.boolean(),
   isLocal: z.boolean(),
-  isBuiltin: z.literal(true).optional(),
+  isBuiltin: z.optional(z.literal(true)),
 });
 
 export const builtinProvidersSchema = z.array(builtinProviderSchema);

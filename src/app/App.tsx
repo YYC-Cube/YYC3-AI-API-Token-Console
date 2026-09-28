@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+// LazyMotion 异步 features: 轻量 m.* 组件 + 动画引擎按需加载 ——
+// 全量 motion proxy 链被 tree-shake, 动画引擎 domAnimation 走异步 chunk（批6 主包减包）
+// 安全性: 三处动画均为 AnimatePresence 点击弹层, 引擎加载完成先于首次交互
+// 所有 motion 动画组件统一走 m.*（组件内以 `m as motion` 别名保持 JSX 不变）; strict 防未来误用全量 motion
+import { LazyMotion } from "motion/react";
 import { RouterProvider } from "react-router";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Login } from "./components/Login";
@@ -265,7 +270,9 @@ export default function App() {
     <ErrorBoundary level="page" source="App">
       <AuthContext.Provider value={{ logout: handleLogout, userEmail, userRole, isGhost }}>
         <I18nContext.Provider value={i18nValue}>
-          <RouterProvider router={router} />
+          <LazyMotion features={() => import("motion/react").then(mod => mod.domAnimation)} strict>
+            <RouterProvider router={router} />
+          </LazyMotion>
         </I18nContext.Provider>
       </AuthContext.Provider>
     </ErrorBoundary>

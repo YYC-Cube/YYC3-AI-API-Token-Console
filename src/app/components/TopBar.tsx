@@ -26,7 +26,7 @@ import {
   UserCircle2,
   FileText,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, m as motion } from "motion/react";
 import { useNavigate, useLocation } from "react-router";
 import { ConnectionStatus } from "./ConnectionStatus";
 import { LanguageSwitcher } from "./LanguageSwitcher";

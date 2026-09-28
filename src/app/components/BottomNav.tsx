@@ -32,7 +32,7 @@ import {
   FileText,
   Film,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, m as motion } from "motion/react";
 import { useI18n } from "../hooks/useI18n";
 
 /* ── 底部 4 核心 Tab ──────────────────────────── */

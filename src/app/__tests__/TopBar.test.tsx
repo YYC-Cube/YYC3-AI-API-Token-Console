@@ -39,7 +39,11 @@ vi.mock("../hooks/useI18n", () => ({
 }));
 
 vi.mock("motion/react", () => ({
+  // 批6: 生产组件已切 m.*（LazyMotion 模式）, mock 须同时提供 m 键
   motion: {
+    div: React.forwardRef(({ children, ...props }: any, ref: any) => <div ref={ref} {...props}>{children}</div>),
+  },
+  m: {
     div: React.forwardRef(({ children, ...props }: any, ref: any) => <div ref={ref} {...props}>{children}</div>),
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,

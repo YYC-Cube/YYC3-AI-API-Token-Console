@@ -11,9 +11,8 @@
  * - "更多" 抽屉打开/关闭
  */
 
-import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockNavigate = vi.fn();
 let mockPathname = "/";

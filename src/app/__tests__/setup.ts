@@ -13,6 +13,9 @@ if (typeof window !== "undefined") {
   await import("@testing-library/jest-dom/vitest");
 }
 
+// 批6 注: 生产端 motion 已切 m.* 组件（App.tsx 根部 LazyMotion 提供祖先）。
+// 单测中如需渲染含 m.* 的弹层, 须在测试文件内 vi.mock("motion/react") 透传（见 TopBar/Layout 测试）。
+
 // RTL cleanup：globals:false 时自动 cleanup 不生效，需显式注册
 // 否则上一测试渲染的 DOM 残留，导致 "Found multiple elements" 错误
 if (typeof window !== "undefined") {
