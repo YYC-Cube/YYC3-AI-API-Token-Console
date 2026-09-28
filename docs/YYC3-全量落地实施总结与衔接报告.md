@@ -336,6 +336,11 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 5. **[P2]** ~~剩余 4 个超标组件大文件拆分（首个：SystemSettings 1373）~~ ✅ 2026-09-24 完成：SystemSettings 1373 → 193 行主壳 + 6 领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行），基线 4 → 3；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化）
 6. **[P2]** ~~`no-explicit-any` 全量清零~~ ✅ 2026-09-24 完成：81 → 0（16 文件），catch 块统一 `err instanceof Error` 提取 + 浏览器非标准 API 最小契约 interface（`WindowWithDirectoryPicker`/`NavigatorWithConnection`/`PerformanceWithMemory`/`RegistrationWithSync`/`MinimalSpeechRecognition`）+ 动态数据具名联合收窄（`NodeStatusType`/`LogLevel`/`RecentOpEntry["status"]`）；lint 警告 216 → 121，1965 用例全绿
 7. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）+ `exhaustive-deps`(22) 渐进治理
+8. **[P1]** ~~架构审计四批路线图（第五轮 2026-09-28）~~ ✅ 全部完成：
+   - **批1 依赖卫生**（`457da2e`）: 精确锁定 + catalog 收敛 + knip 死依赖基线下降（deps 48→31 / devDeps 5→4）
+   - **批2 路由级代码分割**（`b0cf4a6`）: 全路由 lazy 全覆盖，主包 gzip 752 → 157 kB（**-79%**）
+   - **批3 架构收口**（`16b0169` + `43db9ed`）: 伪文档/归档迁出 src（docs/ci/imports → docs/archive/，32 files）；localStorage 裸调全量收口（19 hooks/components → yyc3-storage 封装 + LOCALSTORAGE_KEYS 注册表）；ast-grep 规则库 #7 `no-raw-localstorage`（ts/tsx 双语言）+ guardrail-probe 扩至 5 探针全拦截
+   - **批4 console 服务端鉴权**（`25288db` + `97e9b7a`）: `deploy/console-auth.mjs`（HMAC-SHA256 令牌 + constant-time 比较 + 登录限流 5次/5min/IP）；`/console/auth/{login,logout,status}` + ollama/gw 代理端点会话门控（401）；HttpOnly Cookie（SameSite=Strict，https 加 Secure）；未配置 `CONSOLE_AUTH_SECRET`+`CONSOLE_ADMIN_PASSWORD` 时鉴权禁用（本地/LAN 兼容）；客户端 CONSOLE_MODE 门控（Ghost 四点封禁 + 登录页收敛）；25 新测试用例；烟测实测未认证/伪造/篡改均 401、有效会话穿门进业务逻辑；CI 全绿闭环
 
 ---
 
@@ -371,12 +376,12 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-`no-explicit-any` 清零已完成并推送（`7de5cc9`），但 CI 体量门禁失败：**eslint --fix 格式化副作用**使两个基线文件行数增长（DataEditorPanel 1188 → 1231 / ServiceConnectionTest 1265 → 1280），违反「只减不增」铁律（§6.6.1）。待修复：压缩这两个文件至基线以下（或拆分），随后 Pages Deploy 因 CI 失败被 skip 也需重新触发。
+2026-09-28 第五轮（架构审计四批路线图）**全部完成并推送**：批1 依赖卫生 `457da2e` / 批2 路由分割 `b0cf4a6` / 批3 架构收口 `16b0169`+`43db9ed` / 批4 服务端鉴权 `25288db`+`97e9b7a`（gitleaks 误报修复：测试向量常量 SECRET → HMAC_TEST_VECTOR）。九项本地门禁全绿 + CI run 36430422340 全绿闭环。无未完成挂账；console 公网上线前仅需在服务端配置 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD` 两个环境变量即启用鉴权。
 
-### 8.3 当前优先级（2026-09-24 第四轮执行后）
+### 8.3 当前优先级（2026-09-28 第五轮执行后）
 
-1. **[P0]** 修复 CI 体量门禁失败：DataEditorPanel 1231 → ≤1188 / ServiceConnectionTest 1280 → ≤1265（根因：本批修改触发 eslint --fix 全文件 import 逐行重排 + catch 空块格式化，纯格式膨胀约 +40/+15 行）
-2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1265 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
+1. **[P1]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权即自动启用；未配置则鉴权禁用仅限本地/LAN 场景）
+2. **[P2]** 剩余 3 个超标组件拆分（ServiceConnectionTest 1241 / AIFamilyDesignDoc 1217 / DataEditorPanel 1188）→ `exhaustive-deps`(22) 渐进治理
 3. **[P2]** Pages PWA 浏览器人工验证（清单已生成：[YYC3-PWA浏览器人工验证清单.md](./YYC3-PWA浏览器人工验证清单.md)，覆盖桌面 Chrome / iOS Safari / Android Chrome / 离线降级四场景；注意 GAP-006 — sw.js 未注册，离线项为预期失败基线）
 4. **[P2]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
 
@@ -402,6 +407,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-20 | **v2.0.0（本报告）** | 三文档 + 审计衔接合并为一；27 项借鉴项全景处置标记；五维得分刷新至 94 | 消除多文档同步成本，收敛单一事实源 |
 | 2026-09-24 | v2.1.0 | SystemSettings 1373 → 193 主壳 + 6 sibling（基线 4→3）；boundaries v7 语法重写（组合根/tests 增 file categories entry，例外清单保持为空）；knip StoredNode 死类型清零 | §8.3 第四轮 TOP 3 执行 |
 | 2026-09-24 | v2.1.1 | `no-explicit-any` 全量清零 81 → 0（16 文件：错误处理类型化 + 浏览器 API 最小契约 + 具名联合收窄）；lint 警告 216 → 121 | §6.3 第 6 项闭环 |
+| 2026-09-28 | v2.2.0 | 第五轮架构审计四批路线图全交付：批1 依赖卫生（`457da2e`）/ 批2 路由级代码分割（`b0cf4a6`，主包 gzip -79%）/ 批3 架构收口（`16b0169`+`43db9ed`，归档迁出 + localStorage 收口 + ast-grep 封禁规则 #7）/ 批4 console 服务端鉴权（`25288db`+`97e9b7a`，HMAC 令牌 + HttpOnly Cookie + 限流 + 代理端点门控 + Ghost 封禁）；测试 1965 → 2002 用例 | §6.3 第 8 项四批闭环 |
 
 ---
 
