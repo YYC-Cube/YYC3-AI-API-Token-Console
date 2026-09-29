@@ -409,12 +409,12 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.3 当前优先级（2026-09-29 第七轮批10 执行后）
 
-1. **[P1]** 新版 Pages 上线后 SW 线上复测（清单 §1.1.3 SW 注册状态 + §4.4 断网回退命中缓存壳）
-2. **[P3]** PWA 真机人工项（iOS §二 / Android §三 / 桌面安装链路 §1.1.4-1.1.6 / 提示交互 §1.2）
+1. **[P1→✅]** ~~新版 Pages 上线后 SW 线上复测~~ **已完成（批10 收尾）**：CI 全绿 + Pages 部署后实测 —— SW activated（scope=`/`，controlled）、`yyc3-shell-v1` 缓存壳建立、深链 404→壳回退实证（/settings、/pwa）、面板指纹 v 3154bdf2 与独立 FNV-1a 计算一致、控制台无 SW 报错；清单二次回填完成（判定升为 ✅ 通过·自动化范围）
+2. **[P3]** PWA 真机人工项（iOS §二 / Android §三 / 桌面安装链路 §1.1.4-1.1.6 / 提示交互 §1.2 / DevTools 真断网刷新抽查）
 3. **[P3]** DataEditorPanel dead-code 处置决策（`/data-editor` 已重定向 `/database`，主壳+7 siblings 生产无挂载点：恢复挂载或归档移除）
 4. **[P3]** 2026-12 季度核对（Phase 4 台账剩余六项 + `.gitleaks.toml` 豁免清单复核）+ 4.5 审计挂账微改 ×2（schema v2 `protocol` 字段 + 新增提供商指南）+ OBS-1 `/@vite/client` 产物残留待查
 
-> 批10 前挂账回顾: PWA 人工验证 ✅（自动化基线轮完成，真机项待人工）/ GAP-006 ✅ 补注册 SW（用户决策）/ Phase 4 核对 ✅（4.1 评测 + 4.5 审计关闭 + 4.8 改期）
+> 批10 前挂账回顾: PWA 人工验证 ✅（自动化基线轮 + 线上复测轮双轮完成，真机项待人工）/ GAP-006 ✅ 补注册 SW（用户决策，已闭环上线）/ Phase 4 核对 ✅（4.1 评测 + 4.5 审计关闭 + 4.8 改期）
 
 ### 8.4 文档资产索引
 
