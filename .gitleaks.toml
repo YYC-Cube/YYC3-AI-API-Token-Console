@@ -6,7 +6,7 @@ useDefault = true
 
 # ① 原因: AI Family localStorage 存储键名 (yyc3-family-*) — "provider-keys" 键名含关键字 "keys",
 #       与下一行键名跨行拼接误触 generic-api-key; 键名为公开数据标识符, 不可改名 (破坏存量数据)。
-#   复核: 2026-09-29 (批9) · 证据: CI run 36522561078 Fingerprint
+#   复核: 2026-09-29 (批11 季度核对) · HEAD 文件实存且键名仍在用 · 证据: Fingerprint
 #         9638286:src/app/components/ai-family/FamilyUISettings.tsx:generic-api-key:64
 [[allowlists]]
 description = "FamilyUISettings 存储键名 (公开数据标识符, 非凭证)"
@@ -14,7 +14,8 @@ paths = ['''src/app/components/ai-family/FamilyUISettings\.tsx$''']
 regexes = ['''yyc3-family-[a-z0-9-]+''']
 
 # ② 原因: 批4 console 鉴权单测夹具 — 显式 test- 前缀假密钥, 用于 HMAC 令牌签名测试。
-#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#   复核: 2026-09-29 (批11 季度核对) · HEAD 夹具值已换为 "other-secret", 但历史提交仍含
+#         原值, CI fetch-depth:0 全历史扫描仍命中, 豁免必须保留 · 证据: Fingerprint
 #         25288db:src/app/__tests__/console-auth.test.ts:generic-api-key:10
 [[allowlists]]
 description = "console-auth 单测假密钥夹具"
@@ -22,7 +23,8 @@ paths = ['''src/app/__tests__/console-auth\.test\.ts$''']
 regexes = ['''test-secret-0123456789abcdef''']
 
 # ③ 原因: 团队规范本地文档 (不入远程库, 仅存历史) 的 curl 调用示例 — Authorization 头为占位演示。
-#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#   复核: 2026-09-29 (批11 季度核对) · 本地文件 L180 模式仍匹配; 历史提交含该文件,
+#         全历史扫描仍命中 · 证据: Fingerprint
 #         852122a:docs/YYC3-AI-Family-团队规范/验收总结/YYC3-设计原型差距分析报告.md:curl-auth-header:180
 [[allowlists]]
 description = "规范文档 curl 调用示例占位头"
@@ -30,7 +32,8 @@ paths = ['''YYC3-设计原型差距分析报告\.md$''']
 regexes = ['''curl https://api\.0379\.world/v1/chat/completions''']
 
 # ④ 原因: Figma 文件 key 为公开标识符 (每个 Figma 链接均含), 非访问凭证; 历史导入说明文档。
-#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#   复核: 2026-09-29 (批11 季度核对) · HEAD 已无该文件, 但历史提交仍含, 全历史扫描
+#         (fetch-depth:0) 仍命中, 豁免必须保留 · 证据: Fingerprint
 #         852122a:src/imports/figma-integration-config.md:generic-api-key:23
 [[allowlists]]
 description = "Figma 文件公开 key (URL 标识符, 非凭证)"

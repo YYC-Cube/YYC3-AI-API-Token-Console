@@ -34,7 +34,7 @@ category: checklist
 | 1.1.1 | 访问 `https://token.yyc3.vip`，打开 DevTools → Application → Manifest | Manifest 正确解析，无错误；name="YYC³ 本地多端推理矩阵数据库 · 数据看盘"，display=standalone | ✅ | 2026-09-29 自动化实测：解析正确、display=standalone；name 实测值「YYC³ CloudPivot Intelli-Matrix · 数据看盘」（清单预期文案为旧版，以实测为准） |
 | 1.1.2 | DevTools → Application → Manifest → Icons | 192px 与 512px 图标均加载成功（android-chrome-192/512） | ✅ | 实测 13 图标全部加载，192 与 512 均含 maskable 双用途声明，解码成功；观察项：512 尺寸双声明（macOS/512.png + android-chrome-512.png），无功能影响 |
 | 1.1.3 | DevTools → Application → Service Workers | 显示「无 SW 注册」（GAP-006 预期） | ✅ | 旧版基线（2026-09-29 上午）：无 SW 注册 ✅；**批10 新版线上复测（2026-09-29）**：SW 已注册 `https://token.yyc3.vip/sw.js`，scope=`/`，state=**activated**，页面 controlled=true，缓存 `yyc3-shell-v1` 建立（含 index.html）——GAP-006 正式闭环 ✅ |
-| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | ⬜ | 待人工（自动化无法验证地址栏图标） |
+| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | 🔄 判据全绿 / 待视觉确认 | **批11 安装性判据程序化核验（2026-09-29）全绿**：① HTTPS 200 ② manifest link + name/short_name/start_url/display=standalone/theme ③ icons 192+512（均 `any maskable`）④ sw.js 200 含 fetch handler（3 个 addEventListener）——Chrome 安装性四判据全部满足，地址栏安装图标预期出现；图标视觉与弹窗交互留人工 |
 | 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | ⬜ | 待人工 |
 | 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ⬜ | 待人工 |
 | 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ | 2026-09-29 自动化实测：/settings 与 /ai-family-center 深链均正常 SPA 渲染（404.html 回退生效）；批10 SW 上线后 /settings、/pwa 深链复测同样正常（SW 缓存壳回退链路生效）；独立窗口内行为待人工复验 |
@@ -49,6 +49,8 @@ category: checklist
 
 ## 二、iOS Safari（iPhone / iPad）
 
+> **批11 阻塞声明（2026-09-29）**：本节 2.1-2.7 需物理 iOS 设备（WebKit 视图行为、主屏添加、standalone 启动均无法在桌面自动化环境等价模拟）。AI 自动化环境不可达，诚实标注 🔒 阻塞待人工，**不以桌面结论伪造**。安装性静态判据（manifest 图标/theme_color/apple-touch-icon 声明）已在 1.1.4 程序化核验全绿，可作为 iOS 侧预期基线。
+
 | # | 步骤 | 预期结果 | 结果 | 备注 |
 | --- | ---- | -------- | ---- | ---- |
 | 2.1 | Safari 访问首页 | 页面正常渲染；无 JS 报错 | ⬜ | |
@@ -61,6 +63,8 @@ category: checklist
 
 ## 三、Android Chrome
 
+> **批11 阻塞声明（2026-09-29）**：本节 3.1-3.5 需物理 Android 设备（beforeinstallprompt 信息条、WebAPK 安装与桌面图标均需真实 Chrome 移动端）。AI 自动化环境不可达，诚实标注 🔒 阻塞待人工，**不以桌面结论伪造**。安装性判据已在 1.1.4 程序化核验全绿（display=standalone + any maskable 图标为 WebAPK 关键项），可作为 Android 侧预期基线。
+
 | # | 步骤 | 预期结果 | 结果 | 备注 |
 | --- | ---- | -------- | ---- | ---- |
 | 3.1 | Chrome 访问首页，等待数秒 | 底部弹出「添加到主屏幕」信息条（beforeinstallprompt 触发） | ⬜ | |
@@ -71,14 +75,14 @@ category: checklist
 
 ## 四、离线与降级行为（全平台）
 
-> **前提声明**：GAP-006 已于批10 修复并完成线上复测（2026-09-29 新版 Pages）。4.1 为旧版基线记录（已完成）；4.4 回退分支已自动化实证（深链 404 → 缓存壳回退与断网失败共用同一 SW fetch handler 分支），真断网刷新留人工抽查。
+> **前提声明**：GAP-006 已于批10 修复并完成线上复测（2026-09-29 新版 Pages）。4.1 为旧版基线记录（已完成）；4.4 回退分支批10 已自动化等价实证；**批11（2026-09-29）Playwright 真断网复测完成**：`context.setOffline(true/false)`（CDP 层等价 DevTools Offline，触发页面 offline/online 事件）对 4.2/4.3/4.4 全部实测，详见各备注列与 §七 批11 轮记录。
 
 | # | 步骤 | 当前预期 | 结果 | 备注 |
 | --- | ---- | -------- | ---- | ---- |
 | 4.1 | 联网加载页面后 DevTools → Network → Offline → 刷新 | 失败（无 SW 缓存） | ✅ 基线成立 | 2026-09-29 旧版自动化基线：无 SW 缓存，刷新失败，符合旧版预期 |
-| 4.2 | 系统断网，观察页内 OfflineIndicator | `navigator.onLine=false` → 显示离线徽标（useOfflineMode 生效） | ⬜ | 待人工（单测已覆盖事件链路：usePWAManager online/offline 事件驱动） |
-| 4.3 | 恢复联网 | online 事件触发，徽标消失 | ⬜ | 待人工 |
-| 4.4 | （SW 落地后重测）断网刷新 | 命中 SW 缓存返回壳页面 | ✅ (自动化等价实证) / 🔄 真断网人工抽查 | 批10 新版线上复测（2026-09-29）：深链 /settings、/pwa（Pages 返回 404 → SW `!res.ok` 分支）均回退缓存壳正常 SPA 渲染 —— 与断网失败共用同一 fetch handler 回退分支，等价实证 ✅；/pwa 面板显示「离线就绪」+ 缓存 649.5KB（壳 1 项 + 资产 23 项）；DevTools 真断网刷新留人工抽查 |
+| 4.2 | 系统断网，观察页内 OfflineIndicator | `navigator.onLine=false` → 显示离线徽标（useOfflineMode 生效） | ✅ | **批11 真断网实测（2026-09-29 Playwright setOffline）**：徽标出现（WifiOff 图标 + 「离线模式」+ #ff3366 配色）✅ |
+| 4.3 | 恢复联网 | online 事件触发，徽标消失 | ✅ | **批11 真断网恢复实测**：setOffline(false) 后徽标消失 + 「网络已恢复」横幅出现并于 3 秒后淡出（badge=false / recovered=true / bannerGone=true 三断言全过）；注：深链页面残缺形态下首轮横幅断言 false 属预期（页面本体未渲染），首页形态复测通过 |
+| 4.4 | （SW 落地后重测）断网刷新 | 命中 SW 缓存返回壳页面 | ✅ / 🔄 OBS-5 挂账 | **批11 真断网刷新实测**：首页断网刷新正常 SPA 渲染（`/assets/*` immutable `max-age=31536000` HTTP 缓存 + SW `yyc3-shell-v1` 壳 cached=1 回退，双链路兜底）✅；**新发现 OBS-5**：断网直达未访问深链（/settings）因 lazy chunk 既不在 SW 缓存（assets 按需入缓存策略）也不在 HTTP 缓存 → 内容缺失（bodyLen=408），首页恢复联网后完整——挂账 P3 SW 预缓存增强，非缺陷不阻塞 |
 
 ## 五、验收判定
 
@@ -89,6 +93,8 @@ category: checklist
 | ❌ 需整改 | 任一平台安装失败 / standalone 启动失败 / 图标异常 |
 
 > 批10 更新：GAP-006 已修复且线上复测通过（1.1.3 activated + 4.4 回退分支实证）——**核心验收条件已达成**，整体判定升为 ✅ 通过（自动化范围）；剩余 §1.1.4-1.1.6 / §1.2 / §二 iOS / §三 Android 为真机人工增强项，不阻塞判定。
+>
+> 批11 更新（2026-09-29）：**§四 离线降级全项闭环**（4.2/4.3 Playwright 真断网实测 ✅ + 4.4 真断网刷新 ✅，新发现 OBS-5 挂账不阻塞）+ **1.1.4 安装性判据程序化核验全绿**。维持 ✅ 通过（自动化范围）；剩余人工项收敛为：§1.1.4 视觉确认 / §1.1.5-1.1.6 / §1.2 / §二 iOS / §三 Android（后两者 🔒 需物理设备）。
 
 ## 六、缺陷记录
 
@@ -98,6 +104,7 @@ category: checklist
 | 2026-09-29 | 桌面 Chrome | OBS-2 | manifest 512 尺寸双声明（macOS/512.png + android-chrome-512.png） | info | 🔄 观察（无功能影响） |
 | 2026-09-29 | 桌面 Chrome | OBS-3 | 控制台 error：`localhost:11434` Ollama 探测失败 | info | ✅ 非缺陷（公网环境访问本机服务的预期失败） |
 | 2026-09-29 | 桌面 Chrome | OBS-4 | SW 上线复测时控制台出现两个入口 chunk hash（新旧部署并存加载） | info | ✅ 非缺陷（GitHub Pages index.html `max-age=600` 的 10 分钟 CDN 窗口特性；SW 上线后导航 network-first 每次取最新 HTML，仅 404 回退壳，该窗口自然收敛） |
+| 2026-09-29 | 桌面 Chrome（Playwright 真断网） | OBS-5 | 断网状态下直达**未访问过**的深链（如 /settings）内容缺失（bodyLen=408）：lazy chunk 既不在 SW 缓存（assets cache-first 按需入缓存，首访仅壳 cached=1）也不在 HTTP 缓存 | low | 🔄 挂账 P3（非缺陷，功能设计局限）：SW 运行时预缓存增强（路由 chunk 预热 / navigations 预取列表）；已访问路由断网刷新不受影响（HTTP immutable 缓存兜底） |
 
 ## 七、验证完成记录
 
@@ -120,6 +127,18 @@ category: checklist
 - 控制台核查：无 SW 相关报错（仅 OBS-3/OBS-4 预期内消息）
 
 **剩余人工项（不阻塞判定）**：① DevTools 真断网刷新抽查（4.4 人工形态）；② §1.1.4-1.1.6 安装链路地址栏图标/独立窗口；③ §1.2 提示交互；④ §二 iOS / §三 Android 真机。
+
+---
+
+**批11 真断网复测轮（2026-09-29，Playwright chromium + `context.setOffline`）**：
+
+- 4.2 ✅ 真断网徽标：setOffline(true) → OfflineIndicator 显示「离线模式」（WifiOff + #ff3366）
+- 4.3 ✅ 恢复横幅：setOffline(false) → 徽标消失 + 「网络已恢复」3 秒淡出（badge/recovered/bannerGone 三断言全过）
+- 4.4 ✅ 真断网刷新：首页正常渲染（HTTP immutable 缓存 + SW 壳 cached=1 双兜底）；断网深链未访问路由缺失 → **OBS-5**（low，挂账 P3 预缓存增强）
+- 1.1.4 🔄→判据全绿：安装性四判据程序化核验（HTTPS / manifest 字段 / icons 192+512 any maskable / SW fetch handler）全满足，视觉确认留人工
+- §二 iOS / §三 Android 🔒 阻塞声明：需物理设备，自动化环境不可达，不以桌面结论伪造
+
+**剩余人工项（批11 后收敛）**：① §1.1.4 地址栏图标视觉确认；② §1.1.5-1.1.6 安装确认与独立窗口；③ §1.2 提示交互；④ §二 iOS（🔒 物理设备）；⑤ §三 Android（🔒 物理设备）。
 
 ---
 

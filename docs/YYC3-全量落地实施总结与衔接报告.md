@@ -2,7 +2,7 @@
 file: YYC3-全量落地实施总结与衔接报告.md
 description: YYC3-AI-API-Token-Console 四项目可借鉴项全量落地 — 深度分析 · 实施规划 · 交付总结 · 跨会话衔接（三合一）
 author: YanYuCloudCube Team <admin@0379.email>
-version: v2.8.0
+version: v2.9.0
 created: 2026-09-20
 updated: 2026-09-29
 status: stable
@@ -165,13 +165,13 @@ supersedes: YYC3-深度分析-现状审计与演进指导.md / YYC3-四项目深
 | 4.2 | 模板化分块 + 可视化干预 | 知识库类项目立项 | ⏸ 挂账 |
 | 4.3 | 充分性判断节点（sufficient_context） | RAG 功能落地（检索链路进主仓） | ⏸ 挂账 |
 | 4.4 | GraphRAG 三档 / RAPTOR | 知识工程规模化（文档库 >500 篇） | ⏸ 挂账 |
-| 4.5 | provider workspace 化 | 集成数 > 8 或团队 > 5 人 | ✅ 已审计关闭（批10: 集成数 ~11-14 命中；达标审计结论——声明式 JSON+zod 已覆盖 workspace 化核心收益，实施成本 > 剩余收益；P3 微改挂账 ×2，详见 [审计报告](./YYC3-Provider声明式配置达标审计-Phase4-4.5.md)） |
+| 4.5 | provider workspace 化 | 集成数 > 8 或团队 > 5 人 | ✅ 已审计关闭（批10: 集成数 ~11-14 命中；达标审计结论——声明式 JSON+zod 已覆盖 workspace 化核心收益，实施成本 > 剩余收益；P3 微改 ×2 已于批11 落地：schema v2 `protocol` 字段 + [新增提供商指南](./YYC3-Provider新增指南.md)，详见 [审计报告](./YYC3-Provider声明式配置达标审计-Phase4-4.5.md)） |
 | 4.6 | HITL 暂停恢复 / 触发器三件套 | 审批流或自动化平台需求出现 | ⏸ 挂账 |
 | 4.7 | serverless 沙箱执行环境 | Agent 托管成本优化需求 | ⏸ 挂账 |
 | 4.8 | a11y 专项 lint | 2026-Q2 合规评估窗口 | ⏸ 改期挂账（批10 核对: Q2 窗口已过失效 → 改期至 2026-Q4 或随 a11y 需求重启） |
 | 4.9 | 多语言 README | 国际化发布（首个英文版发布前） | ⏸ 挂账 |
 
-**里程碑 M4 ✅**：九项全部带可验证触发条件挂账（§3.4 表 + 启动落点见归档规划 §4.4），核对窗口 2026-12 季度评审。**批10 季度预核对（2026-09-29）**：4.1/4.5 已命中并处置（见上）、4.8 窗口失效改期、其余六项未触发维持挂账；附带发现 DataEditorPanel 主壳及 data-editor/ siblings 生产无挂载点（`/data-editor` 路由已重定向 `/database`），挂账 P3 处置决策。
+**里程碑 M4 ✅**：九项全部带可验证触发条件挂账（§3.4 表 + 启动落点见归档规划 §4.4），核对窗口 2026-12 季度评审。**批10 季度预核对（2026-09-29）**：4.1/4.5 已命中并处置（见上）、4.8 窗口失效改期、其余六项未触发维持挂账；附带发现 DataEditorPanel 主壳及 data-editor/ siblings 生产无挂载点（`/data-editor` 路由已重定向 `/database`），挂账 P3 处置决策。**批11 季度核对提前执行（2026-09-29）**：① 剩余六项（4.2/4.3/4.4/4.6/4.7/4.9）触发条件逐一复核均未命中（知识库立项 / RAG 落地 / 文档库 >500 篇 / 审批流需求 / Agent 成本需求 / 英文版发布——本仓库均未发生），维持挂账，下次核对窗口 2027-03；② `.gitleaks.toml` 4 条豁免逐条复核全部有效保留（① FamilyUISettings 键名 HEAD 实存在用 ② console-auth 夹具值已换但历史提交仍命中全历史扫描 ③ 规范文档 curl 本地 L180 仍匹配 ④ figma 文件仅存历史而 CI `fetch-depth:0` 全历史扫描仍命中），复核注更新至批11；③ 基线只减不增下调：knip dependencies 48→31 + devDependencies 5→4、size 基线 1265→406 + 1217→88（两文件批7 拆分后的实际行数）；④ 连带闭环 DataEditor 处置暴露的孤儿链——ConfigExportCenter（唯一 importer 为已删主壳）同批归档 + db-queries 15 个孤儿导出移除（9 CRUD + 3 reset + exportDbData/importDbData + getAllAgents；getModelById/getNodeById 属基线原有保留），knip files 10→9 / exports 26→11 回基线全部回绿。
 
 ### 3.5 借鉴项全景处置统计
 
@@ -405,16 +405,16 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-29 第七轮批10（PWA 闭环 + Phase 4 季度核对）已完成: **①** GAP-006 闭环——`public/sw.js` 手写零依赖 vanilla SW（~140 行：导航 network-first + Pages 深链 404 回退缓存壳 + `/assets/*` hash 不可变 cache-first LRU 200 + 静态 SWR + 认证/网关/代理 API 透传；弃用 vite-plugin-pwa 因 workbox-build@7.4.1 依赖链触发 pnpm `ERR_PNPM_TRUST_DOWNGRADE` 供应链信任降级拦截）+ `src/app/lib/sw-register.ts` PROD-only 注册 + `usePWAManager` Mock→真数据（getRegistration 探测 + Cache Storage 统计 + FNV-1a 壳指纹版本）+ PWAStatusPanel/i18n/ArchitectureAudit GAP-006 条目同步 + eslint serviceworker globals 段；**②** Phase 4 季度核对——4.1 最小版评测（`pnpm nav:bench` 三点对比：AIFamilyDoc 域 -35% / ServiceTest 域 -21%，Facade 导航成本 -50%~-67%；DataEditor 域全时点 unreachable → dead-code 发现）、4.5 达标审计（声明式配置覆盖 workspace 化核心收益 → 以审计关闭）、4.8 Q2 窗口失效改期 Q4；**③** PWA 人工验证基线轮回填（自动化实测：manifest/图标/深链/控制台全过，真机项待人工）；测试 2005 → 2011 用例全绿（usePWAManager 真数据流重写 + sw-register 新增 + PWAStatusPanel 适配），e2e 4/4 复验，九门禁全绿。
+2026-09-29 第八轮批11（P3 挂账清偿 ×3）已完成: **①** 真机人工验证项自动化边界执行——Playwright 真断网（`context.setOffline` CDP 层等价 DevTools Offline）复测 PWA 清单 §四 全项（4.2 离线徽标 ✅ / 4.3 恢复横幅 ✅ badge-recovered-bannerGone 三断言 / 4.4 首页真断网刷新 ✅ HTTP immutable + SW 壳 cached=1 双兜底）；安装性判据程序化核验全绿（HTTPS 200 / manifest name-display-start_url / icons 192+512 `any maskable` / sw.js fetch handler）；iOS §二 / Android §三 需物理设备诚实标注 🔒 阻塞（不以桌面结论伪造）；新发现 OBS-5（断网深链未访问路由 lazy chunk 双缓存均缺失，low，挂账 P3 SW 预缓存增强）；**②** DataEditorPanel dead-code 归档移除——主壳 + DataEditorTables + data-editor/ ×7 + 测试共 10 文件删除，Sidebar/BottomNav/CommandPalette/i18n ×2/ArchitectureAudit/nav-token-bench 七处引用清理；连带闭环孤儿链：ConfigExportCenter（唯一 importer 为已删主壳）同批归档 + db-queries 15 个孤儿导出移除（9 CRUD + 3 reset + exportDbData/importDbData + getAllAgents；getModelById/getNodeById 属基线原有保留），knip files 10→9 / exports 26→11 回基线全部回绿；**③** 2026-12 季度核对提前执行 + 4.5 微改 ×2——Phase 4 剩余六项复核维持挂账、gitleaks 4 豁免复核有效保留、knip deps 48→31 / devDeps 5→4、size 基线 1265→406 / 1217→88；provider schema v2 `protocol` 字段（14 提供商全量回填 chat/image/tts/video/score）+ 2 条防漂移测试 + [Provider 新增指南](./YYC3-Provider新增指南.md)；七门禁全绿（typecheck / lint 0 err 87 warn / test:unit 2007 / astgrep / size:check 0/0 / knip 0 err / build）。
 
-### 8.3 当前优先级（2026-09-29 第七轮批10 执行后）
+### 8.3 当前优先级（2026-09-29 第八轮批11 执行后）
 
-1. **[P1→✅]** ~~新版 Pages 上线后 SW 线上复测~~ **已完成（批10 收尾）**：CI 全绿 + Pages 部署后实测 —— SW activated（scope=`/`，controlled）、`yyc3-shell-v1` 缓存壳建立、深链 404→壳回退实证（/settings、/pwa）、面板指纹 v 3154bdf2 与独立 FNV-1a 计算一致、控制台无 SW 报错；清单二次回填完成（判定升为 ✅ 通过·自动化范围）
-2. **[P3]** PWA 真机人工项（iOS §二 / Android §三 / 桌面安装链路 §1.1.4-1.1.6 / 提示交互 §1.2 / DevTools 真断网刷新抽查）
-3. **[P3]** DataEditorPanel dead-code 处置决策（`/data-editor` 已重定向 `/database`，主壳+7 siblings 生产无挂载点：恢复挂载或归档移除）
-4. **[P3]** 2026-12 季度核对（Phase 4 台账剩余六项 + `.gitleaks.toml` 豁免清单复核）+ 4.5 审计挂账微改 ×2（schema v2 `protocol` 字段 + 新增提供商指南）+ OBS-1 `/@vite/client` 产物残留待查
+1. **[P2]** 真机人工增强项（需物理设备/真实浏览器 UI，自动化不可达）：iOS §二 / Android §三（🔒 阻塞待人工）/ 桌面 §1.1.4 地址栏图标视觉确认 + §1.1.5-1.1.6 安装与独立窗口 / §1.2 提示交互
+2. **[P3]** OBS-5 SW 断网深链预缓存增强（路由 chunk 预热 / navigations 预取列表；现状：已访问路由 HTTP immutable 兜底不受影响）
+3. **[P3]** 同模式 dead-code 批量复核：DatabaseConnectionPanel（`/db-connections` 重定向 + 生产零挂载）+ hostFiles 死入口 + knip 基线内 8 个死文件（CLITerminal / RefactoringReport / PerformanceMonitor / usePerformanceMonitor / usePushNotifications / useValidation / ImageWithFallback / e2e playwright.config）逐一处置决策
+4. **[P3]** OBS-1 `/@vite/client` 产物残留待查 + 2027-03 季度核对（Phase 4 台账剩余六项）
 
-> 批10 前挂账回顾: PWA 人工验证 ✅（自动化基线轮 + 线上复测轮双轮完成，真机项待人工）/ GAP-006 ✅ 补注册 SW（用户决策，已闭环上线）/ Phase 4 核对 ✅（4.1 评测 + 4.5 审计关闭 + 4.8 改期）
+> 批11 前挂账回顾: PWA 真断网抽查 ✅（Playwright setOffline 实测 4.2/4.3/4.4 + 安装性判据全绿）/ DataEditorPanel dead-code ✅ 归档移除（含 ConfigExportCenter + db-queries 孤儿导出连带闭环）/ 2026-12 季度核对 ✅ 提前执行（六项维持挂账 + gitleaks 4 豁免复核 + knip/size 基线下调）/ 4.5 微改 ×2 ✅（schema v2 protocol 字段 + Provider 新增指南）
 
 ### 8.4 文档资产索引
 
@@ -445,6 +445,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-28 | v2.6.0 | 第六轮批8: DataEditorPanel 拆分全闭环（`bef1cea`）—— 状态依赖图先行定案自治 Tab 范式；主壳 1188 → 154 行 + data-editor/ ×7 sibling（shared 收敛重复 JSX + use-table-state 三 hook + db 族 ×3 自治 Tab + store 族 a/b 六组件 11-prop→2-prop）；size:check 基线 **-1034 行**，三超标组件拆分 **3/3 全闭环**（累计 -3022 行） | 用户指令「执行批8: 先绘制 DataEditorPanel 的状态依赖图」 |
 | 2026-09-29 | v2.7.0 | 第六轮批9: 测试与工程纪律收尾（`9638286`+`d153f22`）—— ① Playwright e2e 接入（auth ×3 + 路由冒烟，workers:1 防限流）+ 揭示修复 console-server DIST 硬编码 bug（DIST_DIR env 化）；② exhaustive-deps **23 → 0**（13 文件四范式 + getGreeting 签名改传参修数据流断裂，2 处定向豁免含理由）；③ .env.example 补 console 五变量 + CICD.md §九 公网部署章节；④ CI 新增 e2e job（五阶段→**六阶段**），gitleaks `[[allowlists]]` 双重限域豁免 4 条误报（指纹存证）；单测 2005 用例全绿 | 用户指令「报告 §8.3 已刷新: e2e / exhaustive-deps / console 环境变量」 |
 | 2026-09-29 | v2.8.0 | 第七轮批10: PWA 闭环 + Phase 4 季度核对 —— ① GAP-006 闭环：手写零依赖 `public/sw.js`（导航 network-first + Pages 深链 404 回退壳 + assets cache-first LRU 200 + 静态 SWR + API 透传；弃 vite-plugin-pwa 因 workbox-build@7.4.1 → @trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1 供应链信任降级拦截）+ sw-register PROD-only + usePWAManager Mock→真数据（FNV-1a 壳指纹）+ eslint serviceworker globals；② 4.1 最小版评测 `pnpm nav:bench`（三点对比 AIFamilyDoc -35% / ServiceTest -21%，DataEditor dead-code 发现）；③ 4.5 达标审计（声明式配置覆盖核心收益 → 以审计关闭）；④ 4.8 Q2 窗口失效改期 Q4；⑤ PWA 验证清单基线轮回填；测试 2005 → 2011 用例 + e2e 4/4 + 九门禁全绿 | 用户指令「开始 P3 的 PWA 人工验证和 Phase 4 季度核对」 |
+| 2026-09-29 | v2.9.0 | 第八轮批11: P3 挂账清偿 ×3 —— ① Playwright 真断网复测（4.2/4.3/4.4 ✅ + OBS-5 新发现挂账 P3）+ 安装性判据程序化核验全绿 + iOS/Android 🔒 阻塞声明；② DataEditor dead-code 归档移除（10 文件 + 7 处引用清理 + 连带 ConfigExportCenter 归档 + db-queries 15 孤儿导出移除，knip files/exports 回基线）；③ 季度核对提前执行（剩余六项维持挂账 + gitleaks 4 豁免复核有效 + knip deps 48→31 / devDeps 5→4 + size 基线 1265→406 / 1217→88）+ 4.5 微改 ×2（schema v2 `protocol` 字段 14 提供商回填 + 2 防漂移测试 + Provider 新增指南）；测试 2011 → 2007（DataEditorPanel 测试 ×6 随组件归档，provider-schema 新增 ×2），七门禁全绿 | 用户指令「执行真机人工验证项（iOS/Android/安装链路/DevTools 断网抽查）处置 DataEditorPanel dead-code 决策 完成 2026-12 季度核对及 4.5 微改」 |
 
 ---
 
