@@ -356,6 +356,7 @@ const zhCN = {
     refreshCache: "刷新缓存",
     refreshCacheDesc: "重新验证所有缓存",
     updating: "更新中...",
+    newVersion: "新版本",
     clearing: "清理中...",
     release: "释放 {size}",
     items: "{n} 项",

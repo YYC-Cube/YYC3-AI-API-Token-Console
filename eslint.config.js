@@ -61,6 +61,15 @@ export default tseslint.config(
     },
   },
 
+  // Service Worker 运行时：public/sw.js 为 vanilla SW (批10 GAP-006, 零依赖手写),
+  // 运行于 ServiceWorkerGlobalScope — 全局对象与浏览器主线程不同
+  {
+    files: ["public/sw.js"],
+    languageOptions: {
+      globals: { ...globals.serviceworker, URL: "readonly" },
+    },
+  },
+
   // 测试文件放宽：允许 any / 未消费存根 Test files relaxed
   {
     files: ["src/app/__tests__/**/*.{ts,tsx}"],

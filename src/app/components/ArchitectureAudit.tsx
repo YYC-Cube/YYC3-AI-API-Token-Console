@@ -293,7 +293,7 @@ const KNOWN_GAPS: GapItem[] = [
   { id: "GAP-003", severity: "low", title: "模型编辑二次确认已补齐 [已修复]", description: "SystemSettings 模型管理的「编辑」按钮已添加二次确认弹窗（确认编辑? + 确认/取消按钮），与删除确认交互模式一致，点击编辑时先展示确认 UI，确认后才打开编辑表单。", fixEstimate: "已完成" },
   { id: "GAP-004", severity: "low", title: "E2E 测试框架已引入 [部分完成]", description: "已创建 Playwright 配置模板 (playwright.config.ts) 及 3 个 E2E 测试规格文件 (navigation/wifi-auto-reconnect/cross-page-data-flow)。Figma Make 环境不支持直接运行 Playwright，部署到独立 Node 环境后可执行。", fixEstimate: "已创建模板，待部署环境运行" },
   { id: "GAP-005", severity: "low", title: "覆盖率门槛实际达标未知", description: "vitest.config.ts 设定 80% 门槛，但未实际运行 pnpm test:coverage 验证。", fixEstimate: "需 pnpm test:coverage" },
-  { id: "GAP-006", severity: "medium", title: "Service Worker 未实际注册", description: "PWA 面板为 Mock 状态展示，sw.js 文件未实际创建/注册。", fixEstimate: "需 Vite PWA 插件" },
+  { id: "GAP-006", severity: "low", title: "Service Worker 已注册 (手写零依赖) [已修复]", description: "public/sw.js 手写 vanilla SW (~120 行, 零新依赖): SPA 导航 network-first + Pages 深链 404 回退缓存壳; /assets/* 内容 hash 不可变 → cache-first + LRU 200 条; manifest/图标/favicon → stale-while-revalidate; 认证/网关/代理 API 端点透传。弃用 vite-plugin-pwa 原因: workbox-build@7.4.1 依赖 @trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1 触发 pnpm 供应链信任降级拦截 (ERR_PNPM_TRUST_DOWNGRADE, 无 provenance attestation)。注册入口 src/app/lib/sw-register.ts 仅 PROD 生效。", fixEstimate: "已完成" },
 ];
 
 /* ── 辅助组件 ──────────────────────────────────────── */

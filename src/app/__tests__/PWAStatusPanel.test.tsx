@@ -1,18 +1,17 @@
 /**
  * PWAStatusPanel.test.tsx
  * ========================
- * PWAStatusPanel 组件 - PWA 离线管理面板测试
+ * PWAStatusPanel 组件 — PWA 离线管理面板测试 (批10: 适配真数据 hook)
  *
  * 覆盖范围:
- * - 标题渲染
- * - 状态卡片 (SW / 缓存 / 在线 / 离线就绪)
- * - 缓存列表
- * - 操作按钮 (更新 / 刷新 / 清空)
+ * - jsdom 降级渲染 (unsupported / 无缓存 / 未就绪 / 更新按钮隐藏)
+ * - stub 真数据渲染 (缓存条目 / 离线就绪 / 单删交互)
+ * - 操作按钮 (刷新 / 清空)
  */
 
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PWAStatusPanel } from "../components/PWAStatusPanel";
 import { ViewContext } from "../lib/view-context";
 import { I18nContext } from "../hooks/useI18n";
@@ -67,12 +66,64 @@ function renderPanel() {
   );
 }
 
+/** stub caches + navigator.serviceWorker (壳 + 1 个资产缓存) */
+function stubProdBrowser() {
+  const SHELL = "yyc3-shell-v1";
+  const ASSETS = "yyc3-assets-v1";
+  const shellUrl = new URL("index.html", window.location.href).href;
+  const makeRes = (len: number, body: string) => ({
+    headers: { get: (k: string) => (k.toLowerCase() === "content-length" ? String(len) : null) },
+    clone: () => makeRes(len, body),
+    text: async () => body,
+  });
+  const entries: Record<string, Array<{ url: string; len: number; body?: string }>> = {
+    [SHELL]: [{ url: shellUrl, len: 2048, body: "<html>shell</html>" }],
+    [ASSETS]: [{ url: "https://localhost:3000/assets/a.js", len: 1024 }],
+  };
+  const cacheByKey = new Map(
+    Object.entries(entries).map(([name, list]) => [
+      name,
+      {
+        keys: vi.fn(async () => list.map((e) => ({ url: e.url }))),
+        match: vi.fn(async (req: { url: string } | string) => {
+          const url = typeof req === "string" ? req : req.url;
+          const hit = list.find((e) => e.url === url);
+          return hit ? makeRes(hit.len, hit.body ?? "x") : undefined;
+        }),
+      },
+    ])
+  );
+  vi.stubGlobal("caches", {
+    keys: vi.fn(async () => [...cacheByKey.keys()]),
+    open: vi.fn(async (name: string) => cacheByKey.get(name)),
+    delete: vi.fn(async () => true),
+  });
+  const reg = {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    update: vi.fn(async () => undefined),
+    active: { scriptURL: "/sw.js" },
+    waiting: null,
+    installing: null,
+  };
+  Object.defineProperty(navigator, "serviceWorker", {
+    configurable: true,
+    value: { getRegistration: vi.fn(async () => reg) },
+  });
+  return { SHELL, ASSETS };
+}
+
 describe("PWAStatusPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("基础渲染", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "serviceWorker");
+    vi.unstubAllGlobals();
+  });
+
+  describe("jsdom 降级渲染 (无 SW / 无 Cache Storage)", () => {
     it("应渲染标题", () => {
       renderPanel();
       expect(screen.getByText("PWA & 离线管理")).toBeInTheDocument();
@@ -83,10 +134,10 @@ describe("PWAStatusPanel", () => {
       expect(screen.getByTestId("pwa-status-panel")).toBeInTheDocument();
     });
 
-    it("应渲染 SW 版本", () => {
+    it("SW 探测降级为 unsupported 且版本占位 —", async () => {
       renderPanel();
-      // 版本号同时出现于 SW 状态行与缓存版本行 → getAllBy
-      expect(screen.getAllByText(/v1\.4\.2/).length).toBeGreaterThan(0);
+      await waitFor(() => expect(screen.getByText("不支持")).toBeInTheDocument());
+      expect(screen.getByText("Service Worker 状态 · v—")).toBeInTheDocument();
     });
 
     it("应渲染在线状态", () => {
@@ -94,33 +145,24 @@ describe("PWAStatusPanel", () => {
       expect(screen.getByText("在线")).toBeInTheDocument();
     });
 
-    it("应渲染离线就绪", () => {
+    it("无壳缓存时应显示未就绪", () => {
       renderPanel();
-      expect(screen.getByText("离线就绪")).toBeInTheDocument();
+      expect(screen.getByText("未就绪")).toBeInTheDocument();
     });
   });
 
-  describe("缓存列表", () => {
-    it("应渲染缓存条目", () => {
+  describe("缓存列表 (降级)", () => {
+    it("无缓存时应显示空态", () => {
       renderPanel();
       expect(screen.getByTestId("cache-list")).toBeInTheDocument();
-      expect(screen.getByText("yyc3-static-v1")).toBeInTheDocument();
-      expect(screen.getByText("yyc3-api-cache")).toBeInTheDocument();
-    });
-
-    it("应渲染 5 个缓存条目", () => {
-      renderPanel();
-      expect(screen.getByTestId("cache-yyc3-static-v1")).toBeInTheDocument();
-      expect(screen.getByTestId("cache-yyc3-fonts")).toBeInTheDocument();
-      expect(screen.getByTestId("cache-yyc3-images")).toBeInTheDocument();
-      expect(screen.getByTestId("cache-yyc3-runtime")).toBeInTheDocument();
+      expect(screen.getByText("缓存为空")).toBeInTheDocument();
     });
   });
 
-  describe("操作按钮", () => {
-    it("应渲染更新按钮", () => {
+  describe("操作按钮 (降级)", () => {
+    it("updateAvailable=false 时不渲染更新按钮", () => {
       renderPanel();
-      expect(screen.getByTestId("update-sw-btn")).toBeInTheDocument();
+      expect(screen.queryByTestId("update-sw-btn")).not.toBeInTheDocument();
     });
 
     it("应渲染刷新缓存按钮", () => {
@@ -128,17 +170,29 @@ describe("PWAStatusPanel", () => {
       expect(screen.getByTestId("refresh-cache-btn")).toBeInTheDocument();
     });
 
-    it("应渲染清空缓存按钮", () => {
+    it("无缓存时清空按钮应禁用", () => {
       renderPanel();
-      expect(screen.getByTestId("clear-all-cache-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("clear-all-cache-btn")).toBeDisabled();
+    });
+  });
+
+  describe("真数据渲染 (stub caches + serviceWorker)", () => {
+    it("应渲染缓存条目与离线就绪", async () => {
+      const { SHELL, ASSETS } = stubProdBrowser();
+      renderPanel();
+      await waitFor(() => expect(screen.getByTestId(`cache-${ASSETS}`)).toBeInTheDocument());
+      expect(screen.getByTestId(`cache-${SHELL}`)).toBeInTheDocument();
+      expect(screen.getByText("离线就绪")).toBeInTheDocument();
     });
 
-    it("点击单个缓存清理按钮应可交互", () => {
+    it("点击单个缓存清理按钮应移除对应条目", async () => {
+      const { ASSETS } = stubProdBrowser();
       renderPanel();
-      const clearBtn = screen.getByTestId("clear-yyc3-fonts");
-      expect(clearBtn).toBeInTheDocument();
-      fireEvent.click(clearBtn);
-      // 不会报错即可
+      await waitFor(() => expect(screen.getByTestId(`cache-${ASSETS}`)).toBeInTheDocument());
+      fireEvent.click(screen.getByTestId(`clear-${ASSETS}`));
+      await waitFor(() =>
+        expect(screen.queryByTestId(`cache-${ASSETS}`)).not.toBeInTheDocument()
+      );
     });
   });
 });

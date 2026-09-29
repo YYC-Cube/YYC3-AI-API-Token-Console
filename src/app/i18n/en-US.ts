@@ -358,6 +358,7 @@ const enUS: TranslationKeys = {
     refreshCache: "Refresh Cache",
     refreshCacheDesc: "Revalidate all cached resources",
     updating: "Updating...",
+    newVersion: "New version",
     clearing: "Clearing...",
     release: "Release {size}",
     items: "{n} items",

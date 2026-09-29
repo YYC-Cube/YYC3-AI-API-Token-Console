@@ -159,7 +159,7 @@ export function PWAStatusPanel() {
                 {isUpdating ? t("pwa.updating") : t("pwa.updateNow")}
               </p>
               <p className="text-[rgba(0,255,136,0.4)]" style={{ fontSize: "0.6rem" }}>
-                v{swVersion} → v1.5.0
+                v{swVersion} → {t("pwa.newVersion")}
               </p>
             </div>
           </button>
