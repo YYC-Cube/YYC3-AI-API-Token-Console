@@ -27,6 +27,29 @@ const ASSET_CACHE = "yyc3-assets-v1";
 const KNOWN_CACHES = [SHELL_CACHE, ASSET_CACHE];
 const ASSET_MAX_ENTRIES = 200;
 
+// 批12 OBS-5: 预缓存产物清单 — 源文件保持空数组占位, 构建后由
+// scripts/inject-precache.mjs 扫描 dist/assets/ 将清单注入 dist/sw.js。
+// 断网深链增强: lazy chunk 随 install 预热入 ASSET_CACHE, 未访问路由离线直达可用。
+const PRECACHE_MANIFEST = [];
+
+/** install 阶段逐条预热产物 (失败容忍: 单条失败不阻塞 SW 安装) */
+async function prewarmAssets() {
+  if (!PRECACHE_MANIFEST.length) return;
+  const cache = await caches.open(ASSET_CACHE);
+  await Promise.all(
+    PRECACHE_MANIFEST.map(async (path) => {
+      try {
+        const url = new URL(path, self.registration.scope).href;
+        if (await cache.match(url, { ignoreVary: true })) return;
+        const res = await fetch(new Request(url, { cache: "reload" }));
+        if (res.ok && res.type === "basic") await cache.put(url, res);
+      } catch {
+        /* 单条失败容忍 — 断网安装时跳过, 联网后由 cacheFirst 按需补齐 */
+      }
+    })
+  );
+}
+
 /** 静态资源路径特征 — 仅这些会被 SW 缓存策略接管 (子路径部署时 pathname 含 base 前缀, 用 includes) */
 const STATIC_PATH_PATTERNS = ["/assets/", "/yyc3-icons/", "/manifest.json", "/favicon"];
 
@@ -52,6 +75,8 @@ self.addEventListener("install", (event) => {
       const cache = await caches.open(SHELL_CACHE);
       // cache: "reload" 绕过 HTTP 缓存, 确保壳为部署最新
       await cache.add(new Request(shellUrl(), { cache: "reload" }));
+      // OBS-5: 产物预热 (失败容忍, 不阻塞 skipWaiting)
+      await prewarmAssets();
       await self.skipWaiting();
     })()
   );
@@ -83,14 +108,16 @@ async function handleNavigate(req) {
   } catch {
     /* 离线 — 落到缓存壳回退 */
   }
-  const cached = await caches.match(shellUrl());
+  const cached = await caches.match(shellUrl(), { ignoreVary: true });
   if (cached) return cached;
   // 无壳可回退 (SW 首次安装中即离线) — 交还浏览器错误页
   return Response.error();
 }
 
 async function cacheFirst(req) {
-  const cached = await caches.match(req);
+  // ignoreVary: 服务器对 assets 响应带 Vary: Origin (module script CORS 协商),
+  // 预热请求无 Origin 头而页面子资源请求有 — 内容寻址 hash 文件名下 Vary 无语义, 忽略之
+  const cached = await caches.match(req, { ignoreVary: true });
   if (cached) return cached;
   try {
     const fresh = await fetch(req);
@@ -107,7 +134,7 @@ async function cacheFirst(req) {
 
 async function staleWhileRevalidate(event, req) {
   const cache = await caches.open(ASSET_CACHE);
-  const cached = await cache.match(req);
+  const cached = await cache.match(req, { ignoreVary: true });
   const refresh = fetch(req)
     .then((res) => {
       if (res.ok && res.type === "basic") {

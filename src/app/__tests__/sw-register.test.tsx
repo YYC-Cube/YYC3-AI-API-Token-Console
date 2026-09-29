@@ -10,7 +10,7 @@
  * - 注册失败静默降级 (不阻塞应用)
  */
 
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { registerServiceWorker } from "../lib/sw-register";
 
 function stubServiceWorker(registerImpl: () => Promise<unknown>) {
@@ -61,5 +61,33 @@ describe("registerServiceWorker", () => {
     const result = await registerServiceWorker();
     expect(result).toBeNull();
     expect(warn).toHaveBeenCalled();
+  });
+});
+
+// ============================================================
+// 批12 OBS-5: sw.js 源文件结构守护 (注入锚点 + Vary 修复防回归)
+// ============================================================
+
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const SW_SOURCE = readFileSync(resolve(process.cwd(), "public/sw.js"), "utf8");
+
+describe("public/sw.js 结构守护 (OBS-5)", () => {
+  it("PRECACHE_MANIFEST 空数组占位符存在 (inject-precache.mjs 注入锚点)", () => {
+    expect(SW_SOURCE).toContain("const PRECACHE_MANIFEST = [];");
+  });
+
+  it("prewarmAssets 预热函数被 install 事件调用", () => {
+    expect(SW_SOURCE).toContain("async function prewarmAssets()");
+    expect(SW_SOURCE).toMatch(/addEventListener\("install"[\s\S]*await prewarmAssets\(\)/);
+  });
+
+  it("缓存命中均 ignoreVary (Vary: Origin 防回归 — module script 带 Origin 头致 MISS)", () => {
+    const matchLines = SW_SOURCE.split("\n").filter((l) => l.includes(".match("));
+    expect(matchLines.length).toBeGreaterThanOrEqual(3);
+    for (const line of matchLines) {
+      expect(line, `缓存命中缺 ignoreVary: ${line.trim()}`).toContain("ignoreVary");
+    }
   });
 });
