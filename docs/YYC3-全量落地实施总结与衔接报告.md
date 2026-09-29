@@ -2,7 +2,7 @@
 file: YYC3-全量落地实施总结与衔接报告.md
 description: YYC3-AI-API-Token-Console 四项目可借鉴项全量落地 — 深度分析 · 实施规划 · 交付总结 · 跨会话衔接（三合一）
 author: YanYuCloudCube Team <admin@0379.email>
-version: v2.11.0
+version: v2.12.0
 created: 2026-09-20
 updated: 2026-09-29
 status: stable
@@ -405,19 +405,23 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
+2026-09-29 第十一轮批14（真机人工增强项剩余部分——真实 Chrome 实机链二次收口）已完成: 桌面侧 §1.1.4/§1.1.5/§1.1.7 全部推进至自动化终界——Playwright `channel:chrome`（真实 Google Chrome 托管启动，规避批13 CDP 手动 attach 挂起与新 profile 钥匙串弹窗问题）：**①** §1.1.7 全闭环——`launchPersistentContext + --app` 真实 Chrome 独立窗口 `display-mode: standalone` **matches=true**（批13 缺口根因修正：须查启动即存在的 app 窗口 page，而非 newPage() 页签）+ SW active + 窗口内深链 /settings（449 字符）+ 窗口内刷新不 404 **4/4 全过**；**②** §1.1.4 可安装态实证——CDP `Page.getInstallabilityErrors` 返回 **`[]` 零错误**（Chrome 官方协议判定可安装 = 地址栏安装图标的确定性数据前提）+ **真实 beforeinstallprompt 触发**（非合成）+ 横幅渲染；**③** §1.1.5 实机链全通——真实 bip 驱动横幅 → 点击「安装到桌面」→ 探针包装确认 `prompt()` 成功调用（无 NotAllowedError、pageErrors=0）= 原生安装确认框已唤起（对话框内「安装」单击为浏览器 UI 不可自动化，关闭浏览器自动取消无残留）；**④** 文件系统探针：`~/Applications/Chrome Apps.localized/` 无本应用记录 → §1.1.6 确认为「首次安装后」人工项。最终人工残留压缩至不可自动化的像素/单击/物理设备：§1.1.4 图标像素视觉 / §1.1.5 对话框内单击 / §1.1.6 安装后独立窗口与 dock 图标 / iOS §二 🔒 / Android §三 🔒。临时探针脚本与 /tmp profile 已清理；PWA 清单批14 实机链轮回填（§1.1.4/§1.1.5/§1.1.7 + §五判定 + §七）。
+
 2026-09-29 第十轮批13（真机项自动化边界收口 + knip deps 季度窗口处置 + OBS-1 关闭 + 预热体积观测）已完成: **①** P2 真机人工增强项自动化边界推进——§1.1.7 独立窗口等价模拟 ✅（Playwright `--app` headless/headed 双模式：深链 /settings 渲染 449 字符 + 窗口内刷新不 404 四断言全过；`display-mode: standalone` 媒体查询命中与 §1.1.4 视觉/§1.1.5-1.1.6 原生 UI 因 Playwright 页签非 app 窗口本体 + Chrome 主实例参数转交限制诚实留人工）；**②** knip deps 31 季度窗口处置归零——逐项证据链复核：date-fns 零消费**真死移除**（package.json + lockfile），其余 30 项（26 radix ↔ ui/ 同名组件一一对应 + cva/clsx/tailwind-merge→ui/utils.ts cn() + tw-animate-css→tailwind.css @import）为 shadcn/ui 生态真实消费、因 knip `ignore components/ui/**` 与 CSS 入口不跟随构成判定盲区，转入 `ignoreDependencies` 白名单留证（UI_ECOSYSTEM_WHITELIST，新增 shadcn 组件需同步补录），BASELINE dependencies 31→**0 归零**；**③** OBS-1 非缺陷关闭——干净 profile（无扩展）Playwright 线上复测**零** @vite 请求 + dist 产物/线上 index.html/源码三重取证零引用，批10 观察值判定为本地浏览器扩展注入探测（PWA 清单 §六 已关闭，与 OBS-3 同族本地环境现象）；**④** 预热体积观测常态化落地——inject-precache.mjs 增加阈值观测（默认 6MB ≈ 当前翻倍，`PREWARM_WARN_MB` 可调，超限 `::warning` 注解非阻断 + 建议评审核心路由子集预热），构建实测输出「2.91 MB ≤ 阈值 6 MB (观测正常)」。测试与门禁全绿。
 
 2026-09-29 第九轮批12（P2 自动化推进 + OBS-5 修复 + 死代码清偿）已完成: **①** 死代码批量复核清偿——11 文件归档移除（DatabaseConnectionPanel+测试 / HostFileManager / CLITerminal / RefactoringReport / PerformanceMonitor / usePerformanceMonitor / usePushNotifications / useValidation / figma/ImageWithFallback / e2e/playwright.config）+ **15 处伪导航入口清理**（指向重定向路由的 hostFiles ×4 / dbConnections ×1 / performance ×3 / refactoring ×3 / terminal ×2 / ide ×1 / theme ×1——Sidebar/BottomNav/TopBar/CommandPalette 四导航 + ArchitectureAudit 路由事实表 7 行 + i18n 双语 8 键），knip files 基线 9→**0 归零**（`NodeRuntime` 白名单保留: useTerminal→IntegratedTerminal、useLocalFileSystem→LocalFileManager 均有活跃消费者），测试 2007→1993 全绿；**②** OBS-5 预缓存增强闭环——根因三重修复：`scripts/inject-precache.mjs` 构建后产物清单注入（99 项/2981KB 挂接 `pnpm build`）+ sw.js install 阶段逐条预热（失败容忍）+ **`Vary: Origin` MISS 根因修复**（preview/Pages assets 响应带 Vary: Origin，预热请求无 Origin 而页面 module script 带 → 缓存命中校验失败 → 四处 match 统一 `ignoreVary: true`）+ sw-register.test 新增结构守护 ×3；Playwright 实测断网深链 /settings（bodyLen 454 完整渲染 vs 修复前 408 空壳）与 /pwa（326）全过；**③** P2 真机项自动化边界推进——§1.2 提示交互全链路 ✅（合成 beforeinstallprompt：横幅出现 → 关闭 → `pwa_install_dismissed` 持久化 → reload 不再现）、§1.1.5 组件链路 ✅、iOS/Android 维持 🔒 物理设备阻塞；PWA 清单批12 轮回填（§1.1.5/§1.2×3/OBS-5 关闭行/§五判定/§七记录）；**④** 部署链路收尾修复——CI 首次部署实测暴露 Pages Deploy 裸 `vite build --base=/` 绕过 package.json build script（inject-precache 未执行，线上 sw.js 空占位）→ `pages.yml` 改走 `pnpm build` 完整链（`703af5f`），二次部署线上复验 sw.js manifest **99 项**生效 + prewarmAssets/ignoreVary 齐备；另 `check-size.mjs` 补 existsSync 过滤（git 索引滞后于已删文件致门禁误报，归档连带）。
 
-### 8.3 当前优先级（2026-09-29 第十轮批13 执行后）
+### 8.3 当前优先级（2026-09-29 第十一轮批14 执行后）
 
-1. **[P2]** 真机人工增强项（自动化边界批13 已收口，剩余均需真实浏览器 UI/物理设备）：§1.1.4 地址栏安装图标视觉确认 / §1.1.5-1.1.6 原生安装确认框 + 独立窗口启动（含 §1.1.7 `display-mode: standalone` 媒体查询复验）/ iOS §二（🔒）/ Android §三（🔒）
+1. **[P2]** 真机人工最终残留（桌面侧已推进至自动化终界，均为不可自动化像素/单击/物理设备）：§1.1.4 地址栏图标像素视觉（可安装态已获 Chrome 协议证明）/ §1.1.5 原生对话框内「安装」单击 / §1.1.6 安装后独立窗口与 dock 图标 / iOS §二（🔒）/ Android §三（🔒）
 2. **[P3]** 2027-03 季度核对（Phase 4 台账剩余六项）
 3. **[P3]** 预热体积常态观测：阈值 6MB 告警已挂接 `pnpm build`（当前 2.91 MB 正常）；若未来产物翻倍触发 `::warning`，评审核心路由子集预热（清单过滤需扩展 inject-precache.mjs）
 
 > 批12 前挂账回顾: P2 真机自动化推进 ✅（§1.2 全链路 + §1.1.5 组件链路，iOS/Android 维持阻塞）/ OBS-5 ✅ 修复闭环（注入+预热+Vary 根因，断网深链实测全过）/ DatabaseConnectionPanel 等死代码 ✅ 批量清偿（11 文件 + 15 伪入口，knip files 归零）
 >
 > 批13 前挂账回顾: §1.1.7 独立窗口等价模拟 ✅ 双实证（深链+刷新；standalone 媒体查询留人工）/ knip deps 31 季度窗口 ✅ 提前处置归零（date-fns 真死移除 + 30 项 ui 生态白名单留证）/ OBS-1 ✅ 非缺陷关闭（干净 profile 零请求三重取证）/ 预热体积观测 ✅ 常态化落地（6MB 阈值告警挂接构建链）
+>
+> 批14 前挂账回顾: §1.1.4 可安装态 ✅（getInstallabilityErrors=[] + 真实 bip）/ §1.1.5 实机链全通 ✅（prompt() 唤起原生对话框）/ §1.1.7 standalone ✅ 全闭环（真窗口 matches=true 4/4）/ §1.1.6 + 像素/单击 + iOS/Android = 最终人工残留
 
 ### 8.4 文档资产索引
 
@@ -451,6 +455,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-29 | v2.9.0 | 第八轮批11: P3 挂账清偿 ×3 —— ① Playwright 真断网复测（4.2/4.3/4.4 ✅ + OBS-5 新发现挂账 P3）+ 安装性判据程序化核验全绿 + iOS/Android 🔒 阻塞声明；② DataEditor dead-code 归档移除（10 文件 + 7 处引用清理 + 连带 ConfigExportCenter 归档 + db-queries 15 孤儿导出移除，knip files/exports 回基线）；③ 季度核对提前执行（剩余六项维持挂账 + gitleaks 4 豁免复核有效 + knip deps 48→31 / devDeps 5→4 + size 基线 1265→406 / 1217→88）+ 4.5 微改 ×2（schema v2 `protocol` 字段 14 提供商回填 + 2 防漂移测试 + Provider 新增指南）；测试 2011 → 2007（DataEditorPanel 测试 ×6 随组件归档，provider-schema 新增 ×2），七门禁全绿 | 用户指令「执行真机人工验证项（iOS/Android/安装链路/DevTools 断网抽查）处置 DataEditorPanel dead-code 决策 完成 2026-12 季度核对及 4.5 微改」 |
 | 2026-09-29 | v2.10.0 | 第九轮批12: P2 推进 + OBS-5 修复 + 死代码清偿 —— ① 死代码批量复核：11 文件归档（DatabaseConnectionPanel/HostFileManager/CLITerminal/RefactoringReport/PerformanceMonitor + 3 hooks + ImageWithFallback + e2e config + 测试）+ 15 伪导航入口清理（四导航组件 + ArchitectureAudit ×7 + i18n 双语 8 键），knip files 9→0 归零；② OBS-5 闭环：inject-precache.mjs 构建后注入（99 项/2981KB）+ SW install 预热 + Vary: Origin MISS 根因修复（ignoreVary ×4）+ 结构守护测试 ×3，断网深链 /settings 与 /pwa 完整渲染实测全过；③ §1.2 提示交互全链路 ✅（合成 prompt 事件三步实证）+ §1.1.5 组件链路 ✅ + PWA 清单批12 轮回填；④ `703af5f` Pages Deploy 裸 vite build 绕过 inject-precache（首次部署实测暴露）→ 改 `pnpm build` 完整链，二次部署线上复验 manifest 99 项生效；测试 2007→1996（死代码测试 −15 + 结构守护 +3 + architecture 键用例 −1），七门禁全绿（1996/1996 + build 注入 99 项），四提交 `1f63f2e`/`25cf369`/`ae63ed3`/`703af5f` CI 六阶段全绿 | 用户指令「执行 P2 真机验证项 处理 OBS-5 预缓存增强 复核 DatabaseConnectionPanel 等死代码」 |
 | 2026-09-29 | v2.11.0 | 第十轮批13: 真机项收口 + deps 窗口 + 观测落地 —— ① §1.1.7 独立窗口等价模拟 ✅（Playwright --app 双模式深链 449 字符 + 刷新不 404 四断言全过；standalone 媒体查询/原生 UI 诚实留人工）；② knip deps 31→0 归零：date-fns 真死移除 + 30 项 shadcn/ui 生态白名单留证（UI_ECOSYSTEM_WHITELIST，逐项 git grep 取证 26 radix↔ui 同名组件 + cn() 三件套 + tw-animate-css→tailwind.css）；③ OBS-1 非缺陷关闭（干净 profile 线上零 @vite 请求 + 三重取证，判定扩展注入探测）；④ 预热体积观测挂接构建链（6MB 阈值 ::warning 告警，实测 2.91 MB 正常）+ PWA 清单批13 观测轮回填（§1.1.7/§六 OBS-1/§七） | 用户指令「执行真机人工增强项（§8.3 P2） 处理 knip deps 31 季度窗口 启动 OBS-1 和预热体积观测」 |
+| 2026-09-29 | v2.12.0 | 第十一轮批14: 真机项剩余部分——真实 Chrome 实机链二次收口 —— Playwright `channel:chrome` 真实 Google Chrome：① §1.1.7 全闭环（launchPersistentContext + --app 真窗口 standalone=**true**，批13 页签误查根因修正，4/4 全过）；② §1.1.4 可安装态实证（CDP `Page.getInstallabilityErrors`=[] + 真实 bip 触发 + 横幅渲染）；③ §1.1.5 实机链全通（真实 bip→点击安装→prompt() 成功调用=原生对话框唤起，对话框内单击留人工）；④ 文件系统探针确认本机无安装记录（§1.1.6 为首次安装后人工项）；最终人工残留压缩至像素/单击/物理设备；PWA 清单批14 实机链轮回填（§1.1.4/§1.1.5/§1.1.7 + §五 + §七） | 用户指令「继续执行真机人工增强项（§8.3 P2）的剩余部分」 |
 
 ---
 

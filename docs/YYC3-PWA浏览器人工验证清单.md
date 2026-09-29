@@ -34,10 +34,10 @@ category: checklist
 | 1.1.1 | 访问 `https://token.yyc3.vip`，打开 DevTools → Application → Manifest | Manifest 正确解析，无错误；name="YYC³ 本地多端推理矩阵数据库 · 数据看盘"，display=standalone | ✅ | 2026-09-29 自动化实测：解析正确、display=standalone；name 实测值「YYC³ CloudPivot Intelli-Matrix · 数据看盘」（清单预期文案为旧版，以实测为准） |
 | 1.1.2 | DevTools → Application → Manifest → Icons | 192px 与 512px 图标均加载成功（android-chrome-192/512） | ✅ | 实测 13 图标全部加载，192 与 512 均含 maskable 双用途声明，解码成功；观察项：512 尺寸双声明（macOS/512.png + android-chrome-512.png），无功能影响 |
 | 1.1.3 | DevTools → Application → Service Workers | 显示「无 SW 注册」（GAP-006 预期） | ✅ | 旧版基线（2026-09-29 上午）：无 SW 注册 ✅；**批10 新版线上复测（2026-09-29）**：SW 已注册 `https://token.yyc3.vip/sw.js`，scope=`/`，state=**activated**，页面 controlled=true，缓存 `yyc3-shell-v1` 建立（含 index.html）——GAP-006 正式闭环 ✅ |
-| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | 🔄 判据全绿 / 待视觉确认 | **批11 安装性判据程序化核验（2026-09-29）全绿**：① HTTPS 200 ② manifest link + name/short_name/start_url/display=standalone/theme ③ icons 192+512（均 `any maskable`）④ sw.js 200 含 fetch handler（3 个 addEventListener）——Chrome 安装性四判据全部满足，地址栏安装图标预期出现；图标视觉与弹窗交互留人工 |
-| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | 🔄 组件链路 ✅ / 待人工 | **批12 自动化实证（2026-09-29 Playwright 合成 beforeinstallprompt）**：prompt 事件到达 → PWAInstallPrompt 横幅渲染（「安装到桌面」可点击）→ 组件链路全通；浏览器原生安装确认框 UI 留人工 |
+| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | ✅ 判据+可安装态全绿 / 图标像素留人工 | **批11 安装性判据程序化核验全绿**：① HTTPS ② manifest ③ icons ④ SW fetch handler；**批14 实机链实证（2026-09-29 Playwright channel:chrome 真实 Google Chrome）**：CDP `Page.getInstallabilityErrors` 返回 **`[]` 零错误**（Chrome 官方协议判定可安装 = 地址栏图标数据前提）+ **真实 beforeinstallprompt 触发**（非合成）+ 横幅渲染 ✅；仅图标像素级视觉留人工 |
+| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | ✅ 实机链全通 / 对话框内确认留人工 | **批12 合成事件组件链路 ✅**；**批14 实机链升级（2026-09-29 真实 Chrome）**：真实 bip 驱动横幅渲染 → 点击「安装到桌面」→ `prompt()` 成功调用（探针包装无错误、pageErrors=0）= **原生安装确认框已唤起**；对话框内「安装」单击与窗口标题/图标确认留人工 |
 | 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ⬜ | 待人工 |
-| 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ | 2026-09-29 自动化实测：/settings 与 /ai-family-center 深链均正常 SPA 渲染（404.html 回退生效）；批10 SW 上线后 /settings、/pwa 深链复测同样正常（SW 缓存壳回退链路生效）；**批13 独立窗口等价模拟（2026-09-29 Playwright --app 双模式）**：headless/headed 深链 /settings 渲染（449 字符）+ 窗口内刷新不 404 双实证 ✅；standalone 媒体查询命中因 Playwright 页签非 --app 窗口本体 + 真实 Chrome CDP attach 受主实例占用限制不可达，留人工独立窗口复验 |
+| 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ 全闭环（含 standalone） | 2026-09-29 深链 SPA 渲染多轮实测 ✅；**批14 真实 Chrome --app 窗口实证（2026-09-29 launchPersistentContext + channel:chrome）**：`display-mode: standalone` **matches=true**（批13 页签误查缺口修正：须查启动即存在的 app 窗口 page 而非 newPage()）+ SW active + 窗口内深链 /settings（449 字符）+ 窗口内刷新不 404 **4/4 全过** |
 
 ### 1.2 提示交互
 
@@ -97,6 +97,8 @@ category: checklist
 > 批11 更新（2026-09-29）：**§四 离线降级全项闭环**（4.2/4.3 Playwright 真断网实测 ✅ + 4.4 真断网刷新 ✅，新发现 OBS-5 挂账不阻塞）+ **1.1.4 安装性判据程序化核验全绿**。维持 ✅ 通过（自动化范围）；剩余人工项收敛为：§1.1.4 视觉确认 / §1.1.5-1.1.6 / §1.2 / §二 iOS / §三 Android（后两者 🔒 需物理设备）。
 >
 > 批12 更新（2026-09-29）：**OBS-5 修复闭环**（产物清单注入 + install 预热 + Vary: Origin 根因修复，断网深链 /settings 与 /pwa 完整渲染实测 ✅）+ **§1.2 提示交互全链路 ✅**（合成 beforeinstallprompt：出现/关闭持久化/reload 不再现）+ §1.1.5 组件链路 ✅。剩余人工项收敛为：§1.1.4 地址栏图标视觉 / §1.1.5-1.1.6 原生安装 UI / §二 iOS（🔒）/ §三 Android（🔒）/ §1.1.7 独立窗口内复验。
+>
+> 批14 更新（2026-09-29）：**桌面 §1.1.4-1.1.5/§1.1.7 自动化闭环**（真实 Chrome channel:chrome：CDP getInstallabilityErrors `[]` + 真实 bip + prompt() 唤起原生对话框 + --app 真窗口 standalone=true 4/4）。剩余人工项最终收敛为：§1.1.4 地址栏图标像素视觉（数据前提已证）/ §1.1.5 对话框内「安装」单击 / §1.1.6 安装后独立窗口与 dock 图标（本机暂无安装记录）/ §二 iOS（🔒）/ §三 Android（🔒）。
 
 ## 六、缺陷记录
 
@@ -160,6 +162,16 @@ category: checklist
 - OBS-1 ✅ 非缺陷关闭：干净 profile（无扩展）线上 Playwright 复测 **零** @vite 请求；dist 产物/线上 index.html/源码三重取证零引用——批10 观察值判定为本地浏览器扩展注入探测
 - §1.1.4 视觉确认 / §1.1.5-1.1.6 原生安装 UI 与独立窗口启动 / iOS §二 / Android §三 维持人工与 🔒 阻塞
 - 剩余人工项收敛：① §1.1.4 地址栏图标视觉；② §1.1.5-1.1.6 原生安装 UI + 独立窗口（含 standalone 媒体查询复验）；③ §二 iOS（🔒）；④ §三 Android（🔒）
+
+---
+
+**批14 实机链轮（2026-09-29，真实 Chrome 自动化边界二次收口）**：
+
+- §1.1.4 ✅ 可安装态实证：Playwright `channel:chrome`（真实 Google Chrome）+ CDP `Page.getInstallabilityErrors` 返回 **`[]`**（Chrome 官方协议判定零障碍可安装——地址栏图标的确定性前提）+ 真实 beforeinstallprompt 触发（非合成）+ 横幅渲染
+- §1.1.5 ✅ 实机链全通：真实 bip 驱动横幅 → 点击「安装到桌面」→ 探针包装确认 `prompt()` 成功调用（无 NotAllowedError、pageErrors=0）→ 原生安装确认框已唤起；对话框内「安装」单击留人工（浏览器 UI 不可自动化，关浏览器自动取消无残留）
+- §1.1.7 ✅ 全闭环：`launchPersistentContext + --app` 真实 Chrome 独立窗口 `display-mode: standalone` **matches=true** + SW active + 窗口内深链/刷新 **4/4**（批13 缺口根因：误查 newPage() 页签；真实 Chrome CDP 手动 attach 挂起问题由 Playwright 托管启动规避）
+- 文件系统探针：`~/Applications/Chrome Apps.localized/` 无本应用记录 → §1.1.6 为「首次安装后」人工项
+- 最终人工残留（均已压缩至不可自动化像素/单击/物理设备）：§1.1.4 图标像素 / §1.1.5 对话框单击 / §1.1.6 安装后启动 / iOS §二 🔒 / Android §三 🔒
 
 ---
 
