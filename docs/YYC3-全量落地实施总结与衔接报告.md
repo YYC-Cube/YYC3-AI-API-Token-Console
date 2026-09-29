@@ -2,9 +2,9 @@
 file: YYC3-全量落地实施总结与衔接报告.md
 description: YYC3-AI-API-Token-Console 四项目可借鉴项全量落地 — 深度分析 · 实施规划 · 交付总结 · 跨会话衔接（三合一）
 author: YanYuCloudCube Team <admin@0379.email>
-version: v2.0.0
+version: v2.7.0
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-29
 status: stable
 tags: [summary],[handoff],[benchmark],[phase1],[phase2],[phase3],[phase4]
 category: report
@@ -203,20 +203,22 @@ supersedes: YYC3-深度分析-现状审计与演进指导.md / YYC3-四项目深
 | PR 体系 | Footprint 档位字段 + 评审三问 | [PR 模板](../.github/PULL_REQUEST_TEMPLATE.md) |
 | 文档 | CICD.md v1.2.0 爬坡机制 + 本合并报告 | docs/ |
 
-### 4.2 门禁体系终态（CI 五阶段 · 本地等价）
+### 4.2 门禁体系终态（CI 六阶段 · 本地等价）
 
 ```
 🔍 Typecheck (tsc strict)
-  → 🧹 Lint (eslint 0-errors + boundaries 分层契约)
+  → 🧹 Lint (eslint 0-errors + boundaries 分层契约 + exhaustive-deps 归零)
   → 🧪 Unit Test (test:unit 分级 · unit-dom + unit-node)
   → 🛡️ Security (gitleaks + 产物零密钥断言)
+  → 🎭 E2E (Playwright · console auth 链路 ×3 + 路由冒烟)
   → 📦 Build (vite + ast-grep 扫描 + 体量门禁 + knip 基线)
 ```
 
 ```bash
-# 本地绿 = CI 绿（九项全量门禁）
+# 本地绿 = CI 绿（九项全量门禁 + e2e）
 pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:coverage && pnpm build
 pnpm astgrep && pnpm size:check && node scripts/knip-check.mjs && pnpm doctor
+pnpm test:e2e
 ```
 
 ### 4.3 验证结果快照（2026-09-20）
@@ -403,15 +405,14 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-28 第六轮批8（DataEditorPanel 拆分）已完成并推送（`bef1cea`）: 状态依赖图先行 → 自治 Tab 范式落地，主壳 1188 → 154 行 + `data-editor/` ×7 sibling（shared / use-table-state 三 hook / db 族 ×3 / store 族 a/b 共 6 组件 11-prop→2-prop）；九项门禁全绿，size:check 基线 -1034 行，**三超标组件拆分 3/3 全闭环**。无未完成代码挂账。
+2026-09-29 第六轮批9（测试与工程纪律收尾）已完成并推送（`9638286` + `d153f22`）: **①** Playwright 最小 e2e 接入（`e2e/auth.spec.ts` ×4: 登录 401 / 登录成功 / gw 未认证 401 / 路由冒烟；端口 3199 + workers:1 防限流），e2e 揭示并修复 console-server DIST 硬编码 bug（`DIST_DIR` env 化，默认 `../dist` 对齐 LAN 版）；**②** `exhaustive-deps` 23 → 0（13 文件，四范式：元组解构 / 变量提取 / effect 移序 / 常量上提 + `getGreeting` 签名改传参修真实数据流断裂；AddModelModal 与 storageStats 两处定向豁免含理由注释）；**③** console 公网部署环境变量文档化（`.env.example` 五变量段 + CICD.md §九）；**④** CI 新增 e2e job（六阶段全绿 run 36523321137），gitleaks 增量扫描误报以 `[[allowlists]]` path+regex 双重限域放行 4 条（全部人工核实 + 指纹存证）。无未完成代码挂账。
 
-### 8.3 当前优先级（2026-09-28 第六轮批8 执行后）
+### 8.3 当前优先级（2026-09-29 第六轮批9 执行后）
 
-1. **[P1]** Playwright 最小 e2e（auth 链路 ×3: 登录 401/成功 → gw 未认证 401 → 路由冒烟），替代手搓 curl 烟测
-2. **[P2]** `exhaustive-deps`(22) 渐进治理（lint 警告存量收尾）
-3. **[P2]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权自动启用）
-4. **[P3]** Pages PWA 浏览器人工验证（注意 GAP-006 — sw.js 未注册，建议正式决策关闭或补注册）；CI actions Node20 deprecation 告警顺势升级
-5. **[P3]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
+1. **[P3]** Pages PWA 浏览器人工验证（注意 GAP-006 — sw.js 未注册，建议正式决策关闭或补注册）；CI actions Node20 deprecation 告警顺势升级
+2. **[P3]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）；`.gitleaks.toml` 豁免清单季度复核（2026-12, 只减不增）
+
+> 批9 前挂账回顾: e2e ✅ / exhaustive-deps 23→0 ✅ / console 部署环境变量文档化 ✅（真实密钥注入待实际部署时经环境变量执行, 见 CICD.md §9.3）
 
 ### 8.4 文档资产索引
 
@@ -440,6 +441,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-28 | v2.4.0 | 第六轮批6: motion/zod 主包减包 —— LazyMotion 异步 features + m.* 别名（motion 390→~249 kB）+ zod/mini 切换（219→57 kB）；主包 index 509 → 365 kB（**-28.3%**, gzip 约 157 → 113 kB）；TopBar/Layout mock 补 m 键 | 用户指令「执行批6 的 motion 和 zod 优化」 |
 | 2026-09-28 | v2.5.0 | 第六轮批7: 三超标组件拆分 2/3（`37fe765`）—— AIFamilyDesignDoc 1217 → 88 主壳 + ai-family-doc/ ×5 sibling（Facade 范式）；ServiceConnectionTest 1265 → 406 主壳 + service-test/ ×5 sibling（测试执行器纯函数化，localStorage 收口 yyc3-storage）；size:check 基线 **-1988 行**；DataEditorPanel 留批8 | 用户指令「执行批7 的架构优化」 |
 | 2026-09-28 | v2.6.0 | 第六轮批8: DataEditorPanel 拆分全闭环（`bef1cea`）—— 状态依赖图先行定案自治 Tab 范式；主壳 1188 → 154 行 + data-editor/ ×7 sibling（shared 收敛重复 JSX + use-table-state 三 hook + db 族 ×3 自治 Tab + store 族 a/b 六组件 11-prop→2-prop）；size:check 基线 **-1034 行**，三超标组件拆分 **3/3 全闭环**（累计 -3022 行） | 用户指令「执行批8: 先绘制 DataEditorPanel 的状态依赖图」 |
+| 2026-09-29 | v2.7.0 | 第六轮批9: 测试与工程纪律收尾（`9638286`+`d153f22`）—— ① Playwright e2e 接入（auth ×3 + 路由冒烟，workers:1 防限流）+ 揭示修复 console-server DIST 硬编码 bug（DIST_DIR env 化）；② exhaustive-deps **23 → 0**（13 文件四范式 + getGreeting 签名改传参修数据流断裂，2 处定向豁免含理由）；③ .env.example 补 console 五变量 + CICD.md §九 公网部署章节；④ CI 新增 e2e job（五阶段→**六阶段**），gitleaks `[[allowlists]]` 双重限域豁免 4 条误报（指纹存证）；单测 2005 用例全绿 | 用户指令「报告 §8.3 已刷新: e2e / exhaustive-deps / console 环境变量」 |
 
 ---
 
