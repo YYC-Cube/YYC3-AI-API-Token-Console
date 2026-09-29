@@ -335,7 +335,7 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 4. **[P2]** ~~Pages PWA 链路验证~~ ✅ 2026-09-20 HTTP 层验证完成（首页/manifest/图标 200；深链 `/settings` 404 回退 **发现缺陷并已修复**：404.html 移入 `public/` 使其进入 dist 产物）；浏览器人工安装验证（iOS Safari / Chrome 添加到主屏 + 离线）仍待人工执行
 5. **[P2]** ~~剩余 4 个超标组件大文件拆分（首个：SystemSettings 1373）~~ ✅ 2026-09-24 完成：SystemSettings 1373 → 193 行主壳 + 6 领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行），基线 4 → 3；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化）
 6. **[P2]** ~~`no-explicit-any` 全量清零~~ ✅ 2026-09-24 完成：81 → 0（16 文件），catch 块统一 `err instanceof Error` 提取 + 浏览器非标准 API 最小契约 interface（`WindowWithDirectoryPicker`/`NavigatorWithConnection`/`PerformanceWithMemory`/`RegistrationWithSync`/`MinimalSpeechRecognition`）+ 动态数据具名联合收窄（`NodeStatusType`/`LogLevel`/`RecentOpEntry["status"]`）；lint 警告 216 → 121，1965 用例全绿
-7. **[P2]** ~~剩余 3 个超标组件拆分~~ 🔄 批7 已完成 2/3（ServiceConnectionTest + AIFamilyDesignDoc，见第 11 项）；剩 DataEditorPanel 1189（10 useState + 17 useCallback + 35 内函数深耦合，需先绘状态依赖图）+ `exhaustive-deps`(22) 渐进治理
+7. **[P2]** ~~剩余 3 个超标组件拆分~~ ✅ 2026-09-28 **全闭环 3/3**（批7 完成 AIFamilyDesignDoc + ServiceConnectionTest，批8 完成 DataEditorPanel，见第 11/12 项）；`exhaustive-deps`(22) 渐进治理仍挂账
 8. **[P1]** ~~架构审计四批路线图（第五轮 2026-09-28）~~ ✅ 全部完成：
    - **批1 依赖卫生**（`457da2e`）: 精确锁定 + catalog 收敛 + knip 死依赖基线下降（deps 48→31 / devDeps 5→4）
    - **批2 路由级代码分割**（`b0cf4a6`）: 全路由 lazy 全覆盖，主包 gzip 752 → 157 kB（**-79%**）
@@ -359,7 +359,15 @@ trustPolicy: no-downgrade   # 禁止依赖降级安装 (供应链防降级攻击
 - **批7-AIFamilyDesignDoc 1217 → 88 行**: Facade+Siblings —— 内容数据/接口拆至 `ai-family-doc/content.ts`（CORE_PHILOSOPHY/DESIGN_SECTIONS/FAMILY_MEMBERS/ROADMAP + hexToRgb/getModuleDetails），分节组件拆至 shared.tsx（FadeIn 纯 CSS transition 沙箱安全 + SectionHeader）/ sections-a.tsx（Hero/Philosophy/Modules/Wireframe）/ sections-b.tsx（FamilyMembers/Architecture/Roadmap）/ sections-c.tsx（Song/Dedication/TOC）
 - **批7-ServiceConnectionTest 1265 → 406 行**: 纯函数化范式 —— 四类测试执行器由 useCallback 闭包改模块级纯函数拆至 `service-test/`（tests.ts: runAIProviderTest/runDBTest/runWebSocketTest/runNetworkTest，全依赖参数化无状态耦合；test-fetch.ts: 超时+错误分类 fetch；types.ts: 类型+STATUS_META+持久化收敛 yyc3-storage 封装修 no-raw-localstorage 隐患；panels.tsx: QuickTestButton/DiagnosticCard/EnvironmentDetectionPanel；results-view.tsx: ResultCard）；主壳保留状态编排（runAllTests）与骨架组装
 - **门禁全绿**: typecheck 0 / lint 0 errors / 单测 2005 例 / coverage 四指标达标（lines 40.47/functions 32.94/branches 37.69/statements 37.83，门槛 38/31/36/36）/ build / ast-grep / size:check 基线 **-1988 行** / knip / guardrail-probe 5/5
-- **挂账**: DataEditorPanel 1189 留批8（深耦合需先绘状态依赖图再动手）
+- **挂账**: DataEditorPanel 1189 留批8（深耦合需先绘状态依赖图再动手）→ 已于批8 闭环（第 12 项）
+
+ 1. **[P2]** ~~第六轮批8 —— DataEditorPanel 拆分~~ ✅ 2026-09-28 完成（`bef1cea`）：
+
+- **状态依赖图先行**: 13 state 四组归类（UI 导航态 / 数据态 / 编辑会话态枢纽 / 表格交互态）+ 派生计算链（q → filtered×3 → sorted×3）+ 17 useCallback 依赖矩阵 + StoreTab 11-prop drilling 分析；关键洞察——**编辑会话态上提是伪需求**（所有 Tab 条件渲染、切 Tab 卸载即重置），故定案「自治 Tab 范式」而非照搬批7 纯函数化
+- **批8-DataEditorPanel 1188 → 154 行**: 主壳仅导航/委派（Tab 切换 / 搜索 / 计数徽标）；7 sibling 落地 `data-editor/`: shared.tsx（CellInput/StatusSelect/SortIcon props 化/BatchBar/TabToolbar，收敛三处重复 JSX）+ use-table-state.ts（useTableEditor/useRowSelect/useSort 三 hook）+ models/nodes/agents-tab.tsx（db 族自治: 单表自加载 + CRUD + useValidation 联动 + onCountChange 计数上报）+ store-tabs-a/b.tsx（6 store Tab，**11-prop drilling 收敛为 2 props**，头部下沉新增/重置按钮）
+- **功能等价**: 原 Header 三按钮（刷新/重置/新增）对全 Tab 生效 → 下沉各 Tab 头部；Tab 点击重置 5 项 state → 卸载语义天然覆盖，主壳仅留 setSearchQuery；DataEditorPanel.test 6 用例零改动全绿
+- **门禁全绿**: typecheck 0 / lint 0 errors / 单测 2005 例 / coverage 四指标达标（lines 40.29/functions 33.05/branches 37.58/statements 37.7，门槛 38/31/36/36）/ build / ast-grep / size:check 基线 **-1034 行**（DataEditorPanel 1188→154）/ knip / guardrail-probe 5/5
+- **三超标组件拆分全闭环**（§6.3 第 7 项 ✅）: size:check 基线累计 **-3022 行**（批7 -1988 + 批8 -1034）
 
 ---
 
@@ -395,12 +403,12 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-28 第六轮批7（三超标组件拆分 2/3）已完成并推送（`37fe765`）: AIFamilyDesignDoc 1217 → 88 行（ai-family-doc/ ×5 sibling）、ServiceConnectionTest 1265 → 406 行（service-test/ ×5 sibling，测试执行器纯函数化）；九项门禁全绿。无未完成代码挂账。
+2026-09-28 第六轮批8（DataEditorPanel 拆分）已完成并推送（`bef1cea`）: 状态依赖图先行 → 自治 Tab 范式落地，主壳 1188 → 154 行 + `data-editor/` ×7 sibling（shared / use-table-state 三 hook / db 族 ×3 / store 族 a/b 共 6 组件 11-prop→2-prop）；九项门禁全绿，size:check 基线 -1034 行，**三超标组件拆分 3/3 全闭环**。无未完成代码挂账。
 
-### 8.3 当前优先级（2026-09-28 第六轮批7 执行后）
+### 8.3 当前优先级（2026-09-28 第六轮批8 执行后）
 
 1. **[P1]** Playwright 最小 e2e（auth 链路 ×3: 登录 401/成功 → gw 未认证 401 → 路由冒烟），替代手搓 curl 烟测
-2. **[P2]** 批8: DataEditorPanel 1189 拆分（10 useState + 17 useCallback + 35 内函数深耦合，**先绘状态依赖图**再定拆分粒度；勿照搬纯函数化范式）→ `exhaustive-deps`(22) 渐进治理
+2. **[P2]** `exhaustive-deps`(22) 渐进治理（lint 警告存量收尾）
 3. **[P2]** console 公网部署时配置服务端环境变量 `CONSOLE_AUTH_SECRET` + `CONSOLE_ADMIN_PASSWORD`（批4 鉴权自动启用）
 4. **[P3]** Pages PWA 浏览器人工验证（注意 GAP-006 — sw.js 未注册，建议正式决策关闭或补注册）；CI actions Node20 deprecation 告警顺势升级
 5. **[P3]** 2026-12 Phase 4 触发条件季度核对（2026-09-20 预核对结论: 九项均未触发, 维持挂账）
@@ -431,6 +439,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-28 | v2.3.0 | 第六轮: 五维架构分析（总分 87.6）+ 批5 四小项（AGENTS.md MUI 失真修正 / serve:console 入口 + 双服务拓扑注释 / i18n key 对齐守卫 3 用例 / rollup-plugin-visualizer@7.1.1 字节可见性）；首次 bundle 归因: 主包 rendered 1085 kB = src 33% + motion 集群 36% + zod 20%；测试 2002 → 2005 用例 | 用户指令「分析架构 + 执行批5 + 同步结论」 |
 | 2026-09-28 | v2.4.0 | 第六轮批6: motion/zod 主包减包 —— LazyMotion 异步 features + m.* 别名（motion 390→~249 kB）+ zod/mini 切换（219→57 kB）；主包 index 509 → 365 kB（**-28.3%**, gzip 约 157 → 113 kB）；TopBar/Layout mock 补 m 键 | 用户指令「执行批6 的 motion 和 zod 优化」 |
 | 2026-09-28 | v2.5.0 | 第六轮批7: 三超标组件拆分 2/3（`37fe765`）—— AIFamilyDesignDoc 1217 → 88 主壳 + ai-family-doc/ ×5 sibling（Facade 范式）；ServiceConnectionTest 1265 → 406 主壳 + service-test/ ×5 sibling（测试执行器纯函数化，localStorage 收口 yyc3-storage）；size:check 基线 **-1988 行**；DataEditorPanel 留批8 | 用户指令「执行批7 的架构优化」 |
+| 2026-09-28 | v2.6.0 | 第六轮批8: DataEditorPanel 拆分全闭环（`bef1cea`）—— 状态依赖图先行定案自治 Tab 范式；主壳 1188 → 154 行 + data-editor/ ×7 sibling（shared 收敛重复 JSX + use-table-state 三 hook + db 族 ×3 自治 Tab + store 族 a/b 六组件 11-prop→2-prop）；size:check 基线 **-1034 行**，三超标组件拆分 **3/3 全闭环**（累计 -3022 行） | 用户指令「执行批8: 先绘制 DataEditorPanel 的状态依赖图」 |
 
 ---
 
