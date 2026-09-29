@@ -28,9 +28,7 @@ import {
   FileText,
   Film,
   FolderOpen,
-  Gauge,
   GitBranch,
-  HardDrive,
   Monitor,
   MoreHorizontal,
   Paintbrush,
@@ -45,7 +43,7 @@ import {
   UserCircle2,
   Users,
   Wrench,
-  X,
+  X
 } from "lucide-react";
 import { AnimatePresence, m as motion } from "motion/react";
 import React, { useEffect, useState } from "react";
@@ -72,9 +70,7 @@ const MORE_CATEGORIES: MoreCategory[] = [
     labelKey: "nav.catOps", icon: Wrench,
     items: [
       { key: "nav.fileManager", path: "/files", icon: FolderOpen },
-      { key: "nav.hostFiles", path: "/host-files", icon: HardDrive },
       { key: "nav.database", path: "/database", icon: Database },
-      { key: "nav.performance", path: "/performance", icon: Gauge },
       { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
       { key: "nav.serviceLoop", path: "/loop", icon: Settings },
       { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
@@ -270,8 +266,8 @@ export function BottomNav() {
                   <div className="relative">
                     <Icon
                       className={`w-[22px] h-[22px] transition-all duration-200 ${isActive
-                          ? "text-[#00d4ff]"
-                          : "text-[rgba(0,212,255,0.3)]"
+                        ? "text-[#00d4ff]"
+                        : "text-[rgba(0,212,255,0.3)]"
                         }`}
                       style={isActive ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                     />
@@ -303,8 +299,8 @@ export function BottomNav() {
               <div className="relative">
                 <MoreHorizontal
                   className={`w-[22px] h-[22px] transition-all duration-200 ${isInMoreSection || moreOpen
-                      ? "text-[#00d4ff]"
-                      : "text-[rgba(0,212,255,0.3)]"
+                    ? "text-[#00d4ff]"
+                    : "text-[rgba(0,212,255,0.3)]"
                     }`}
                   style={(isInMoreSection || moreOpen) ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                 />

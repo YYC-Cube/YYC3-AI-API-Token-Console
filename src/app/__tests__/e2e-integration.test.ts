@@ -338,14 +338,6 @@ describe("E2E: i18n 双语覆盖度", () => {
       expect(zhSub, `i18n 模块 "${key}" 键值不一致`).toEqual(enSub);
     }
   });
-
-  it("nav.architecture 键存在于双语包", async () => {
-    const { default: zhCN } = await import("../i18n/zh-CN");
-    const { default: enUS } = await import("../i18n/en-US");
-
-    expect(zhCN.nav.architecture).toBe("架构审计");
-    expect(enUS.nav.architecture).toBe("Architecture");
-  });
 });
 
 // ============================================================

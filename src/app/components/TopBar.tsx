@@ -2,7 +2,7 @@
  * TopBar.tsx
  * ===========
  * 极简顶栏 · 导航已移至左侧 Sidebar（桌面）/ BottomNav + MobileDrawer（移动）
- * 
+ *
  * 移动端优化：
  * - 顶栏极简：仅 hamburger + logo + 通知 + 头像
  * - 全屏滑入抽屉 + 半透明遮罩
@@ -11,29 +11,52 @@
  * - 搜索框移入抽屉
  */
 
-import React, { useState, useRef, useEffect } from "react";
 import {
-  Search, Bell, ChevronDown, ChevronRight, Menu, X, LogOut, User, Shield, Ghost,
-  Activity, Wrench, Brain, Code2, ShieldCheck,
-  BarChart3, AlertTriangle, Radar,
-  Settings, FolderOpen, RefreshCcw,
-  Sparkles, Cpu,
-  Palette, BookOpen, Paintbrush, Terminal, Monitor,
-  ClipboardList, Users, Cog,
-  BellRing, FileBarChart, BrainCircuit,
-  HardDrive, Database, GitBranch,
-  Smartphone,
-  UserCircle2,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  BellRing,
+  BookOpen,
+  Brain,
+  BrainCircuit,
+  ChevronDown, ChevronRight,
+  ClipboardList,
+  Code2,
+  Cog,
+  Cpu,
+  Database,
+  FileBarChart,
   FileText,
+  FolderOpen,
+  Ghost,
+  LogOut,
+  Menu,
+  Palette,
+  Radar,
+  RefreshCcw,
+  Search,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Terminal,
+  User,
+  UserCircle2,
+  Users,
+  Wrench,
+  X
 } from "lucide-react";
 import { AnimatePresence, m as motion } from "motion/react";
-import { useNavigate, useLocation } from "react-router";
-import { ConnectionStatus } from "./ConnectionStatus";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { YYC3Logo } from "./YYC3Logo";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useI18n } from "../hooks/useI18n";
 import { isGhostMode } from "../lib/supabaseClient";
 import type { ConnectionState } from "../types";
+import { ConnectionStatus } from "./ConnectionStatus";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { YYC3Logo } from "./YYC3Logo";
 
 /* ── 移动端导航分类 ─��� */
 interface MobileNavChild {
@@ -51,29 +74,28 @@ const MOBILE_NAV: MobileNavCategory[] = [
   {
     id: "monitor", labelKey: "nav.catMonitor", icon: Activity,
     children: [
-      { key: "nav.dataMonitor", path: "/",           icon: BarChart3 },
-      { key: "nav.followUp",    path: "/follow-up",   icon: AlertTriangle },
-      { key: "nav.patrol",      path: "/patrol",       icon: Radar },
-      { key: "nav.alertRules",  path: "/alerts",       icon: BellRing },
+      { key: "nav.dataMonitor", path: "/", icon: BarChart3 },
+      { key: "nav.followUp", path: "/follow-up", icon: AlertTriangle },
+      { key: "nav.patrol", path: "/patrol", icon: Radar },
+      { key: "nav.alertRules", path: "/alerts", icon: BellRing },
     ],
   },
   {
     id: "ops", labelKey: "nav.catOps", icon: Wrench,
     children: [
-      { key: "nav.operations",   path: "/operations",  icon: RefreshCcw },
-      { key: "nav.fileManager",  path: "/files",        icon: FolderOpen },
-      { key: "nav.hostFiles",    path: "/host-files",   icon: HardDrive },
-      { key: "nav.database",     path: "/database",     icon: Database },
-      { key: "nav.serviceLoop",  path: "/loop",         icon: Settings },
-      { key: "nav.reportExport", path: "/reports",      icon: FileBarChart },
+      { key: "nav.operations", path: "/operations", icon: RefreshCcw },
+      { key: "nav.fileManager", path: "/files", icon: FolderOpen },
+      { key: "nav.database", path: "/database", icon: Database },
+      { key: "nav.serviceLoop", path: "/loop", icon: Settings },
+      { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
     ],
   },
   {
     id: "ai", labelKey: "nav.catAI", icon: Brain,
     children: [
-      { key: "nav.aiDecision",     path: "/ai",            icon: Sparkles },
-      { key: "modelProvider.title", path: "/models",        icon: Cpu },
-      { key: "nav.aiDiagnostics",  path: "/ai-diagnosis",  icon: BrainCircuit },
+      { key: "nav.aiDecision", path: "/ai", icon: Sparkles },
+      { key: "modelProvider.title", path: "/models", icon: Cpu },
+      { key: "nav.aiDiagnostics", path: "/ai-diagnosis", icon: BrainCircuit },
     ],
   },
   {
@@ -87,21 +109,17 @@ const MOBILE_NAV: MobileNavCategory[] = [
     id: "dev", labelKey: "nav.catDev", icon: Code2,
     children: [
       { key: "nav.designSystem", path: "/design-system", icon: Palette },
-      { key: "nav.devGuide",     path: "/dev-guide",     icon: BookOpen },
-      { key: "nav.theme",        path: "/theme",          icon: Paintbrush },
-      { key: "nav.terminal",     path: "/terminal",       icon: Terminal },
-      { key: "nav.ide",          path: "/ide",             icon: Monitor },
-      { key: "nav.refactoring",  path: "/refactoring",    icon: GitBranch },
+      { key: "nav.devGuide", path: "/dev-guide", icon: BookOpen },
     ],
   },
   {
     id: "admin", labelKey: "nav.catAdmin", icon: ShieldCheck,
     children: [
-      { key: "nav.audit",           path: "/audit",    icon: ClipboardList },
-      { key: "nav.userMgmt",        path: "/users",    icon: Users },
-      { key: "nav.settings",        path: "/settings", icon: Cog },
+      { key: "nav.audit", path: "/audit", icon: ClipboardList },
+      { key: "nav.userMgmt", path: "/users", icon: Users },
+      { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
-      { key: "nav.pwa",             path: "/pwa",      icon: Smartphone },
+      { key: "nav.pwa", path: "/pwa", icon: Smartphone },
     ],
   },
 ];
@@ -359,9 +377,8 @@ export function TopBar({
                       { msg: "存储集群 C2 容量预警 (85%)", time: t("common.hoursAgo", { n: 1 }), type: "error" },
                     ].map((n, i) => (
                       <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-[rgba(0,180,255,0.04)] cursor-pointer mb-0.5 transition-colors min-h-[48px]">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                          n.type === "warn" ? "bg-[#ffdd00]" : n.type === "success" ? "bg-[#00ff88]" : "bg-[#ff3366]"
-                        }`} />
+                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.type === "warn" ? "bg-[#ffdd00]" : n.type === "success" ? "bg-[#00ff88]" : "bg-[#ff3366]"
+                          }`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>{n.msg}</p>
                           <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>{n.time}</p>
@@ -382,9 +399,8 @@ export function TopBar({
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-              className={`flex items-center gap-1.5 rounded-lg transition-all min-h-[36px] px-1.5 ${
-                userMenuOpen ? "bg-[rgba(0,212,255,0.06)]" : "hover:bg-[rgba(0,212,255,0.04)]"
-              }`}
+              className={`flex items-center gap-1.5 rounded-lg transition-all min-h-[36px] px-1.5 ${userMenuOpen ? "bg-[rgba(0,212,255,0.06)]" : "hover:bg-[rgba(0,212,255,0.04)]"
+                }`}
             >
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center">
                 <span className="text-white" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.5rem" }}>{initials}</span>

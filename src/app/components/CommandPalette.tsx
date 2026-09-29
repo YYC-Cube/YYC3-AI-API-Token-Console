@@ -60,8 +60,6 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: "nav-patrol", labelKey: "nav.patrol", descKey: "patrol.subtitle", category: "nav", icon: "Shield", path: "/patrol", shortcut: "⌘+Shift+P" },
   { id: "nav-operations", labelKey: "nav.operations", descKey: "operations.subtitle", category: "nav", icon: "Wrench", path: "/operations", shortcut: "⌘+Shift+O" },
   { id: "nav-files", labelKey: "nav.fileManager", descKey: "fileManager.subtitle", category: "nav", icon: "FolderOpen", path: "/files", shortcut: "⌘+Shift+F" },
-  { id: "nav-terminal", labelKey: "nav.terminal", descKey: "palette.navigate", category: "nav", icon: "Terminal", path: "/terminal", shortcut: "⌘+Shift+L" },
-  { id: "nav-ide", labelKey: "nav.ide", descKey: "palette.navigate", category: "nav", icon: "Code2", path: "/ide" },
   { id: "nav-ai", labelKey: "nav.aiDecision", descKey: "ai.subtitle", category: "nav", icon: "Bot", path: "/ai" },
   { id: "nav-loop", labelKey: "nav.serviceLoop", descKey: "loop.subtitle", category: "nav", icon: "Activity", path: "/loop" },
   { id: "nav-design", labelKey: "nav.designSystem", descKey: "devGuide.architecture", category: "nav", icon: "BarChart3", path: "/design-system" },
@@ -74,11 +72,8 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: "nav-alerts", labelKey: "nav.alertRules", descKey: "alerts.subtitle", category: "nav", icon: "Bell", path: "/alerts" },
   { id: "nav-reports", labelKey: "nav.reportExport", descKey: "reports.subtitle", category: "nav", icon: "BarChart3", path: "/reports" },
   { id: "nav-aidiag", labelKey: "nav.aiDiagnostics", descKey: "aiDiag.subtitle", category: "nav", icon: "BrainCircuit", path: "/ai-diagnosis" },
-  { id: "nav-hostfiles", labelKey: "nav.hostFiles", descKey: "palette.navigate", category: "nav", icon: "HardDrive", path: "/host-files" },
   { id: "nav-database", labelKey: "nav.database", descKey: "palette.navigate", category: "nav", icon: "Database", path: "/database" },
-  { id: "nav-refactoring", labelKey: "nav.refactoring", descKey: "palette.navigate", category: "nav", icon: "GitBranch", path: "/refactoring" },
   { id: "nav-pwa", labelKey: "nav.pwa", descKey: "pwa.subtitle", category: "nav", icon: "Smartphone", path: "/pwa" },
-  { id: "nav-performance", labelKey: "nav.performance", descKey: "palette.navigate", category: "nav", icon: "Gauge", path: "/performance" },
   { id: "nav-envconfig", labelKey: "nav.envConfig", descKey: "palette.navigate", category: "nav", icon: "ServerCog", path: "/env-config" },
 ];
 

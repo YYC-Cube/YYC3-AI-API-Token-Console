@@ -14,15 +14,27 @@
  * - 已知缺口与 TODO
  */
 
-import React, { useState, useMemo } from "react";
 import {
-  BarChart3, Layers, Database, Route, FileCode2,
-  CheckCircle2, AlertTriangle, XCircle, Shield,
-  ChevronDown, ChevronRight, GitBranch, Package,
-  TestTube2, Cpu, Globe, Eye,
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  ChevronDown, ChevronRight,
+  Cpu,
+  Database,
+  Eye,
+  FileCode2,
+  GitBranch,
+  Globe,
+  Layers,
+  Package,
+  Route,
+  Shield,
+  TestTube2,
+  XCircle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React, { useMemo, useState } from "react";
 import { useI18n } from "../hooks/useI18n";
+import { GlassCard } from "./GlassCard";
 
 /* ────────────────────────────────────────────────────── */
 /*  数据定义                                               */
@@ -70,7 +82,6 @@ const ROUTES: RouteInfo[] = [
   { path: "/alerts", component: "AlertRulesPanel", category: "监控", status: "complete", features: ["告警规则 CRUD", "阈值配置", "聚合去重", "升级策略", "实时事件"] },
   { path: "/operations", component: "OperationCenter", category: "运维", status: "complete", features: ["操作分类标签", "快速操作网格", "操作模板管理", "实时操作日志", "搜索过滤"] },
   { path: "/files", component: "LocalFileManager", category: "运维", status: "complete", features: ["虚拟文件浏览", "日志查看器", "报告生成器", "文件操作"] },
-  { path: "/host-files", component: "HostFileManager", category: "运维", status: "complete", features: ["File System Access API", "文件版本管理", "代码编辑器", "文件搜索"] },
   { path: "/database", component: "DatabaseManager", category: "运维", status: "complete", features: ["SQL 编辑器", "表浏览", "备份管理", "查询历史"] },
   { path: "/ai", component: "AISuggestionPanel", category: "AI", status: "complete", features: ["异常模式检测", "AI 推荐操作", "健康度评估", "一键应用建议"] },
   { path: "/ai-diagnosis", component: "AIDiagnostics", category: "AI", status: "complete", features: ["模式识别", "异常记录", "建议操作", "预测性预报"] },
@@ -79,18 +90,12 @@ const ROUTES: RouteInfo[] = [
   { path: "/design-system", component: "DesignSystemPage", category: "开发", status: "complete", features: ["色彩 Token", "字体排版", "间距", "阴影", "动效", "组件展示"] },
   { path: "/dev-guide", component: "DevGuidePage", category: "开发", status: "complete", features: ["开发规范", "目录结构", "代码示例"] },
   { path: "/models", component: "ModelProviderPanel", category: "AI", status: "complete", features: ["服务商管理", "模型配置", "API Key 管理", "Ollama 集成"] },
-  { path: "/theme", component: "ThemeCustomizer", category: "开发", status: "complete", features: ["主题预设", "颜色选择器", "实时预览"] },
-  { path: "/terminal", component: "CLITerminal", category: "开发", status: "complete", features: ["命令行交互", "命令补全", "输出格式化"] },
-  { path: "/ide", component: "IDEPanel", category: "开发", status: "complete", features: ["IDE 侧边栏模拟", "四标签切换", "节点状态列表"] },
   { path: "/audit", component: "OperationAudit", category: "管理", status: "complete", features: ["搜索过滤", "分页", "JSON 导出", "链路追踪", "详情 Modal"] },
   { path: "/users", component: "UserManagement", category: "管理", status: "complete", features: ["用户 CRUD", "角色管理", "锁定/解锁", "超管保护", "重置为默认", "权限矩阵"] },
   { path: "/settings", component: "SystemSettings", category: "管理", status: "complete", features: ["模型管理 CRUD", "API 端点配置", "网络配置 Modal", "分类切换", "二次确认"] },
   { path: "/security", component: "SecurityMonitor", category: "管理", status: "complete", features: ["CSP 检测", "Cookie 检查", "敏感数据扫描", "性能分析", "内存监控", "Web Vitals"] },
   { path: "/reports", component: "ReportExporter", category: "管理", status: "complete", features: ["报表生成", "多格式导出", "时间范围", "报表历史"] },
-  { path: "/refactoring", component: "RefactoringReport", category: "开发", status: "complete", features: ["重构报告展示", "RF 编号追踪"] },
-  { path: "/performance", component: "PerformanceMonitor", category: "监控", status: "complete", features: ["性能指标监控", "图表展示"] },
   { path: "/env-config", component: "EnvConfigEditor", category: "管理", status: "complete", features: ["31 环境变量编辑", "导入导出", "重置"] },
-  { path: "/db-connections", component: "DatabaseConnectionPanel", category: "运维", status: "complete", features: ["数据库连接 CRUD", "连接测试", "连接池配置"] },
 ];
 
 /* ── Store 清单 ───────────────────────────────────── */
@@ -398,11 +403,10 @@ export function ArchitectureAudit() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              activeTab === tab.key
-                ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]"
-                : "text-[rgba(180,200,220,0.6)] hover:text-[rgba(180,200,220,0.9)] hover:bg-[rgba(255,255,255,0.03)]"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${activeTab === tab.key
+              ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]"
+              : "text-[rgba(180,200,220,0.6)] hover:text-[rgba(180,200,220,0.9)] hover:bg-[rgba(255,255,255,0.03)]"
+              }`}
             style={{ fontSize: "0.78rem" }}
           >
             <tab.icon className="w-3.5 h-3.5" />
@@ -576,10 +580,10 @@ export function ArchitectureAudit() {
               {["getAll(): T[]", "getById(id): T | undefined", "add(item): T", "update(id, partial): T | null",
                 "remove(id): boolean", "removeBatch(ids): number", "reset(): T[]",
                 "exportData(): string", "importData(json): boolean", "count(): number"].map(m => (
-                <div key={m} className="flex items-center gap-2">
-                  <span className="text-[#00d4ff]">+</span> {m}
-                </div>
-              ))}
+                  <div key={m} className="flex items-center gap-2">
+                    <span className="text-[#00d4ff]">+</span> {m}
+                  </div>
+                ))}
             </div>
           </GlassCard>
         </div>
@@ -616,13 +620,12 @@ export function ArchitectureAudit() {
                     <tr key={tf.file} className="border-b border-[rgba(0,180,255,0.05)]">
                       <td className="py-1.5 pr-3 text-[rgba(224,232,240,0.8)] font-mono">{tf.file}</td>
                       <td className="py-1.5 pr-3">
-                        <span className={`px-1.5 py-0.5 rounded ${
-                          tf.type === "unit" ? "bg-blue-500/10 text-blue-300" :
+                        <span className={`px-1.5 py-0.5 rounded ${tf.type === "unit" ? "bg-blue-500/10 text-blue-300" :
                           tf.type === "component" ? "bg-emerald-500/10 text-emerald-300" :
-                          tf.type === "integration" ? "bg-purple-500/10 text-purple-300" :
-                          tf.type === "a11y" ? "bg-amber-500/10 text-amber-300" :
-                          "bg-red-500/10 text-red-300"
-                        }`} style={{ fontSize: "0.65rem" }}>
+                            tf.type === "integration" ? "bg-purple-500/10 text-purple-300" :
+                              tf.type === "a11y" ? "bg-amber-500/10 text-amber-300" :
+                                "bg-red-500/10 text-red-300"
+                          }`} style={{ fontSize: "0.65rem" }}>
                           {tf.type}
                         </span>
                       </td>
@@ -710,11 +713,10 @@ export function ArchitectureAudit() {
           {KNOWN_GAPS.map(gap => (
             <GlassCard key={gap.id} className="p-4">
               <div className="flex items-start gap-3">
-                <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${
-                  gap.severity === "critical" ? "text-red-400" :
+                <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${gap.severity === "critical" ? "text-red-400" :
                   gap.severity === "high" ? "text-orange-400" :
-                  gap.severity === "medium" ? "text-amber-400" : "text-blue-400"
-                }`} />
+                    gap.severity === "medium" ? "text-amber-400" : "text-blue-400"
+                  }`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[rgba(0,212,255,0.6)] font-mono" style={{ fontSize: "0.68rem" }}>{gap.id}</span>

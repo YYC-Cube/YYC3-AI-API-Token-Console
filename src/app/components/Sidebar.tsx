@@ -25,15 +25,9 @@ import {
   Film,
   FolderOpen,
   Gamepad2,
-  Gauge,
-  GitBranch,
-  HardDrive,
   Heart,
-  Layers,
   MessageCircle,
-  Monitor,
   Music,
-  Paintbrush,
   Palette,
   Phone,
   Radar,
@@ -46,14 +40,13 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
-  Terminal,
   TrendingUp,
   Trophy,
   UserCircle2,
   Users,
   Volume2,
   Wrench,
-  Zap,
+  Zap
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -93,9 +86,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     children: [
       { key: "nav.operations", path: "/operations", icon: RefreshCcw },
       { key: "nav.fileManager", path: "/files", icon: FolderOpen },
-      { key: "nav.hostFiles", path: "/host-files", icon: HardDrive },
       { key: "nav.database", path: "/database", icon: Database },
-      { key: "nav.dbConnections", path: "/db-connections", icon: Database },
       { key: "nav.connectionTest", path: "/connection-test", icon: Zap },
       { key: "nav.serviceLoop", path: "/loop", icon: SettingsIcon },
       { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
@@ -143,11 +134,6 @@ const NAV_CATEGORIES: NavCategory[] = [
     children: [
       { key: "nav.designSystem", path: "/design-system", icon: Palette },
       { key: "nav.devGuide", path: "/dev-guide", icon: BookOpen },
-      { key: "nav.theme", path: "/theme", icon: Paintbrush },
-      { key: "nav.terminal", path: "/terminal", icon: Terminal },
-      { key: "nav.ide", path: "/ide", icon: Monitor },
-      { key: "nav.refactoring", path: "/refactoring", icon: GitBranch },
-      { key: "nav.architecture", path: "/architecture", icon: Layers },
     ],
   },
   {
@@ -160,7 +146,6 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
       { key: "nav.pwa", path: "/pwa", icon: Smartphone },
-      { key: "nav.performance", path: "/performance", icon: Gauge },
       { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
     ],
   },

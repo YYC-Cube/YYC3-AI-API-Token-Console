@@ -8,9 +8,10 @@
 import type { KnipConfig } from "knip";
 
 /** 首跑盘点基线 (2026-09-20) — 任何类别超基线即 CI 失败, 只减不增
- *  2026-09-29 批11 季度核对下调: dependencies 48→31, devDependencies 5→4 (knip 实测收敛) */
+ *  2026-09-29 批11 季度核对下调: dependencies 48→31, devDependencies 5→4 (knip 实测收敛)
+ *  2026-09-29 批12 死代码清偿下调: files 9→0 (11 死文件归档移除后归零) */
 const BASELINE_COUNTS = {
-  files: 9, // 未引用文件
+  files: 0, // 未引用文件 (批12 死代码批量归档后归零)
   dependencies: 31, // 未使用 dependencies (shadcn/ui 生态预留为主, 季度清理)
   devDependencies: 4,
   exports: 11,

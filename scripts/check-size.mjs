@@ -34,7 +34,8 @@ function listSourceFiles() {
   const out = execSync("git ls-files 'src/**/*.ts' 'src/**/*.tsx'", {
     encoding: "utf8",
   });
-  return out.split("\n").filter((f) => f && !EXCLUDE.test(f));
+  // existsSync 过滤: git ls-files 基于索引, 已删除未提交的文件需跳过 (2026-09-29 批12)
+  return out.split("\n").filter((f) => f && !EXCLUDE.test(f) && existsSync(f));
 }
 
 let warnings = 0;
