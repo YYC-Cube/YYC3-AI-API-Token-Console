@@ -1,0 +1,38 @@
+# gitleaks 配置 — 继承全部默认规则, 仅追加本仓库人工核实过的误报豁免
+# 纪律: 豁免条目必须带「原因 + 复核日期 + 证据 Fingerprint」, 季度复核时清理失效条目 (只减不增)
+# 格式: [[allowlists]] 数组表 (gitleaks ≥8.19), 条目内 path+regex 双重 AND 限域, 条目间 OR
+[extend]
+useDefault = true
+
+# ① 原因: AI Family localStorage 存储键名 (yyc3-family-*) — "provider-keys" 键名含关键字 "keys",
+#       与下一行键名跨行拼接误触 generic-api-key; 键名为公开数据标识符, 不可改名 (破坏存量数据)。
+#   复核: 2026-09-29 (批9) · 证据: CI run 36522561078 Fingerprint
+#         9638286:src/app/components/ai-family/FamilyUISettings.tsx:generic-api-key:64
+[[allowlists]]
+description = "FamilyUISettings 存储键名 (公开数据标识符, 非凭证)"
+paths = ['''src/app/components/ai-family/FamilyUISettings\.tsx$''']
+regexes = ['''yyc3-family-[a-z0-9-]+''']
+
+# ② 原因: 批4 console 鉴权单测夹具 — 显式 test- 前缀假密钥, 用于 HMAC 令牌签名测试。
+#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#         25288db:src/app/__tests__/console-auth.test.ts:generic-api-key:10
+[[allowlists]]
+description = "console-auth 单测假密钥夹具"
+paths = ['''src/app/__tests__/console-auth\.test\.ts$''']
+regexes = ['''test-secret-0123456789abcdef''']
+
+# ③ 原因: 团队规范本地文档 (不入远程库, 仅存历史) 的 curl 调用示例 — Authorization 头为占位演示。
+#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#         852122a:docs/YYC3-AI-Family-团队规范/验收总结/YYC3-设计原型差距分析报告.md:curl-auth-header:180
+[[allowlists]]
+description = "规范文档 curl 调用示例占位头"
+paths = ['''YYC3-设计原型差距分析报告\.md$''']
+regexes = ['''curl https://api\.0379\.world/v1/chat/completions''']
+
+# ④ 原因: Figma 文件 key 为公开标识符 (每个 Figma 链接均含), 非访问凭证; 历史导入说明文档。
+#   复核: 2026-09-29 (批9 全历史扫描核实) · 证据: Fingerprint
+#         852122a:src/imports/figma-integration-config.md:generic-api-key:23
+[[allowlists]]
+description = "Figma 文件公开 key (URL 标识符, 非凭证)"
+paths = ['''src/imports/figma-integration-config\.md$''']
+regexes = ['''FIGMA_FILE_KEY=[A-Za-z0-9]+''']
