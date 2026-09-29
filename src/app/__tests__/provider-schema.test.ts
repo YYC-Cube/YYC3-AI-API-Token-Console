@@ -32,4 +32,24 @@ describe("builtin-providers.json 声明式校验", () => {
     expect(ollama).toBeDefined();
     expect(ollama?.requiresApiKey).toBe(false);
   });
+
+  // ── schema v2 protocol 字段 (批11 / Phase 4-4.5 微改: models 语义防漂移) ──
+
+  it("protocol 全量声明且值合法 (models 语义可机读, 防漂移测试化)", () => {
+    const VALID = ["chat", "image", "tts", "video", "score"] as const;
+    for (const p of builtinProviders) {
+      expect(
+        VALID.includes(p.protocol as (typeof VALID)[number]),
+        `提供商 ${p.id} 的 protocol "${p.protocol as string}" 不合法`
+      ).toBe(true);
+    }
+  });
+
+  it("yyc3-* 本地服务群 protocol 与服务语义对齐 (FamilyDrama 消费字段化基础)", () => {
+    const byId = Object.fromEntries(builtinProviders.map((p) => [p.id, p.protocol]));
+    expect(byId["yyc3-comfyui"]).toBe("image");
+    expect(byId["yyc3-syncnet"]).toBe("score");
+    expect(byId["yyc3-tts"]).toBe("tts");
+    expect(byId["yyc3-h3"]).toBe("video");
+  });
 });

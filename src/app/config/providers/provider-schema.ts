@@ -16,6 +16,9 @@ export const builtinProviderSchema = z.object({
   label: z.string().check(z.minLength(1)),
   baseUrl: z.url(),
   authType: z.enum(["bearer", "api-key", "none"]),
+  // schema v2 (批11 / Phase 4-4.5 微改): models 语义消歧 —
+  // 该提供商 models 列表的协议族 (checkpoint 文件名/音色名/评分版本不再与 chat 模型混淆)
+  protocol: z.optional(z.enum(["chat", "image", "tts", "video", "score"])),
   models: z.array(z.string()),
   requiresApiKey: z.boolean(),
   isLocal: z.boolean(),
