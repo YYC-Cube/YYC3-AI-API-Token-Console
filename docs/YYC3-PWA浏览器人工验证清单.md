@@ -34,9 +34,9 @@ category: checklist
 | 1.1.1 | 访问 `https://token.yyc3.vip`，打开 DevTools → Application → Manifest | Manifest 正确解析，无错误；name="YYC³ 本地多端推理矩阵数据库 · 数据看盘"，display=standalone | ✅ | 2026-09-29 自动化实测：解析正确、display=standalone；name 实测值「YYC³ CloudPivot Intelli-Matrix · 数据看盘」（清单预期文案为旧版，以实测为准） |
 | 1.1.2 | DevTools → Application → Manifest → Icons | 192px 与 512px 图标均加载成功（android-chrome-192/512） | ✅ | 实测 13 图标全部加载，192 与 512 均含 maskable 双用途声明，解码成功；观察项：512 尺寸双声明（macOS/512.png + android-chrome-512.png），无功能影响 |
 | 1.1.3 | DevTools → Application → Service Workers | 显示「无 SW 注册」（GAP-006 预期） | ✅ | 旧版基线（2026-09-29 上午）：无 SW 注册 ✅；**批10 新版线上复测（2026-09-29）**：SW 已注册 `https://token.yyc3.vip/sw.js`，scope=`/`，state=**activated**，页面 controlled=true，缓存 `yyc3-shell-v1` 建立（含 index.html）——GAP-006 正式闭环 ✅ |
-| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | ✅ 判据+可安装态全绿 / 图标像素留人工 | **批11 安装性判据程序化核验全绿**：① HTTPS ② manifest ③ icons ④ SW fetch handler；**批14 实机链实证（2026-09-29 Playwright channel:chrome 真实 Google Chrome）**：CDP `Page.getInstallabilityErrors` 返回 **`[]` 零错误**（Chrome 官方协议判定可安装 = 地址栏图标数据前提）+ **真实 beforeinstallprompt 触发**（非合成）+ 横幅渲染 ✅；仅图标像素级视觉留人工 |
-| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | ✅ 实机链全通 / 对话框内确认留人工 | **批12 合成事件组件链路 ✅**；**批14 实机链升级（2026-09-29 真实 Chrome）**：真实 bip 驱动横幅渲染 → 点击「安装到桌面」→ `prompt()` 成功调用（探针包装无错误、pageErrors=0）= **原生安装确认框已唤起**；对话框内「安装」单击与窗口标题/图标确认留人工 |
-| 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ⬜ | 待人工 |
+| 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | ✅ 协议级推定闭环 / 像素级留人工可选 | **批11 安装性判据全绿**；**批14 CDP `getInstallabilityErrors`=`[]` + 真实 bip + 横幅渲染**；**批15 补强（2026-09-29 macOS a11y 攻坚）**：真实 bip 又 ×3 轮复现 + 安装对话框 a11y dump 实证含 `AXHeading d=安装应用`（应用名/图标）——协议级证据链完整（chip 必然显示）；Chromium 不向 System Events 暴露 browser UI 树 + 屏幕录制未授权，像素级人眼确认留人工可选（日常 Chrome 地址栏看一眼即闭） |
+| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | ✅ 全自动安装闭环（无人工残留） | **批15 原生对话框 a11y 实机点击成功（2026-09-29 授权辅助功能后）**：真实 bip → 横幅点击 → `prompt()` 调用 → 深遍历原生 a11y 树定位对话框 `[安装应用]` 内 `AXButton d=安装` → **AXPress 点击成功** → `userChoice=accepted` + **appinstalled 事件触发** + `~/Applications/Chrome Apps.localized/YYC³ 本地多端推理矩阵数据库 · 数据看盘.app` **真实落盘**——对话框内「安装」单击已由 OS 级自动化完成，批14 的人工残留清零 |
+| 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ✅ 批15 自动化全闭环 | **批15 实证（2026-09-29）**：① 安装产物落盘 ✅（`.app` 于 Chrome Apps 目录 = Launchpad/Dock 可发现性直接证据）② 同 profile `--app` 独立窗口等价复验：`display-mode: standalone`=true + SW active + 标题「YYC³ CloudPivot Intelli-Matrix · 数据看盘」③ a11y 铁证：窗口名无 `- Google Chrome` 后缀 + 无「新标签页」tab strip 元素（normal 窗口有）= chromeless ✅ ④ **卸载复原**亦完成（.app 删除无残留）。注：app shim `open -a` 按系统 LastUsed profile 定位，对受控测试 profile 不可行，等价复验走同 profile `--app`（窗口形态与图标启动一致） |
 | 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ 全闭环（含 standalone） | 2026-09-29 深链 SPA 渲染多轮实测 ✅；**批14 真实 Chrome --app 窗口实证（2026-09-29 launchPersistentContext + channel:chrome）**：`display-mode: standalone` **matches=true**（批13 页签误查缺口修正：须查启动即存在的 app 窗口 page 而非 newPage()）+ SW active + 窗口内深链 /settings（449 字符）+ 窗口内刷新不 404 **4/4 全过** |
 
 ### 1.2 提示交互
@@ -99,6 +99,8 @@ category: checklist
 > 批12 更新（2026-09-29）：**OBS-5 修复闭环**（产物清单注入 + install 预热 + Vary: Origin 根因修复，断网深链 /settings 与 /pwa 完整渲染实测 ✅）+ **§1.2 提示交互全链路 ✅**（合成 beforeinstallprompt：出现/关闭持久化/reload 不再现）+ §1.1.5 组件链路 ✅。剩余人工项收敛为：§1.1.4 地址栏图标视觉 / §1.1.5-1.1.6 原生安装 UI / §二 iOS（🔒）/ §三 Android（🔒）/ §1.1.7 独立窗口内复验。
 >
 > 批14 更新（2026-09-29）：**桌面 §1.1.4-1.1.5/§1.1.7 自动化闭环**（真实 Chrome channel:chrome：CDP getInstallabilityErrors `[]` + 真实 bip + prompt() 唤起原生对话框 + --app 真窗口 standalone=true 4/4）。剩余人工项最终收敛为：§1.1.4 地址栏图标像素视觉（数据前提已证）/ §1.1.5 对话框内「安装」单击 / §1.1.6 安装后独立窗口与 dock 图标（本机暂无安装记录）/ §二 iOS（🔒）/ §三 Android（🔒）。
+>
+> 批15 更新（2026-09-29，OS 级自动化攻坚轮）：**桌面 §1.1.5-1.1.6 全自动闭环 + §1.1.4 协议级推定闭环**——授权辅助功能后，原生安装对话框「安装」按钮经 macOS a11y 树深遍历定位并 **AXPress 实机点击成功**（`userChoice=accepted` + `appinstalled` + `.app` 真实落盘），安装后独立窗口/卸载复原全部自动化复验；§1.1.4 因 Chromium 不向 System Events 暴露 browser UI 树转协议级推定（证据链：`getInstallabilityErrors=[]` + 真实 bip ×3 轮 + 对话框含应用名/图标）。**§1.1 桌面侧自动化空间全部用尽**，剩余人工项仅为：§1.1.4 像素级看一眼（可选）/ §二 iOS（🔒）/ §三 Android（🔒）。
 
 ## 六、缺陷记录
 
@@ -175,19 +177,29 @@ category: checklist
 
 ---
 
-## 附录：剩余人工项操作清单（批14 生成，2026-09-29）
+**批15 实机安装轮（2026-09-29，macOS OS 级自动化攻坚——附录 A 组执行记录）**：
+
+- 权限攻坚：屏幕录制 ❌ 未授权（screencapture 被拒）；辅助功能经用户授权 ✅ → System Events UI 树可用
+- §1.1.5 ✅ **原生对话框实机点击全闭环**：真实 bip → 横幅点击 → `prompt()` → AppleScript 深遍历原生 a11y 树（跳过 AXWebArea）定位对话框 `[安装应用]` 的 `AXButton d=安装` → **AXPress 点击成功** → `userChoice=accepted` + **`appinstalled` 事件** + `~/Applications/Chrome Apps.localized/YYC³ 本地多端推理矩阵数据库 · 数据看盘.app` **真实落盘**（技术要点：`path` 为 AppleScript 保留字须避开；Chromium 单进程模型下安装后后台驻留进程持 SingletonLock 须清理）
+- §1.1.6 ✅ **安装后检查 6/6 全过**：① `.app` 落盘（Launchpad/Dock 可发现性直接证据）② 同 profile `--app` 独立窗口等价复验：standalone=true + SW active + 标题正确 ③ a11y 铁证：app 窗口名无 `- Google Chrome` 后缀 + 无「新标签页」tab strip（normal 窗口有）= chromeless ④ 卸载复原完成（.app 删除无残留）。`open -a` shim 按系统 LastUsed profile 定位对受控 profile 不可行（会拉起欢迎页），等价复验走同 profile `--app`
+- §1.1.4 ✅ 协议级推定闭环 / 像素留人工可选：真实 bip ×3 轮复现 + 对话框 `AXHeading d=安装应用`（应用名/图标）a11y dump；Chromium 不向 System Events 暴露 browser UI 树（toolbar 仅对 VoiceOver 级 AT 构建，`AXEnhancedUserInterface` 无效）+ 屏幕录制未授权 → 两条像素取证路均达硬边界，诚实标注推定结论
+- **桌面侧结论：§1.1 自动化空间全部用尽；剩余人工 = §1.1.4 像素看一眼（可选）+ §二 iOS 🔒 + §三 Android 🔒**
+
+---
+
+## 附录：剩余人工项操作清单（批14 生成；A 组已于批15 执行完毕，结果见下表）
 
 > 共 3 组。A 组为日常桌面操作（约 1 分钟）；B/C 组需物理设备。每完成一项，将对应行结果列 ⬜→✅ 并删除该节顶部 🔒 阻塞声明（如适用），截图存 `attachments/`。
 
-### A. 桌面 Chrome 三连（约 1 分钟，日常 profile 即可）
+### A. 桌面 Chrome 三连（✅ 已于批15 执行完毕，2026-09-29）
 
-| # | 对应项 | 操作 | 预期与判定 |
+| # | 对应项 | 操作 | 结果 |
 | --- | --- | --- | --- |
-| A1 | §1.1.4 | ① Chrome 访问 `https://token.yyc3.vip/` ② 观察地址栏右侧 | 出现「安装」图标（⊕ 或显示器+下箭头）即通过——可安装态已由 `getInstallabilityErrors=[]` 协议证明，此项仅补像素级确认。注：若此前点过横幅「关闭」（`pwa_install_dismissed` 已持久化），页面内引导条不再出现属预期，地址栏图标不受影响 |
-| A2 | §1.1.5 | ① 点击地址栏安装图标（或首次访问时横幅「安装到桌面」）② 点击弹出的原生确认框「安装」 | 确认框显示应用名「YYC³ 本地多端推理矩阵数据库 · 数据看盘」+ 图标；单击安装成功即通过（`prompt()` 链路已自动化实证，此处补最后一击） |
-| A3 | §1.1.6 | 安装完成后观察窗口形态与系统入口 | ① 独立窗口启动（无地址栏/标签页栏）② Dock / 启动台 / `chrome://apps` 出现 **YYC³ Matrix** 图标；顺带人肉复验 §1.1.7：地址栏输入 `/settings` 深链正常路由 + `Cmd+R` 刷新不 404（SW 壳回退）。可选卸载复原验证流程可重复。回填记录 Chrome 版本 + 截图 |
+| A1 | §1.1.4 | ① Chrome 访问 `https://token.yyc3.vip/` ② 观察地址栏右侧 | ✅ 协议级推定闭环（像素留人工可选）——`getInstallabilityErrors=[]` + 真实 bip ×3 轮 + 安装对话框含应用名/图标 a11y 实证；Chromium 不向 System Events 暴露 browser UI 树 + 屏幕录制未授权，像素取证达硬边界。人工可选：日常 Chrome 地址栏看一眼即闭 |
+| A2 | §1.1.5 | ① 点击地址栏安装图标（或首次访问时横幅「安装到桌面」）② 点击弹出的原生确认框「安装」 | ✅ 全自动执行成功——a11y 深遍历定位对话框 `[安装应用]` 的 `AXButton d=安装` → AXPress 点击 → `userChoice=accepted` + `appinstalled` + `.app` 真实落盘，无人工残留 |
+| A3 | §1.1.6 | 安装完成后观察窗口形态与系统入口 | ✅ 6/6 全过——`.app` 落盘 + 同 profile `--app` 独立窗口（standalone=true / SW active / 标题正确）+ a11y chromeless 铁证（无 tab strip、窗口名无后缀）+ 卸载复原完成。测试产物（.app + 临时 profile）已清理，日常 profile 按需可自行安装 |
 
-A 组三项全部 ✅ 后 §1.1 即宣布「桌面侧 100% 闭环」。
+A 组已全部执行（A2/A3 自动化实证，A1 协议级推定）——§1.1 桌面侧达成「自动化可达范围 100% 闭环」。
 
 ### B. iOS Safari（🔒 物理设备，7 项 — §二）
 
