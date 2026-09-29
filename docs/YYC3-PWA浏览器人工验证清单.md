@@ -37,7 +37,7 @@ category: checklist
 | 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | 🔄 判据全绿 / 待视觉确认 | **批11 安装性判据程序化核验（2026-09-29）全绿**：① HTTPS 200 ② manifest link + name/short_name/start_url/display=standalone/theme ③ icons 192+512（均 `any maskable`）④ sw.js 200 含 fetch handler（3 个 addEventListener）——Chrome 安装性四判据全部满足，地址栏安装图标预期出现；图标视觉与弹窗交互留人工 |
 | 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | 🔄 组件链路 ✅ / 待人工 | **批12 自动化实证（2026-09-29 Playwright 合成 beforeinstallprompt）**：prompt 事件到达 → PWAInstallPrompt 横幅渲染（「安装到桌面」可点击）→ 组件链路全通；浏览器原生安装确认框 UI 留人工 |
 | 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ⬜ | 待人工 |
-| 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ | 2026-09-29 自动化实测：/settings 与 /ai-family-center 深链均正常 SPA 渲染（404.html 回退生效）；批10 SW 上线后 /settings、/pwa 深链复测同样正常（SW 缓存壳回退链路生效）；独立窗口内行为待人工复验 |
+| 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ | 2026-09-29 自动化实测：/settings 与 /ai-family-center 深链均正常 SPA 渲染（404.html 回退生效）；批10 SW 上线后 /settings、/pwa 深链复测同样正常（SW 缓存壳回退链路生效）；**批13 独立窗口等价模拟（2026-09-29 Playwright --app 双模式）**：headless/headed 深链 /settings 渲染（449 字符）+ 窗口内刷新不 404 双实证 ✅；standalone 媒体查询命中因 Playwright 页签非 --app 窗口本体 + 真实 Chrome CDP attach 受主实例占用限制不可达，留人工独立窗口复验 |
 
 ### 1.2 提示交互
 
@@ -102,7 +102,7 @@ category: checklist
 
 | 发现时间 | 平台 | 项目# | 现象 | 严重度 | 状态 |
 | -------- | ---- | ----- | ---- | ------ | ---- |
-| 2026-09-29 | 桌面 Chrome | OBS-1 | 控制台 `GET /@vite/client ERR_ABORTED`（产物残留 dev 预热引用） | low | 🔄 待查（非阻塞，功能不受影响） |
+| 2026-09-29 | 桌面 Chrome | OBS-1 | 控制台 `GET /@vite/client ERR_ABORTED`（产物残留 dev 预热引用） | low | ✅ 非缺陷（批13 关闭：干净 profile Playwright 线上复测零 @vite 请求 + dist/产物/源码三重取证零引用——批10 观察值为本地浏览器扩展注入探测，非站点产物；同族本地服务探测 OBS-3 已知） |
 | 2026-09-29 | 桌面 Chrome | OBS-2 | manifest 512 尺寸双声明（macOS/512.png + android-chrome-512.png） | info | 🔄 观察（无功能影响） |
 | 2026-09-29 | 桌面 Chrome | OBS-3 | 控制台 error：`localhost:11434` Ollama 探测失败 | info | ✅ 非缺陷（公网环境访问本机服务的预期失败） |
 | 2026-09-29 | 桌面 Chrome | OBS-4 | SW 上线复测时控制台出现两个入口 chunk hash（新旧部署并存加载） | info | ✅ 非缺陷（GitHub Pages index.html `max-age=600` 的 10 分钟 CDN 窗口特性；SW 上线后导航 network-first 每次取最新 HTML，仅 404 回退壳，该窗口自然收敛） |
@@ -151,6 +151,15 @@ category: checklist
 - §1.1.5 🔄→组件链路 ✅：prompt 事件到达 → PWAInstallPrompt 渲染 →「安装到桌面」可点击；原生安装确认框留人工
 - 新增守护测试 ×3（sw-register.test.tsx）：注入锚点存在 / prewarmAssets 挂接 install / match 全 ignoreVary
 - iOS §二 / Android §三 🔒 维持阻塞（物理设备）
+
+---
+
+**批13 观测轮（2026-09-29，真机项自动化边界推进 + OBS-1 关闭 + 预热体积观测）**：
+
+- §1.1.7 ✅ 独立窗口等价模拟：Playwright `--app` 启动 headless/headed 双模式，深链 /settings 渲染（449 字符完整 SPA）+ 窗口内刷新不 404（SW 壳回退）四断言全过；`display-mode: standalone` 媒体查询命中与原生安装 UI 留人工（自动化边界诚实标注：Playwright 新建页签非 app 窗口本体；真实 Chrome CDP attach 受运行中主实例参数转交限制不可达）
+- OBS-1 ✅ 非缺陷关闭：干净 profile（无扩展）线上 Playwright 复测 **零** @vite 请求；dist 产物/线上 index.html/源码三重取证零引用——批10 观察值判定为本地浏览器扩展注入探测
+- §1.1.4 视觉确认 / §1.1.5-1.1.6 原生安装 UI 与独立窗口启动 / iOS §二 / Android §三 维持人工与 🔒 阻塞
+- 剩余人工项收敛：① §1.1.4 地址栏图标视觉；② §1.1.5-1.1.6 原生安装 UI + 独立窗口（含 standalone 媒体查询复验）；③ §二 iOS（🔒）；④ §三 Android（🔒）
 
 ---
 
