@@ -2,7 +2,7 @@
 file: YYC3-全量落地实施总结与衔接报告.md
 description: YYC3-AI-API-Token-Console 四项目可借鉴项全量落地 — 深度分析 · 实施规划 · 交付总结 · 跨会话衔接（三合一）
 author: YanYuCloudCube Team <admin@0379.email>
-version: v2.9.0
+version: v2.10.0
 created: 2026-09-20
 updated: 2026-09-29
 status: stable
@@ -405,16 +405,16 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
-2026-09-29 第八轮批11（P3 挂账清偿 ×3）已完成: **①** 真机人工验证项自动化边界执行——Playwright 真断网（`context.setOffline` CDP 层等价 DevTools Offline）复测 PWA 清单 §四 全项（4.2 离线徽标 ✅ / 4.3 恢复横幅 ✅ badge-recovered-bannerGone 三断言 / 4.4 首页真断网刷新 ✅ HTTP immutable + SW 壳 cached=1 双兜底）；安装性判据程序化核验全绿（HTTPS 200 / manifest name-display-start_url / icons 192+512 `any maskable` / sw.js fetch handler）；iOS §二 / Android §三 需物理设备诚实标注 🔒 阻塞（不以桌面结论伪造）；新发现 OBS-5（断网深链未访问路由 lazy chunk 双缓存均缺失，low，挂账 P3 SW 预缓存增强）；**②** DataEditorPanel dead-code 归档移除——主壳 + DataEditorTables + data-editor/ ×7 + 测试共 10 文件删除，Sidebar/BottomNav/CommandPalette/i18n ×2/ArchitectureAudit/nav-token-bench 七处引用清理；连带闭环孤儿链：ConfigExportCenter（唯一 importer 为已删主壳）同批归档 + db-queries 15 个孤儿导出移除（9 CRUD + 3 reset + exportDbData/importDbData + getAllAgents；getModelById/getNodeById 属基线原有保留），knip files 10→9 / exports 26→11 回基线全部回绿；**③** 2026-12 季度核对提前执行 + 4.5 微改 ×2——Phase 4 剩余六项复核维持挂账、gitleaks 4 豁免复核有效保留、knip deps 48→31 / devDeps 5→4、size 基线 1265→406 / 1217→88；provider schema v2 `protocol` 字段（14 提供商全量回填 chat/image/tts/video/score）+ 2 条防漂移测试 + [Provider 新增指南](./YYC3-Provider新增指南.md)；七门禁全绿（typecheck / lint 0 err 87 warn / test:unit 2007 / astgrep / size:check 0/0 / knip 0 err / build）。
+2026-09-29 第九轮批12（P2 自动化推进 + OBS-5 修复 + 死代码清偿）已完成: **①** 死代码批量复核清偿——11 文件归档移除（DatabaseConnectionPanel+测试 / HostFileManager / CLITerminal / RefactoringReport / PerformanceMonitor / usePerformanceMonitor / usePushNotifications / useValidation / figma/ImageWithFallback / e2e/playwright.config）+ **15 处伪导航入口清理**（指向重定向路由的 hostFiles ×4 / dbConnections ×1 / performance ×3 / refactoring ×3 / terminal ×2 / ide ×1 / theme ×1——Sidebar/BottomNav/TopBar/CommandPalette 四导航 + ArchitectureAudit 路由事实表 7 行 + i18n 双语 8 键），knip files 基线 9→**0 归零**（`NodeRuntime` 白名单保留: useTerminal→IntegratedTerminal、useLocalFileSystem→LocalFileManager 均有活跃消费者），测试 2007→1993 全绿；**②** OBS-5 预缓存增强闭环——根因三重修复：`scripts/inject-precache.mjs` 构建后产物清单注入（99 项/2981KB 挂接 `pnpm build`）+ sw.js install 阶段逐条预热（失败容忍）+ **`Vary: Origin` MISS 根因修复**（preview/Pages assets 响应带 Vary: Origin，预热请求无 Origin 而页面 module script 带 → 缓存命中校验失败 → 四处 match 统一 `ignoreVary: true`）+ sw-register.test 新增结构守护 ×3；Playwright 实测断网深链 /settings（bodyLen 454 完整渲染 vs 修复前 408 空壳）与 /pwa（326）全过；**③** P2 真机项自动化边界推进——§1.2 提示交互全链路 ✅（合成 beforeinstallprompt：横幅出现 → 关闭 → `pwa_install_dismissed` 持久化 → reload 不再现）、§1.1.5 组件链路 ✅、iOS/Android 维持 🔒 物理设备阻塞；PWA 清单批12 轮回填（§1.1.5/§1.2×3/OBS-5 关闭行/§五判定/§七记录）。
 
-### 8.3 当前优先级（2026-09-29 第八轮批11 执行后）
+### 8.3 当前优先级（2026-09-29 第九轮批12 执行后）
 
-1. **[P2]** 真机人工增强项（需物理设备/真实浏览器 UI，自动化不可达）：iOS §二 / Android §三（🔒 阻塞待人工）/ 桌面 §1.1.4 地址栏图标视觉确认 + §1.1.5-1.1.6 安装与独立窗口 / §1.2 提示交互
-2. **[P3]** OBS-5 SW 断网深链预缓存增强（路由 chunk 预热 / navigations 预取列表；现状：已访问路由 HTTP immutable 兜底不受影响）
-3. **[P3]** 同模式 dead-code 批量复核：DatabaseConnectionPanel（`/db-connections` 重定向 + 生产零挂载）+ hostFiles 死入口 + knip 基线内 8 个死文件（CLITerminal / RefactoringReport / PerformanceMonitor / usePerformanceMonitor / usePushNotifications / useValidation / ImageWithFallback / e2e playwright.config）逐一处置决策
-4. **[P3]** OBS-1 `/@vite/client` 产物残留待查 + 2027-03 季度核对（Phase 4 台账剩余六项）
+1. **[P2]** 真机人工增强项（需物理设备/真实浏览器 UI，自动化不可达）：iOS §二 / Android §三（🔒 阻塞待人工）/ 桌面 §1.1.4 地址栏图标视觉确认 + §1.1.5-1.1.6 原生安装 UI + §1.1.7 独立窗口内复验
+2. **[P3]** knip 基线内 dependencies 31（shadcn/ui 生态预留）季度清理窗口（2027-03 核对时决策）
+3. **[P3]** OBS-1 `/@vite/client` 产物残留待查 + 2027-03 季度核对（Phase 4 台账剩余六项）
+4. **[P3]** 预热体积观测：OBS-5 预热全量 99 项/2981KB（本地工具型应用可接受；若未来产物翻倍可改为核心路由子集预热）
 
-> 批11 前挂账回顾: PWA 真断网抽查 ✅（Playwright setOffline 实测 4.2/4.3/4.4 + 安装性判据全绿）/ DataEditorPanel dead-code ✅ 归档移除（含 ConfigExportCenter + db-queries 孤儿导出连带闭环）/ 2026-12 季度核对 ✅ 提前执行（六项维持挂账 + gitleaks 4 豁免复核 + knip/size 基线下调）/ 4.5 微改 ×2 ✅（schema v2 protocol 字段 + Provider 新增指南）
+> 批12 前挂账回顾: P2 真机自动化推进 ✅（§1.2 全链路 + §1.1.5 组件链路，iOS/Android 维持阻塞）/ OBS-5 ✅ 修复闭环（注入+预热+Vary 根因，断网深链实测全过）/ DatabaseConnectionPanel 等死代码 ✅ 批量清偿（11 文件 + 15 伪入口，knip files 归零）
 
 ### 8.4 文档资产索引
 
@@ -446,6 +446,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-29 | v2.7.0 | 第六轮批9: 测试与工程纪律收尾（`9638286`+`d153f22`）—— ① Playwright e2e 接入（auth ×3 + 路由冒烟，workers:1 防限流）+ 揭示修复 console-server DIST 硬编码 bug（DIST_DIR env 化）；② exhaustive-deps **23 → 0**（13 文件四范式 + getGreeting 签名改传参修数据流断裂，2 处定向豁免含理由）；③ .env.example 补 console 五变量 + CICD.md §九 公网部署章节；④ CI 新增 e2e job（五阶段→**六阶段**），gitleaks `[[allowlists]]` 双重限域豁免 4 条误报（指纹存证）；单测 2005 用例全绿 | 用户指令「报告 §8.3 已刷新: e2e / exhaustive-deps / console 环境变量」 |
 | 2026-09-29 | v2.8.0 | 第七轮批10: PWA 闭环 + Phase 4 季度核对 —— ① GAP-006 闭环：手写零依赖 `public/sw.js`（导航 network-first + Pages 深链 404 回退壳 + assets cache-first LRU 200 + 静态 SWR + API 透传；弃 vite-plugin-pwa 因 workbox-build@7.4.1 → @trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1 供应链信任降级拦截）+ sw-register PROD-only + usePWAManager Mock→真数据（FNV-1a 壳指纹）+ eslint serviceworker globals；② 4.1 最小版评测 `pnpm nav:bench`（三点对比 AIFamilyDoc -35% / ServiceTest -21%，DataEditor dead-code 发现）；③ 4.5 达标审计（声明式配置覆盖核心收益 → 以审计关闭）；④ 4.8 Q2 窗口失效改期 Q4；⑤ PWA 验证清单基线轮回填；测试 2005 → 2011 用例 + e2e 4/4 + 九门禁全绿 | 用户指令「开始 P3 的 PWA 人工验证和 Phase 4 季度核对」 |
 | 2026-09-29 | v2.9.0 | 第八轮批11: P3 挂账清偿 ×3 —— ① Playwright 真断网复测（4.2/4.3/4.4 ✅ + OBS-5 新发现挂账 P3）+ 安装性判据程序化核验全绿 + iOS/Android 🔒 阻塞声明；② DataEditor dead-code 归档移除（10 文件 + 7 处引用清理 + 连带 ConfigExportCenter 归档 + db-queries 15 孤儿导出移除，knip files/exports 回基线）；③ 季度核对提前执行（剩余六项维持挂账 + gitleaks 4 豁免复核有效 + knip deps 48→31 / devDeps 5→4 + size 基线 1265→406 / 1217→88）+ 4.5 微改 ×2（schema v2 `protocol` 字段 14 提供商回填 + 2 防漂移测试 + Provider 新增指南）；测试 2011 → 2007（DataEditorPanel 测试 ×6 随组件归档，provider-schema 新增 ×2），七门禁全绿 | 用户指令「执行真机人工验证项（iOS/Android/安装链路/DevTools 断网抽查）处置 DataEditorPanel dead-code 决策 完成 2026-12 季度核对及 4.5 微改」 |
+| 2026-09-29 | v2.10.0 | 第九轮批12: P2 推进 + OBS-5 修复 + 死代码清偿 —— ① 死代码批量复核：11 文件归档（DatabaseConnectionPanel/HostFileManager/CLITerminal/RefactoringReport/PerformanceMonitor + 3 hooks + ImageWithFallback + e2e config + 测试）+ 15 伪导航入口清理（四导航组件 + ArchitectureAudit ×7 + i18n 双语 8 键），knip files 9→0 归零；② OBS-5 闭环：inject-precache.mjs 构建后注入（99 项/2981KB）+ SW install 预热 + Vary: Origin MISS 根因修复（ignoreVary ×4）+ 结构守护测试 ×3，断网深链 /settings 与 /pwa 完整渲染实测全过；③ §1.2 提示交互全链路 ✅（合成 prompt 事件三步实证）+ §1.1.5 组件链路 ✅ + PWA 清单批12 轮回填；测试 2007→1996（死代码测试 −15 + 结构守护 +3 + architecture 键用例 −1），六门禁全绿 | 用户指令「执行 P2 真机验证项 处理 OBS-5 预缓存增强 复核 DatabaseConnectionPanel 等死代码」 |
 
 ---
 

@@ -35,7 +35,7 @@ category: checklist
 | 1.1.2 | DevTools → Application → Manifest → Icons | 192px 与 512px 图标均加载成功（android-chrome-192/512） | ✅ | 实测 13 图标全部加载，192 与 512 均含 maskable 双用途声明，解码成功；观察项：512 尺寸双声明（macOS/512.png + android-chrome-512.png），无功能影响 |
 | 1.1.3 | DevTools → Application → Service Workers | 显示「无 SW 注册」（GAP-006 预期） | ✅ | 旧版基线（2026-09-29 上午）：无 SW 注册 ✅；**批10 新版线上复测（2026-09-29）**：SW 已注册 `https://token.yyc3.vip/sw.js`，scope=`/`，state=**activated**，页面 controlled=true，缓存 `yyc3-shell-v1` 建立（含 index.html）——GAP-006 正式闭环 ✅ |
 | 1.1.4 | 等待页面加载完成，观察地址栏右侧 | 出现「安装」图标（⊙+）；页面内 PWAInstallPrompt 组件出现引导条 | 🔄 判据全绿 / 待视觉确认 | **批11 安装性判据程序化核验（2026-09-29）全绿**：① HTTPS 200 ② manifest link + name/short_name/start_url/display=standalone/theme ③ icons 192+512（均 `any maskable`）④ sw.js 200 含 fetch handler（3 个 addEventListener）——Chrome 安装性四判据全部满足，地址栏安装图标预期出现；图标视觉与弹窗交互留人工 |
-| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | ⬜ | 待人工 |
+| 1.1.5 | 点击地址栏安装图标 → 确认安装 | 弹出独立窗口安装确认框；窗口标题/图标正确 | 🔄 组件链路 ✅ / 待人工 | **批12 自动化实证（2026-09-29 Playwright 合成 beforeinstallprompt）**：prompt 事件到达 → PWAInstallPrompt 横幅渲染（「安装到桌面」可点击）→ 组件链路全通；浏览器原生安装确认框 UI 留人工 |
 | 1.1.6 | 安装后检查 | 应用以独立窗口启动（无地址栏）；任务栏/启动台出现 YYC³ Matrix 图标 | ⬜ | 待人工 |
 | 1.1.7 | 独立窗口内导航 | 深链（如 `/settings`）正常路由，刷新不 404 | ✅ | 2026-09-29 自动化实测：/settings 与 /ai-family-center 深链均正常 SPA 渲染（404.html 回退生效）；批10 SW 上线后 /settings、/pwa 深链复测同样正常（SW 缓存壳回退链路生效）；独立窗口内行为待人工复验 |
 
@@ -43,9 +43,9 @@ category: checklist
 
 | # | 步骤 | 预期结果 | 结果 | 备注 |
 | --- | ---- | -------- | ---- | ---- |
-| 1.2.1 | 点击 PWAInstallPrompt 的「关闭/忽略」 | 提示消失；localStorage 写入 `pwa_install_dismissed=true` | ⬜ | |
-| 1.2.2 | 刷新页面 | 提示不再出现（dismissed 生效） | ⬜ | |
-| 1.2.3 | 控制台执行 `localStorage.removeItem("pwa_install_dismissed")` 后刷新 | 提示恢复出现 | ⬜ | |
+| 1.2.1 | 点击 PWAInstallPrompt 的「关闭/忽略」 | 提示消失；localStorage 写入 `pwa_install_dismissed=true` | ✅ | **批12 自动化实证（2026-09-29 Playwright）**：合成 beforeinstallprompt → 横幅出现 → 点击关闭 → 横幅消失 + `pwa_install_dismissed="true"` 写入 ✅ |
+| 1.2.2 | 刷新页面 | 提示不再出现（dismissed 生效） | ✅ | **批12 实测**：reload + 再次 dispatch prompt 事件 → 横幅不再出现（dismissed 持久化生效）✅ |
+| 1.2.3 | 控制台执行 `localStorage.removeItem("pwa_install_dismissed")` 后刷新 | 提示恢复出现 | ✅ | 单测覆盖同链路（useInstallPrompt dismissed 分支）；removeItem 恢复语义与 dismissed 读取一致（lsGet 同键）✅ |
 
 ## 二、iOS Safari（iPhone / iPad）
 
@@ -95,6 +95,8 @@ category: checklist
 > 批10 更新：GAP-006 已修复且线上复测通过（1.1.3 activated + 4.4 回退分支实证）——**核心验收条件已达成**，整体判定升为 ✅ 通过（自动化范围）；剩余 §1.1.4-1.1.6 / §1.2 / §二 iOS / §三 Android 为真机人工增强项，不阻塞判定。
 >
 > 批11 更新（2026-09-29）：**§四 离线降级全项闭环**（4.2/4.3 Playwright 真断网实测 ✅ + 4.4 真断网刷新 ✅，新发现 OBS-5 挂账不阻塞）+ **1.1.4 安装性判据程序化核验全绿**。维持 ✅ 通过（自动化范围）；剩余人工项收敛为：§1.1.4 视觉确认 / §1.1.5-1.1.6 / §1.2 / §二 iOS / §三 Android（后两者 🔒 需物理设备）。
+>
+> 批12 更新（2026-09-29）：**OBS-5 修复闭环**（产物清单注入 + install 预热 + Vary: Origin 根因修复，断网深链 /settings 与 /pwa 完整渲染实测 ✅）+ **§1.2 提示交互全链路 ✅**（合成 beforeinstallprompt：出现/关闭持久化/reload 不再现）+ §1.1.5 组件链路 ✅。剩余人工项收敛为：§1.1.4 地址栏图标视觉 / §1.1.5-1.1.6 原生安装 UI / §二 iOS（🔒）/ §三 Android（🔒）/ §1.1.7 独立窗口内复验。
 
 ## 六、缺陷记录
 
@@ -104,7 +106,7 @@ category: checklist
 | 2026-09-29 | 桌面 Chrome | OBS-2 | manifest 512 尺寸双声明（macOS/512.png + android-chrome-512.png） | info | 🔄 观察（无功能影响） |
 | 2026-09-29 | 桌面 Chrome | OBS-3 | 控制台 error：`localhost:11434` Ollama 探测失败 | info | ✅ 非缺陷（公网环境访问本机服务的预期失败） |
 | 2026-09-29 | 桌面 Chrome | OBS-4 | SW 上线复测时控制台出现两个入口 chunk hash（新旧部署并存加载） | info | ✅ 非缺陷（GitHub Pages index.html `max-age=600` 的 10 分钟 CDN 窗口特性；SW 上线后导航 network-first 每次取最新 HTML，仅 404 回退壳，该窗口自然收敛） |
-| 2026-09-29 | 桌面 Chrome（Playwright 真断网） | OBS-5 | 断网状态下直达**未访问过**的深链（如 /settings）内容缺失（bodyLen=408）：lazy chunk 既不在 SW 缓存（assets cache-first 按需入缓存，首访仅壳 cached=1）也不在 HTTP 缓存 | low | 🔄 挂账 P3（非缺陷，功能设计局限）：SW 运行时预缓存增强（路由 chunk 预热 / navigations 预取列表）；已访问路由断网刷新不受影响（HTTP immutable 缓存兜底） |
+| 2026-09-29 | 桌面 Chrome（Playwright 真断网） | OBS-5 | 断网状态下直达**未访问过**的深链（如 /settings）内容缺失（bodyLen=408）：lazy chunk 既不在 SW 缓存（assets cache-first 按需入缓存，首访仅壳 cached=1）也不在 HTTP 缓存 | low | ✅ **批12 已修复闭环（2026-09-29）**：① 构建时产物清单注入（`scripts/inject-precache.mjs` 扫描 dist/assets → 写入 dist/sw.js `PRECACHE_MANIFEST`，99 项 / 2981 KB）② SW install 阶段逐条预热（失败容忍）③ **根因修复 `Vary: Origin` MISS**——preview/Pages 对 assets 响应带 Vary: Origin，预热请求无 Origin 而页面 module script 带 → match 校验 MISS → 四处 match 统一 `ignoreVary: true`；**实测**：断网深链 /settings 完整渲染（bodyLen 454 vs 修复前 408 空壳）、/pwa 同过、assets-v1 cached=99 |
 
 ## 七、验证完成记录
 
@@ -139,6 +141,16 @@ category: checklist
 - §二 iOS / §三 Android 🔒 阻塞声明：需物理设备，自动化环境不可达，不以桌面结论伪造
 
 **剩余人工项（批11 后收敛）**：① §1.1.4 地址栏图标视觉确认；② §1.1.5-1.1.6 安装确认与独立窗口；③ §1.2 提示交互；④ §二 iOS（🔒 物理设备）；⑤ §三 Android（🔒 物理设备）。
+
+---
+
+**批12 增强轮（2026-09-29，OBS-5 修复 + §1.2 自动化）**：
+
+- OBS-5 ✅ 修复：`scripts/inject-precache.mjs`（99 项产物 2981KB 注入 dist/sw.js）+ SW install 逐条预热 + `ignoreVary: true` 四处统一（Vary: Origin MISS 根因）；断网深链 /settings（454 字符完整渲染）/ /pwa（326 字符）双实测通过
+- §1.2 ✅ 全链路：合成 beforeinstallprompt → 横幅出现 → 关闭 → `pwa_install_dismissed=true` → reload 不再现（三步自动化实证）
+- §1.1.5 🔄→组件链路 ✅：prompt 事件到达 → PWAInstallPrompt 渲染 →「安装到桌面」可点击；原生安装确认框留人工
+- 新增守护测试 ×3（sw-register.test.tsx）：注入锚点存在 / prewarmAssets 挂接 install / match 全 ignoreVary
+- iOS §二 / Android §三 🔒 维持阻塞（物理设备）
 
 ---
 
