@@ -60,9 +60,11 @@ jobs:
       - name: Ensure CNAME exists
         run: '[ -f public/CNAME ] || echo "token.yyc3.vip" > public/CNAME'
 
-      # 根路径部署：token.yyc3.vip 托管于域名根，--base=/ 与 vite.config.ts 默认值一致
+      # 根路径部署：token.yyc3.vip 托管于域名根，base=/ 与 vite.config.ts 默认值一致
+      # 2026-09-29 批12 OBS-5: 走 pnpm build 完整链 (vite build + inject-precache
+      # 产物清单注入) — 裸 vite build 会绕过注入, 线上 SW 预缓存退化为空清单
       - name: Build (base=/)
-        run: pnpm exec vite build --base=/
+        run: pnpm build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
