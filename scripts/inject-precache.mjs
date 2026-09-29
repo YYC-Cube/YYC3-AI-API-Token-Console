@@ -68,3 +68,20 @@ const totalKB = (assets.reduce((s, a) => s + a.size, 0) / 1024).toFixed(1);
 console.log(
   `[inject-precache] ✓ 已注入 ${assets.length} 项产物清单 (${totalKB} KB) → dist/sw.js`
 );
+
+// ---- 预热体积观测 (批13) ----------------------------------------------------
+// 全量预热的代价: 首次 install 多下载 totalKB (后台进行, 不阻塞首屏, 二次访问零成本)。
+// 基线 99 项/2981KB (2026-09-29); 阈值默认 6MB ≈ 当前翻倍 — 超限提示改为核心路由
+// 子集预热 (衔接报告 §8.3 P3 观测项)。PREWARM_WARN_MB 环境变量可调, 非阻断。
+const warnMB = Number(process.env.PREWARM_WARN_MB ?? 6);
+const totalMB = Number(totalKB) / 1024;
+if (totalMB > warnMB) {
+  console.log(
+    `::warning::预热清单 ${totalMB.toFixed(1)} MB 超阈值 ${warnMB} MB (${assets.length} 项) — ` +
+    `建议评审改为核心路由子集预热 (清单过滤需扩展本脚本)`
+  );
+} else {
+  console.log(
+    `[inject-precache] 预热体积 ${totalMB.toFixed(2)} MB ≤ 阈值 ${warnMB} MB (观测正常)`
+  );
+}
