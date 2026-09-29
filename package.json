@@ -47,7 +47,8 @@
     "doctor": "node scripts/doctor.mjs",
     "astgrep": "node_modules/@ast-grep/cli/ast-grep scan -c scripts/ast-grep/sgconfig.yml src/",
     "guardrail-probe": "node scripts/guardrail-probe.mjs",
-    "size:check": "node scripts/check-size.mjs"
+    "size:check": "node scripts/check-size.mjs",
+    "nav:bench": "node scripts/nav-token-bench.mjs"
   },
   "dependencies": {
     "@codemirror/lang-css": "6.3.1",
