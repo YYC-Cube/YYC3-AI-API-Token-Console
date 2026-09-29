@@ -146,7 +146,7 @@ category: checklist
 
 **批12 增强轮（2026-09-29，OBS-5 修复 + §1.2 自动化）**：
 
-- OBS-5 ✅ 修复：`scripts/inject-precache.mjs`（99 项产物 2981KB 注入 dist/sw.js）+ SW install 逐条预热 + `ignoreVary: true` 四处统一（Vary: Origin MISS 根因）；断网深链 /settings（454 字符完整渲染）/ /pwa（326 字符）双实测通过
+- OBS-5 ✅ 修复：`scripts/inject-precache.mjs`（99 项产物 2981KB 注入 dist/sw.js）+ SW install 逐条预热 + `ignoreVary: true` 四处统一（Vary: Origin MISS 根因）；断网深链 /settings（454 字符完整渲染）/ /pwa（326 字符）双实测通过；部署链路修复：pages.yml 裸 vite build 绕过注入 → 改 `pnpm build` 完整链（`703af5f`），线上复验 sw.js manifest **99 项**生效
 - §1.2 ✅ 全链路：合成 beforeinstallprompt → 横幅出现 → 关闭 → `pwa_install_dismissed=true` → reload 不再现（三步自动化实证）
 - §1.1.5 🔄→组件链路 ✅：prompt 事件到达 → PWAInstallPrompt 渲染 →「安装到桌面」可点击；原生安装确认框留人工
 - 新增守护测试 ×3（sw-register.test.tsx）：注入锚点存在 / prewarmAssets 挂接 install / match 全 ignoreVary
