@@ -46,7 +46,7 @@ const labelOf = (i) => labels[i] ?? basename(roots[i]) ?? `root-${i + 1}`;
 
 const ENTRY = "src/main.tsx";
 const TARGET_DOMAINS = [
-  { name: "DataEditor", files: ["src/app/components/DataEditorPanel.tsx", "src/app/components/data-editor/"] },
+  // DataEditor 域已于批11 归档移除 (dead-code 处置), 不再评测
   { name: "AIFamilyDoc", files: ["src/app/components/AIFamilyDesignDoc.tsx", "src/app/components/ai-family-doc/"] },
   { name: "ServiceTest", files: ["src/app/components/ServiceConnectionTest.tsx", "src/app/components/service-test/"] },
 ];

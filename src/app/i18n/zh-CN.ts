@@ -75,7 +75,6 @@ const zhCN = {
     connectionTest: "连接测试",
     refactoring: "重构分析",
     pwa: "PWA 管理",
-    dataEditor: "数据管理",
     performance: "性能监控",
     envConfig: "环境变量",
     architecture: "架构审计",

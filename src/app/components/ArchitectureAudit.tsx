@@ -88,7 +88,6 @@ const ROUTES: RouteInfo[] = [
   { path: "/security", component: "SecurityMonitor", category: "管理", status: "complete", features: ["CSP 检测", "Cookie 检查", "敏感数据扫描", "性能分析", "内存监控", "Web Vitals"] },
   { path: "/reports", component: "ReportExporter", category: "管理", status: "complete", features: ["报表生成", "多格式导出", "时间范围", "报表历史"] },
   { path: "/refactoring", component: "RefactoringReport", category: "开发", status: "complete", features: ["重构报告展示", "RF 编号追踪"] },
-  { path: "/data-editor", component: "DataEditorPanel", category: "运维", status: "complete", features: ["localStorage 数据编辑", "表格视图", "内联编辑"] },
   { path: "/performance", component: "PerformanceMonitor", category: "监控", status: "complete", features: ["性能指标监控", "图表展示"] },
   { path: "/env-config", component: "EnvConfigEditor", category: "管理", status: "complete", features: ["31 环境变量编辑", "导入导出", "重置"] },
   { path: "/db-connections", component: "DatabaseConnectionPanel", category: "运维", status: "complete", features: ["数据库连接 CRUD", "连接测试", "连接池配置"] },

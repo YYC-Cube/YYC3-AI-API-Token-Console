@@ -13,34 +13,51 @@
  * i18n 完整覆盖
  */
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router";
 import {
-  Activity, AlertTriangle, Radar,
-  Wrench, FolderOpen, Settings,
-  Brain, Sparkles, Cpu,
-  Code2, Palette, BookOpen, Paintbrush, Terminal, Monitor,
-  ShieldCheck, ClipboardList, Users, Cog,
-  MoreHorizontal, X,
-  BellRing, FileBarChart, BrainCircuit,
-  HardDrive, Database, GitBranch,
-  Smartphone,
-  Package,
-  Gauge,
-  ServerCog,
-  UserCircle2,
+  Activity, AlertTriangle,
+  BellRing,
+  BookOpen,
+  Brain,
+  BrainCircuit,
+  ClipboardList,
+  Code2,
+  Cog,
+  Cpu,
+  Database,
+  FileBarChart,
   FileText,
   Film,
+  FolderOpen,
+  Gauge,
+  GitBranch,
+  HardDrive,
+  Monitor,
+  MoreHorizontal,
+  Paintbrush,
+  Palette,
+  Radar,
+  ServerCog,
+  Settings,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Terminal,
+  UserCircle2,
+  Users,
+  Wrench,
+  X,
 } from "lucide-react";
 import { AnimatePresence, m as motion } from "motion/react";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useI18n } from "../hooks/useI18n";
 
 /* ── 底部 4 核心 Tab ──────────────────────────── */
 const PRIMARY_TABS = [
-  { i18nKey: "bottomNav.monitor",    path: "/",           icon: Activity },
-  { i18nKey: "bottomNav.followUp",   path: "/follow-up",  icon: AlertTriangle },
-  { i18nKey: "bottomNav.operations", path: "/operations",  icon: Wrench },
-  { i18nKey: "bottomNav.patrol",     path: "/patrol",     icon: Radar },
+  { i18nKey: "bottomNav.monitor", path: "/", icon: Activity },
+  { i18nKey: "bottomNav.followUp", path: "/follow-up", icon: AlertTriangle },
+  { i18nKey: "bottomNav.operations", path: "/operations", icon: Wrench },
+  { i18nKey: "bottomNav.patrol", path: "/patrol", icon: Radar },
 ];
 
 /* ── "更多" 抽屉内容（按分类） ──────────────── */
@@ -54,14 +71,13 @@ const MORE_CATEGORIES: MoreCategory[] = [
   {
     labelKey: "nav.catOps", icon: Wrench,
     items: [
-      { key: "nav.fileManager",  path: "/files",       icon: FolderOpen },
-      { key: "nav.hostFiles",    path: "/host-files",   icon: HardDrive },
-      { key: "nav.database",     path: "/database",     icon: Database },
-      { key: "nav.dataEditor",   path: "/data-editor",  icon: Package },
-      { key: "nav.performance",  path: "/performance",  icon: Gauge },
-      { key: "nav.envConfig",    path: "/env-config",   icon: ServerCog },
-      { key: "nav.serviceLoop",  path: "/loop",         icon: Settings },
-      { key: "nav.reportExport", path: "/reports",      icon: FileBarChart },
+      { key: "nav.fileManager", path: "/files", icon: FolderOpen },
+      { key: "nav.hostFiles", path: "/host-files", icon: HardDrive },
+      { key: "nav.database", path: "/database", icon: Database },
+      { key: "nav.performance", path: "/performance", icon: Gauge },
+      { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
+      { key: "nav.serviceLoop", path: "/loop", icon: Settings },
+      { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
     ],
   },
   {
@@ -73,38 +89,38 @@ const MORE_CATEGORIES: MoreCategory[] = [
   {
     labelKey: "nav.catAI", icon: Brain,
     items: [
-      { key: "nav.aiDecision",     path: "/ai",           icon: Sparkles },
-      { key: "modelProvider.title", path: "/models",       icon: Cpu },
-      { key: "nav.aiDiagnostics",  path: "/ai-diagnosis", icon: BrainCircuit },
+      { key: "nav.aiDecision", path: "/ai", icon: Sparkles },
+      { key: "modelProvider.title", path: "/models", icon: Cpu },
+      { key: "nav.aiDiagnostics", path: "/ai-diagnosis", icon: BrainCircuit },
     ],
   },
   {
     labelKey: "nav.catAIFamily", icon: UserCircle2,
     items: [
-      { key: "nav.aiFamily",       path: "/ai-family",        icon: UserCircle2 },
+      { key: "nav.aiFamily", path: "/ai-family", icon: UserCircle2 },
       { key: "nav.aiFamilyDesign", path: "/ai-family-design", icon: FileText },
-      { key: "nav.aiFamilyDrama",  path: "/ai-family-drama",  icon: Film },
+      { key: "nav.aiFamilyDrama", path: "/ai-family-drama", icon: Film },
     ],
   },
   {
     labelKey: "nav.catDev", icon: Code2,
     items: [
       { key: "nav.designSystem", path: "/design-system", icon: Palette },
-      { key: "nav.devGuide",     path: "/dev-guide",     icon: BookOpen },
-      { key: "nav.theme",        path: "/theme",          icon: Paintbrush },
-      { key: "nav.terminal",     path: "/terminal",       icon: Terminal },
-      { key: "nav.ide",          path: "/ide",             icon: Monitor },
-      { key: "nav.refactoring",  path: "/refactoring",    icon: GitBranch },
+      { key: "nav.devGuide", path: "/dev-guide", icon: BookOpen },
+      { key: "nav.theme", path: "/theme", icon: Paintbrush },
+      { key: "nav.terminal", path: "/terminal", icon: Terminal },
+      { key: "nav.ide", path: "/ide", icon: Monitor },
+      { key: "nav.refactoring", path: "/refactoring", icon: GitBranch },
     ],
   },
   {
     labelKey: "nav.catAdmin", icon: ShieldCheck,
     items: [
-      { key: "nav.audit",           path: "/audit",    icon: ClipboardList },
-      { key: "nav.userMgmt",        path: "/users",    icon: Users },
-      { key: "nav.settings",        path: "/settings", icon: Cog },
+      { key: "nav.audit", path: "/audit", icon: ClipboardList },
+      { key: "nav.userMgmt", path: "/users", icon: Users },
+      { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
-      { key: "nav.pwa",             path: "/pwa",      icon: Smartphone },
+      { key: "nav.pwa", path: "/pwa", icon: Smartphone },
     ],
   },
 ];
@@ -253,19 +269,17 @@ export function BottomNav() {
 
                   <div className="relative">
                     <Icon
-                      className={`w-[22px] h-[22px] transition-all duration-200 ${
-                        isActive
+                      className={`w-[22px] h-[22px] transition-all duration-200 ${isActive
                           ? "text-[#00d4ff]"
                           : "text-[rgba(0,212,255,0.3)]"
-                      }`}
+                        }`}
                       style={isActive ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                     />
                   </div>
 
                   <span
-                    className={`mt-0.5 transition-colors duration-200 ${
-                      isActive ? "text-[#00d4ff]" : "text-[rgba(0,212,255,0.25)]"
-                    }`}
+                    className={`mt-0.5 transition-colors duration-200 ${isActive ? "text-[#00d4ff]" : "text-[rgba(0,212,255,0.25)]"
+                      }`}
                     style={{ fontSize: "0.58rem" }}
                   >
                     {t(tab.i18nKey)}
@@ -288,11 +302,10 @@ export function BottomNav() {
 
               <div className="relative">
                 <MoreHorizontal
-                  className={`w-[22px] h-[22px] transition-all duration-200 ${
-                    isInMoreSection || moreOpen
+                  className={`w-[22px] h-[22px] transition-all duration-200 ${isInMoreSection || moreOpen
                       ? "text-[#00d4ff]"
                       : "text-[rgba(0,212,255,0.3)]"
-                  }`}
+                    }`}
                   style={(isInMoreSection || moreOpen) ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                 />
                 {/* 小点指示有更多内容 */}
@@ -302,9 +315,8 @@ export function BottomNav() {
               </div>
 
               <span
-                className={`mt-0.5 transition-colors duration-200 ${
-                  isInMoreSection || moreOpen ? "text-[#00d4ff]" : "text-[rgba(0,212,255,0.25)]"
-                }`}
+                className={`mt-0.5 transition-colors duration-200 ${isInMoreSection || moreOpen ? "text-[#00d4ff]" : "text-[rgba(0,212,255,0.25)]"
+                  }`}
                 style={{ fontSize: "0.58rem" }}
               >
                 {t("common.more") || "更多"}

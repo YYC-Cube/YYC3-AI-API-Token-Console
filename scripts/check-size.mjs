@@ -20,10 +20,11 @@ const MAX_LINES = 1500; // 拆分触发阈值 (较上游收紧 25%)
 // sibling (§6.6.1 首个清零项), 从基线移出; index.ts 现 14 行 Facade
 // SystemSettings.tsx (1373) 已于 2026-09-20 拆分至 settings/ 7 文件
 // (主壳 193 + 6 sibling 全部 ≤306), 基线 4 → 3
+// DataEditorPanel.tsx (1188) 已于 2026-09-29 批11 归档移除 (dead-code:
+// /data-editor 已重定向 /database, 组件生产零挂载), 基线 3 → 2
 const BASELINE = {
-  "src/app/components/ServiceConnectionTest.tsx": 1265,
-  "src/app/components/AIFamilyDesignDoc.tsx": 1217,
-  "src/app/components/DataEditorPanel.tsx": 1188,
+  "src/app/components/ServiceConnectionTest.tsx": 406,
+  "src/app/components/AIFamilyDesignDoc.tsx": 88,
 };
 
 // 仅盘点 ts/tsx 源码 (排除测试/ui 生成物/历史归档, 与 eslint ignores 对齐)

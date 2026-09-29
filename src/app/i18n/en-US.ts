@@ -77,7 +77,6 @@ const enUS: TranslationKeys = {
     connectionTest: "Connection Test",
     refactoring: "Refactoring",
     pwa: "PWA Manager",
-    dataEditor: "Data Manager",
     performance: "Performance",
     envConfig: "Env Config",
     architecture: "Architecture",

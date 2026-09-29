@@ -6,23 +6,42 @@
  * i18n 已迁移
  */
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
-  Search, ArrowRight, Keyboard, X,
-  Activity, Bell, Shield, Wrench, FolderOpen, Terminal,
-  Code2, FileSearch, Users, Settings, Bot, BarChart3,
-  Cpu, Smartphone, HardDrive, Database, GitBranch, BrainCircuit,
-  Package, Gauge, ServerCog,
+  Activity,
+  ArrowRight,
+  BarChart3,
+  Bell,
+  Bot,
+  BrainCircuit,
+  Code2,
+  Cpu,
+  Database,
+  FileSearch,
+  FolderOpen,
+  Gauge,
+  GitBranch,
+  HardDrive,
+  Keyboard,
+  Search,
+  ServerCog,
+  Settings,
+  Shield,
+  Smartphone,
+  Terminal,
+  Users,
+  Wrench,
+  X,
 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { SHORTCUT_LIST } from "../hooks/useKeyboardShortcuts";
 import { useI18n } from "../hooks/useI18n";
+import { SHORTCUT_LIST } from "../hooks/useKeyboardShortcuts";
 
 const iconMap: Record<string, React.ElementType> = {
   Activity, Bell, Shield, Wrench, FolderOpen, Terminal,
   Code2, FileSearch, Users, Settings, Bot, BarChart3,
   Cpu, Smartphone, HardDrive, Database, GitBranch, BrainCircuit,
-  Package, Gauge, ServerCog,
+  Gauge, ServerCog,
 };
 
 interface PaletteItem {
@@ -36,32 +55,31 @@ interface PaletteItem {
 }
 
 const PALETTE_ITEMS: PaletteItem[] = [
-  { id: "nav-home",       labelKey: "nav.dataMonitor",  descKey: "monitor.subtitle",          category: "nav",  icon: "Activity",   path: "/",            shortcut: "" },
-  { id: "nav-followup",   labelKey: "nav.followUp",     descKey: "followUp.subtitle",         category: "nav",  icon: "Bell",       path: "/follow-up",   shortcut: "⌘+Shift+A" },
-  { id: "nav-patrol",     labelKey: "nav.patrol",       descKey: "patrol.subtitle",           category: "nav",  icon: "Shield",     path: "/patrol",      shortcut: "⌘+Shift+P" },
-  { id: "nav-operations", labelKey: "nav.operations",   descKey: "operations.subtitle",       category: "nav",  icon: "Wrench",     path: "/operations",  shortcut: "⌘+Shift+O" },
-  { id: "nav-files",      labelKey: "nav.fileManager",  descKey: "fileManager.subtitle",      category: "nav",  icon: "FolderOpen", path: "/files",       shortcut: "⌘+Shift+F" },
-  { id: "nav-terminal",   labelKey: "nav.terminal",     descKey: "palette.navigate",          category: "nav",  icon: "Terminal",   path: "/terminal",    shortcut: "⌘+Shift+L" },
-  { id: "nav-ide",        labelKey: "nav.ide",          descKey: "palette.navigate",          category: "nav",  icon: "Code2",      path: "/ide" },
-  { id: "nav-ai",         labelKey: "nav.aiDecision",   descKey: "ai.subtitle",               category: "nav",  icon: "Bot",        path: "/ai" },
-  { id: "nav-loop",       labelKey: "nav.serviceLoop",  descKey: "loop.subtitle",             category: "nav",  icon: "Activity",   path: "/loop" },
-  { id: "nav-design",     labelKey: "nav.designSystem", descKey: "devGuide.architecture",     category: "nav",  icon: "BarChart3",  path: "/design-system" },
-  { id: "nav-devguide",   labelKey: "nav.devGuide",     descKey: "devGuide.subtitle",         category: "nav",  icon: "Activity",   path: "/dev-guide" },
-  { id: "nav-models",     labelKey: "modelProvider.title", descKey: "modelProvider.subtitle", category: "nav",  icon: "Cpu",        path: "/models" },
-  { id: "nav-audit",      labelKey: "nav.audit",        descKey: "palette.navigate",          category: "nav",  icon: "FileSearch", path: "/audit" },
-  { id: "nav-users",      labelKey: "nav.userMgmt",     descKey: "palette.navigate",          category: "nav",  icon: "Users",      path: "/users" },
-  { id: "nav-settings",   labelKey: "nav.settings",     descKey: "settings.title",            category: "nav",  icon: "Settings",   path: "/settings" },
-  { id: "nav-security",   labelKey: "nav.securityMonitor", descKey: "security.subtitle",      category: "nav",  icon: "Shield",     path: "/security" },
-  { id: "nav-alerts",     labelKey: "nav.alertRules",    descKey: "alerts.subtitle",           category: "nav",  icon: "Bell",       path: "/alerts" },
-  { id: "nav-reports",    labelKey: "nav.reportExport",  descKey: "reports.subtitle",          category: "nav",  icon: "BarChart3",  path: "/reports" },
-  { id: "nav-aidiag",     labelKey: "nav.aiDiagnostics", descKey: "aiDiag.subtitle",           category: "nav",  icon: "BrainCircuit", path: "/ai-diagnosis" },
-  { id: "nav-hostfiles",  labelKey: "nav.hostFiles",     descKey: "palette.navigate",          category: "nav",  icon: "HardDrive",  path: "/host-files" },
-  { id: "nav-database",   labelKey: "nav.database",      descKey: "palette.navigate",          category: "nav",  icon: "Database",   path: "/database" },
-  { id: "nav-refactoring", labelKey: "nav.refactoring",  descKey: "palette.navigate",          category: "nav",  icon: "GitBranch",  path: "/refactoring" },
-  { id: "nav-pwa",        labelKey: "nav.pwa",           descKey: "pwa.subtitle",              category: "nav",  icon: "Smartphone", path: "/pwa" },
-  { id: "nav-dataeditor", labelKey: "nav.dataEditor",    descKey: "palette.navigate",          category: "nav",  icon: "Package",    path: "/data-editor" },
-  { id: "nav-performance", labelKey: "nav.performance",  descKey: "palette.navigate",          category: "nav",  icon: "Gauge",      path: "/performance" },
-  { id: "nav-envconfig",   labelKey: "nav.envConfig",    descKey: "palette.navigate",          category: "nav",  icon: "ServerCog",  path: "/env-config" },
+  { id: "nav-home", labelKey: "nav.dataMonitor", descKey: "monitor.subtitle", category: "nav", icon: "Activity", path: "/", shortcut: "" },
+  { id: "nav-followup", labelKey: "nav.followUp", descKey: "followUp.subtitle", category: "nav", icon: "Bell", path: "/follow-up", shortcut: "⌘+Shift+A" },
+  { id: "nav-patrol", labelKey: "nav.patrol", descKey: "patrol.subtitle", category: "nav", icon: "Shield", path: "/patrol", shortcut: "⌘+Shift+P" },
+  { id: "nav-operations", labelKey: "nav.operations", descKey: "operations.subtitle", category: "nav", icon: "Wrench", path: "/operations", shortcut: "⌘+Shift+O" },
+  { id: "nav-files", labelKey: "nav.fileManager", descKey: "fileManager.subtitle", category: "nav", icon: "FolderOpen", path: "/files", shortcut: "⌘+Shift+F" },
+  { id: "nav-terminal", labelKey: "nav.terminal", descKey: "palette.navigate", category: "nav", icon: "Terminal", path: "/terminal", shortcut: "⌘+Shift+L" },
+  { id: "nav-ide", labelKey: "nav.ide", descKey: "palette.navigate", category: "nav", icon: "Code2", path: "/ide" },
+  { id: "nav-ai", labelKey: "nav.aiDecision", descKey: "ai.subtitle", category: "nav", icon: "Bot", path: "/ai" },
+  { id: "nav-loop", labelKey: "nav.serviceLoop", descKey: "loop.subtitle", category: "nav", icon: "Activity", path: "/loop" },
+  { id: "nav-design", labelKey: "nav.designSystem", descKey: "devGuide.architecture", category: "nav", icon: "BarChart3", path: "/design-system" },
+  { id: "nav-devguide", labelKey: "nav.devGuide", descKey: "devGuide.subtitle", category: "nav", icon: "Activity", path: "/dev-guide" },
+  { id: "nav-models", labelKey: "modelProvider.title", descKey: "modelProvider.subtitle", category: "nav", icon: "Cpu", path: "/models" },
+  { id: "nav-audit", labelKey: "nav.audit", descKey: "palette.navigate", category: "nav", icon: "FileSearch", path: "/audit" },
+  { id: "nav-users", labelKey: "nav.userMgmt", descKey: "palette.navigate", category: "nav", icon: "Users", path: "/users" },
+  { id: "nav-settings", labelKey: "nav.settings", descKey: "settings.title", category: "nav", icon: "Settings", path: "/settings" },
+  { id: "nav-security", labelKey: "nav.securityMonitor", descKey: "security.subtitle", category: "nav", icon: "Shield", path: "/security" },
+  { id: "nav-alerts", labelKey: "nav.alertRules", descKey: "alerts.subtitle", category: "nav", icon: "Bell", path: "/alerts" },
+  { id: "nav-reports", labelKey: "nav.reportExport", descKey: "reports.subtitle", category: "nav", icon: "BarChart3", path: "/reports" },
+  { id: "nav-aidiag", labelKey: "nav.aiDiagnostics", descKey: "aiDiag.subtitle", category: "nav", icon: "BrainCircuit", path: "/ai-diagnosis" },
+  { id: "nav-hostfiles", labelKey: "nav.hostFiles", descKey: "palette.navigate", category: "nav", icon: "HardDrive", path: "/host-files" },
+  { id: "nav-database", labelKey: "nav.database", descKey: "palette.navigate", category: "nav", icon: "Database", path: "/database" },
+  { id: "nav-refactoring", labelKey: "nav.refactoring", descKey: "palette.navigate", category: "nav", icon: "GitBranch", path: "/refactoring" },
+  { id: "nav-pwa", labelKey: "nav.pwa", descKey: "pwa.subtitle", category: "nav", icon: "Smartphone", path: "/pwa" },
+  { id: "nav-performance", labelKey: "nav.performance", descKey: "palette.navigate", category: "nav", icon: "Gauge", path: "/performance" },
+  { id: "nav-envconfig", labelKey: "nav.envConfig", descKey: "palette.navigate", category: "nav", icon: "ServerCog", path: "/env-config" },
 ];
 
 interface CommandPaletteProps {
@@ -205,11 +223,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 <button
                   key={item.id}
                   data-testid={`palette-item-${item.id}`}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-                    isSelected
-                      ? "bg-[#00d4ff]/15 text-[#00d4ff]"
-                      : "text-white/70 hover:bg-white/5 hover:text-white"
-                  }`}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected
+                    ? "bg-[#00d4ff]/15 text-[#00d4ff]"
+                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                    }`}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setSelectedIndex(idx)}
                 >

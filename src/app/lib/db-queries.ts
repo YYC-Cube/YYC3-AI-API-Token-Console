@@ -1,7 +1,7 @@
 /**
  * 数据库查询函数
  * ===============
- * YYC3 数据持久化层 — localStorage 可编辑实现
+ * YYC³ 数据持久化层 — localStorage 只读查询实现
  *
  * 数据库 Schema 对接：
  *   core.models       -> 模型配置
@@ -11,8 +11,13 @@
  *
  * 数据源策略:
  *   1. 首次启动 → 写入默认 Mock 数据到 localStorage
- *   2. 后续读取 → 从 localStorage 获取 (支持 CRUD)
+ *   2. 后续读取 → 从 localStorage 获取
  *   3. 接入 Supabase 后 → 切换为 supabase.from() 调用
+ *
+ * 注: CRUD/重置/导入导出函数 (addDbModel、updateDbModel、resetDb 系列、
+ *   exportDbData、importDbData、getAllAgents 等) 的唯一消费者 DataEditor 系列
+ * 已于 2026-09-29 批11 归档移除 (dead-code 处置), 函数随之移除;
+ * 历史实现见批11 之前的 git 提交。
  */
 
 import { supabase } from "./supabaseClient";
@@ -22,11 +27,11 @@ import { supabase } from "./supabaseClient";
 // ============================================================
 
 import type {
-  Model,
   Agent,
   InferenceLog,
-  NodeStatusRecord,
+  Model,
   ModelStats,
+  NodeStatusRecord,
 } from "../types/index";
 
 // ============================================================
@@ -66,7 +71,7 @@ const DEFAULT_NODES: NodeStatusRecord[] = [
 ];
 
 // ============================================================
-// localStorage CRUD 工具层
+// localStorage 读取工具层
 // ============================================================
 
 function loadData<T>(key: string, defaults: T[]): T[] {
@@ -77,10 +82,6 @@ function loadData<T>(key: string, defaults: T[]): T[] {
   // 首次: 写入默认值
   try { localStorage.setItem(key, JSON.stringify(defaults)); } catch { /* ignore */ }
   return [...defaults];
-}
-
-function saveData<T>(key: string, data: T[]): void {
-  try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
 // ============================================================
@@ -104,148 +105,6 @@ function getAgents(): Agent[] {
 function getNodes(): NodeStatusRecord[] {
   if (!_nodes) _nodes = loadData<NodeStatusRecord>(NODES_KEY, DEFAULT_NODES);
   return _nodes;
-}
-
-function persistModels() { saveData(MODELS_KEY, getModels()); }
-function persistAgents() { saveData(AGENTS_KEY, getAgents()); }
-function persistNodes()  { saveData(NODES_KEY, getNodes()); }
-
-// ============================================================
-// CRUD — Models
-// ============================================================
-
-export function addDbModel(model: Omit<Model, "id">): Model {
-  const models = getModels();
-  const newModel: Model = { ...model, id: `m-${Date.now()}` };
-  models.push(newModel);
-  persistModels();
-  return newModel;
-}
-
-export function updateDbModel(id: string, updates: Partial<Model>): Model | null {
-  const models = getModels();
-  const idx = models.findIndex((m) => m.id === id);
-  if (idx < 0) return null;
-  models[idx] = { ...models[idx], ...updates };
-  persistModels();
-  return models[idx];
-}
-
-export function deleteDbModel(id: string): boolean {
-  const models = getModels();
-  const idx = models.findIndex((m) => m.id === id);
-  if (idx < 0) return false;
-  models.splice(idx, 1);
-  persistModels();
-  return true;
-}
-
-// ============================================================
-// CRUD — Agents
-// ============================================================
-
-export function addDbAgent(agent: Omit<Agent, "id">): Agent {
-  const agents = getAgents();
-  const newAgent: Agent = { ...agent, id: `a-${Date.now()}` };
-  agents.push(newAgent);
-  persistAgents();
-  return newAgent;
-}
-
-export function updateDbAgent(id: string, updates: Partial<Agent>): Agent | null {
-  const agents = getAgents();
-  const idx = agents.findIndex((a) => a.id === id);
-  if (idx < 0) return null;
-  agents[idx] = { ...agents[idx], ...updates };
-  persistAgents();
-  return agents[idx];
-}
-
-export function deleteDbAgent(id: string): boolean {
-  const agents = getAgents();
-  const idx = agents.findIndex((a) => a.id === id);
-  if (idx < 0) return false;
-  agents.splice(idx, 1);
-  persistAgents();
-  return true;
-}
-
-// ============================================================
-// CRUD — Nodes
-// ============================================================
-
-export function addDbNode(node: Omit<NodeStatusRecord, "id">): NodeStatusRecord {
-  const nodes = getNodes();
-  const newNode: NodeStatusRecord = { ...node, id: `n-${Date.now()}` };
-  nodes.push(newNode);
-  persistNodes();
-  return newNode;
-}
-
-export function updateDbNode(id: string, updates: Partial<NodeStatusRecord>): NodeStatusRecord | null {
-  const nodes = getNodes();
-  const idx = nodes.findIndex((n) => n.id === id);
-  if (idx < 0) return null;
-  nodes[idx] = { ...nodes[idx], ...updates };
-  persistNodes();
-  return nodes[idx];
-}
-
-export function deleteDbNode(id: string): boolean {
-  const nodes = getNodes();
-  const idx = nodes.findIndex((n) => n.id === id);
-  if (idx < 0) return false;
-  nodes.splice(idx, 1);
-  persistNodes();
-  return true;
-}
-
-// ============================================================
-// ��置 — 恢复默认 Mock 数据
-// ============================================================
-
-export function resetDbModels(): Model[] {
-  _models = DEFAULT_MODELS.map((m) => ({ ...m }));
-  persistModels();
-  return _models;
-}
-
-export function resetDbAgents(): Agent[] {
-  _agents = DEFAULT_AGENTS.map((a) => ({ ...a }));
-  persistAgents();
-  return _agents;
-}
-
-export function resetDbNodes(): NodeStatusRecord[] {
-  _nodes = DEFAULT_NODES.map((n) => ({ ...n }));
-  persistNodes();
-  return _nodes;
-}
-
-// ============================================================
-// 导入/导出
-// ============================================================
-
-export function exportDbData(): string {
-  return JSON.stringify({
-    version: 1,
-    exportedAt: Date.now(),
-    models: getModels(),
-    agents: getAgents(),
-    nodes: getNodes(),
-  }, null, 2);
-}
-
-export function importDbData(jsonStr: string): boolean {
-  try {
-    const data = JSON.parse(jsonStr);
-    if (data.models) { _models = data.models; persistModels(); }
-    if (data.agents) { _agents = data.agents; persistAgents(); }
-    if (data.nodes)  { _nodes = data.nodes; persistNodes(); }
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 // ============================================================
@@ -312,11 +171,6 @@ export async function getNodesStatus(): Promise<{ data: NodeStatusRecord[]; erro
 /** 获取活跃 Agent 列表 */
 export async function getActiveAgents(): Promise<{ data: Agent[]; error: null }> {
   return { data: getAgents().filter((a) => a.is_active), error: null };
-}
-
-/** 获取所有 Agent 列表 */
-export async function getAllAgents(): Promise<{ data: Agent[]; error: null }> {
-  return { data: [...getAgents()], error: null };
 }
 
 /** 获取单个模型 */
