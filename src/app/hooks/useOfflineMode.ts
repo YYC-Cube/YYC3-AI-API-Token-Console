@@ -59,26 +59,6 @@ export function useOfflineMode() {
     };
   }, []);
 
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      syncOfflineData();
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      saveOfflineSnapshot();
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
   const saveOfflineSnapshot = useCallback(() => {
     try {
       const state = lsGet(LOCALSTORAGE_KEYS.dashboardState);
@@ -112,6 +92,27 @@ export function useOfflineMode() {
       setPendingSync(false);
     }
   }, []);
+
+  // 在线/离线事件监听 (批9: effect 移至两个 useCallback 定义后 — 修复 deps 引用的 TDZ 风险并补齐依赖)
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncOfflineData();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      saveOfflineSnapshot();
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [saveOfflineSnapshot, syncOfflineData]);
 
   const getOfflineSnapshotTime = useCallback((): Date | null => {
     const time = lsGet(LOCALSTORAGE_KEYS.offlineTime);

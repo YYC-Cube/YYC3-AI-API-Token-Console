@@ -44,16 +44,18 @@ export function HostFileManager() {
   const editorRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Ctrl+S 快捷键 ──
+  // 批9: 解构供 deps 静态检查 (原 fs.saveFile/fs.editingDirty 成员链触发 missing 'fs')
+  const { editingDirty, saveFile } = fs;
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s" && activeTab === "editor" && fs.editingDirty) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s" && activeTab === "editor" && editingDirty) {
         e.preventDefault();
-        fs.saveFile();
+        saveFile();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [activeTab, fs.editingDirty, fs.saveFile]);
+  }, [activeTab, editingDirty, saveFile]);
 
   // ── 创建 ──
   const handleCreate = useCallback(() => {

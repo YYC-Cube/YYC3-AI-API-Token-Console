@@ -180,8 +180,8 @@ export function hexToRgb(hex: string): string {
   return `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`;
 }
 
-export function getGreeting(): { text: string; emoji: string } {
-  const h = new Date().getHours();
+export function getGreeting(now: Date): { text: string; emoji: string } {
+  const h = now.getHours();
   if (h < 6) return { text: "夜深了，注意休息", emoji: "night" };
   if (h < 9) return { text: "早安，新的一天开始了", emoji: "dawn" };
   if (h < 12) return { text: "上午好，精力充沛", emoji: "morning" };

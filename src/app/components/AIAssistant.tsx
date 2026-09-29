@@ -156,7 +156,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     if (!selectedModel && availableModels.length > 0) {
       setSelectedModel(availableModels[0].id);
     }
-  }, [availableModels, selectedModel]);
+  }, [availableModels, selectedModel, setSelectedModel]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

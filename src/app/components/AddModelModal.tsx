@@ -78,6 +78,8 @@ export function AddModelModal({
     if (selectedProviderId === "ollama") {
       onFetchOllama(ollamaUrl);
     }
+    // 仅在切换 provider 时重置/拉取 — onFetchOllama 身份随 providers 变化, 加入 deps 会在无关变更时误清已选模型
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProviderId]);
 
   // Get selected provider

@@ -11,19 +11,34 @@
  * "您把此项设计作为您的成长家园去设计"
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Heart, Phone, MessageCircle, Music, BookOpen,
-  Gamepad2, TrendingUp, Sparkles, Star, Shield,
-  Clock, Users, Zap, HandHeart, Volume2, Trophy,
-  Server, Radio, Database,
+  BookOpen,
+  Clock,
+  Database,
+  Gamepad2,
+  HandHeart,
+  Heart,
+  MessageCircle, Music,
+  Phone,
+  Radio,
+  Server,
+  Shield,
+  Sparkles, Star,
+  TrendingUp,
+  Trophy,
+  Users,
+  Volume2,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  FAMILY_MEMBERS, DEEP_BG, getGreeting, getHourlyCare,
- type FamilyMember,
+  DEEP_BG,
+  FAMILY_MEMBERS,
+  getGreeting, getHourlyCare,
+  type FamilyMember,
 } from "./ai-family/shared";
+import { GlassCard } from "./GlassCard";
 
 // ═══ FadeIn (沙箱安全) ═══
 function FadeIn({ children, delay = 0, className = "", style }: {
@@ -165,7 +180,7 @@ export function AIFamilyCenterPage() {
   const nav = useNavigate();
   const [now, setNow] = useState(new Date());
   const care = useMemo(() => getHourlyCare(), []);
-  const greeting = useMemo(() => getGreeting(), [Math.floor(now.getTime() / 60000)]);
+  const greeting = useMemo(() => getGreeting(now), [now]);
   const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
 
   useEffect(() => {

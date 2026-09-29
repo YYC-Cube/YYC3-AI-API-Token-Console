@@ -29,7 +29,7 @@ export function OfflineIndicator() {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isOnline]);
+  }, [isOnline, show]);
 
   if (!show) return null;
 

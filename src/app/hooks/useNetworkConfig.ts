@@ -7,17 +7,17 @@
  * - WebSocket 连接测试
  */
 
-import { useState, useEffect, useCallback } from "react";
-import type { NetworkConfig, NetworkInterface, NetworkConfigState } from "../types";
+import { useCallback, useEffect, useState } from "react";
 import {
-  loadNetworkConfig,
-  saveNetworkConfig,
-  resetNetworkConfig,
-  getNetworkInterfaces,
-  getLocalIP,
   generateWsUrl,
+  getLocalIP,
+  getNetworkInterfaces,
+  loadNetworkConfig,
+  resetNetworkConfig,
+  saveNetworkConfig,
   testWebSocketConnection,
 } from "../lib/network-utils";
+import type { NetworkConfig, NetworkConfigState } from "../types";
 
 export function useNetworkConfig() {
   const [state, setState] = useState<NetworkConfigState>({
@@ -29,11 +29,6 @@ export function useNetworkConfig() {
     testError: "",
     detecting: false,
   });
-
-  // 启动时自动检测
-  useEffect(() => {
-    detectNetwork();
-  }, []);
 
   /** 刷新网络检测 */
   const detectNetwork = useCallback(async () => {
@@ -53,6 +48,11 @@ export function useNetworkConfig() {
       setState((prev) => ({ ...prev, detecting: false }));
     }
   }, []);
+
+  // 启动时自动检测 (批9: effect 移至 detectNetwork 定义后 — 修复 deps 引用的 TDZ 风险并补齐依赖)
+  useEffect(() => {
+    detectNetwork();
+  }, [detectNetwork]);
 
   /** 更新配置字段 */
   const updateConfig = useCallback(

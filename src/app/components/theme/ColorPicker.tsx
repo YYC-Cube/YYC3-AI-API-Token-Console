@@ -5,9 +5,14 @@
  * 包含: 色相/饱和度/明度面板 + 色相滑条 + HEX/R/G/B 输入
  */
 
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  hexToRgb, rgbToHex, hsvToRgb, rgbToHsv, hexToOklch, formatOklch,
+  formatOklch,
+  hexToOklch,
+  hexToRgb,
+  hsvToRgb,
+  rgbToHex,
+  rgbToHsv,
 } from "./color-utils";
 
 interface ColorPickerProps {
@@ -19,6 +24,8 @@ interface ColorPickerProps {
 export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
   const [rgb, setRgb] = useState<[number, number, number]>(() => hexToRgb(value));
   const [hsv, setHsv] = useState<[number, number, number]>(() => rgbToHsv(...hexToRgb(value)));
+  // 解构元组供 hook deps 使用 (批9: 索引访问 hsv[0] 无法被静态检查, 触发 exhaustive-deps ×7)
+  const [hue, sat, val] = hsv;
   const [hexInput, setHexInput] = useState(value.replace("#", ""));
 
   const svCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,9 +89,9 @@ export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
   }, []);
 
   useEffect(() => {
-    drawSV(hsv[0]);
+    drawSV(hue);
     drawHue();
-  }, [drawSV, drawHue, hsv[0]]);
+  }, [drawSV, drawHue, hue]);
 
   // ── SV interactions ──
   const handleSVPick = useCallback((e: React.MouseEvent | MouseEvent) => {
@@ -93,14 +100,14 @@ export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
     const rect = canvas.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    const newHsv: [number, number, number] = [hsv[0], x, 1 - y];
+    const newHsv: [number, number, number] = [hue, x, 1 - y];
     setHsv(newHsv);
     const newRgb = hsvToRgb(...newHsv);
     setRgb(newRgb);
     const hex = rgbToHex(...newRgb);
     setHexInput(hex.replace("#", ""));
     onChange(hex);
-  }, [hsv[0], onChange]);
+  }, [hue, onChange]);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => { if (svDragging.current) handleSVPick(e); };
@@ -117,7 +124,7 @@ export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
     const rect = canvas.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const newHue = x * 360;
-    const newHsv: [number, number, number] = [newHue, hsv[1], hsv[2]];
+    const newHsv: [number, number, number] = [newHue, sat, val];
     setHsv(newHsv);
     drawSV(newHue);
     const newRgb = hsvToRgb(...newHsv);
@@ -125,7 +132,7 @@ export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
     const hex = rgbToHex(...newRgb);
     setHexInput(hex.replace("#", ""));
     onChange(hex);
-  }, [hsv[1], hsv[2], drawSV, onChange]);
+  }, [sat, val, drawSV, onChange]);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => { if (hueDragging.current) handleHuePick(e); };

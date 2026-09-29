@@ -75,12 +75,13 @@ export function FollowUpDrawer({
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // Reset tab on new item
+  const itemId = item?.id; // 提取变量供 deps 静态检查 (批9 exhaustive-deps 治理)
   useEffect(() => {
     if (item) {
       setActiveTab("detail");
       setAiSuggestions([]);
     }
-  }, [item?.id]);
+  }, [itemId, item]);
 
   // Escape key to close
   useEffect(() => {

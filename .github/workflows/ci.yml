@@ -4,7 +4,7 @@
 #
 #  触发: push 到 main/develop · 所有 PR
 #  阶段: 🔍 Typecheck → 🧹 Lint(含分层边界) → 🧪 Test(unit 分级+基线) → 🛡️ Security Scan
-#        → 📦 Build(+工程纪律: ast-grep/门禁探针/体量/knip + 产物零密钥)
+#        → 🎭 E2E(Playwright·auth 链路) → 📦 Build(+工程纪律: ast-grep/门禁探针/体量/knip + 产物零密钥)
 #  下游: pages.yml (CI 全绿后自动部署 GitHub Pages → token.yyc3.vip)
 # ============================================================================
 
@@ -110,7 +110,7 @@ jobs:
 
       - name: Run tests (JUnit output)
         # Task 2.3 (Phase 2) — 测试分级门禁: CI 默认只跑 unit 档 (零外部依赖)
-        # integration 档需 YYC3_TEST_INTEGRATION=1 显式开启, e2e 未接入
+        # integration 档需 YYC3_TEST_INTEGRATION=1 显式开启; e2e 见下方独立 e2e job
         run: pnpm test:ci
 
       - name: Run coverage check (gate ≥ 80%)
@@ -168,13 +168,58 @@ jobs:
         run: python3 scripts/check_mermaid.py
 
   # ============================================================
+  # 3b. E2E (Playwright · console 鉴权链路 ×3 + 路由冒烟)
+  # ============================================================
+  e2e:
+    name: "🎭 E2E · playwright auth"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [typecheck, lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e (auth ×3 + smoke)
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  # ============================================================
   # 4. 生产构建验证
   # ============================================================
   build:
     name: "📦 Build · vite production"
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [unit-test, security-scan]
+    needs: [unit-test, security-scan, e2e]
     steps:
       - uses: actions/checkout@v4
 

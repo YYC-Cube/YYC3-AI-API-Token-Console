@@ -28,7 +28,9 @@ import { fileURLToPath } from "node:url";
 import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "./console-auth.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.join(__dirname, "dist");
+// 静态目录: 与 LAN 版 server.mjs 语义对齐 — 默认仓库根 dist/, 可经 DIST_DIR 覆盖
+// (修复批9 e2e 揭示的本地托管 404: 原硬编码 deploy/dist 与 vite 构建产物位置不符)
+const DIST = path.resolve(__dirname, process.env.DIST_DIR || "../dist");
 const PORT = Number(process.env.PORT || 3100);
 
 // 上游：家族 API 网关（frp 隧道 ECS 本机端点；固定常量，非用户可控，无 SSRF 面）

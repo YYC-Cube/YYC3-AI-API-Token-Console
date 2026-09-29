@@ -12,13 +12,23 @@
  * 鉴权：网关 ADMIN 密钥（api-config gatewayAdminKey，仅内网使用）
  */
 
-import React, { useEffect, useState, useCallback } from "react";
 import {
-  KeyRound, Plus, Trash2, RefreshCw, Copy, CheckCircle, XCircle,
-  Loader2, AlertCircle, Wallet, Gauge, ListFilter,
+  AlertCircle,
+  CheckCircle,
+  Copy,
+  Gauge,
+  KeyRound,
+  ListFilter,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Wallet,
+  XCircle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import { useCallback, useEffect, useState } from "react";
 import { getGatewayConfig } from "../lib/api-config";
+import { GlassCard } from "./GlassCard";
 
 interface VK {
   id: string;
@@ -46,6 +56,15 @@ const btn =
 const btnPrimary = `${btn} border-[rgba(0,212,255,0.3)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]`;
 const btnGhost = `${btn} border-[rgba(255,255,255,0.12)] text-[rgba(224,240,255,0.6)] hover:text-[#e0f0ff]`;
 
+// 网关请求辅助 — 纯函数 (仅读 lib 配置, 无组件态闭包)
+// 批9 上提模块级: 原组件内定义身份每渲染必变, 致 exhaustive-deps 警告且不可安全入 deps
+const cfg = () => getGatewayConfig();
+const base = () => cfg().gatewayBase.replace(/\/v1\/?$/, "");
+const headers = (): Record<string, string> => ({
+  "X-API-Key": cfg().gatewayAdminKey,
+  "Content-Type": "application/json",
+});
+
 export function GatewayKeysPanel() {
   const [keys, setKeys] = useState<VK[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,13 +74,6 @@ export function GatewayKeysPanel() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", owner: "yanyu", budget: "5", tpm: "0", whitelist: "" });
   const [copied, setCopied] = useState(false);
-
-  const cfg = () => getGatewayConfig();
-  const base = () => cfg().gatewayBase.replace(/\/v1\/?$/, "");
-  const headers = (): Record<string, string> => ({
-    "X-API-Key": cfg().gatewayAdminKey,
-    "Content-Type": "application/json",
-  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,6 +89,8 @@ export function GatewayKeysPanel() {
     } finally {
       setLoading(false);
     }
+    // base/headers 为模块级纯函数, 非组件态依赖
+
   }, []);
 
   useEffect(() => { load(); }, [load]);

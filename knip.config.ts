@@ -25,6 +25,9 @@ const config: KnipConfig = {
     "src/app/routes.ts",
     "index.html",
     "deploy/server.mjs",
+    // e2e 最小工具链 (批9) — playwright 依赖经此消费
+    "playwright.config.ts",
+    "e2e/**/*.spec.ts",
   ],
   project: ["src/**/*.{ts,tsx}"],
   ignore: [

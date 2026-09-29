@@ -7,18 +7,38 @@
  * 重构: 使用 shared.ts 共享数据 + FadeIn 沙箱安全动画
  */
 
-import React, { useState, useEffect, useMemo } from "react";
 import {
-  Heart, Users, MessageCircle, BookOpen, Music, TrendingUp,
-  Coffee, Sun, Moon, Cloud,
-  Zap, Activity, Clock, ChevronRight,
-  Smile, FileText, HandHeart, Phone, Gamepad2, Trophy,
-  Volume2, Server, Radio, Database, Settings2,
+  Activity,
+  BookOpen,
+  ChevronRight,
+  Clock,
+  Cloud,
+  Coffee,
+  Database,
+  FileText,
+  Gamepad2,
+  HandHeart,
+  Heart,
+  MessageCircle,
+  Moon,
+  Music,
+  Phone,
+  Radio,
+  Server,
+  Settings2,
+  Smile,
+  Sun,
+  TrendingUp,
+  Trophy,
+  Users,
+  Volume2,
+  Zap,
 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
-import { useNavigate } from "react-router";
-import { FAMILY_MEMBERS, DEEP_BG, getGreeting, hexToRgb } from "./shared";
+import { DEEP_BG, FAMILY_MEMBERS, getGreeting, hexToRgb } from "./shared";
 
 // ═══ 图标映射（家园空间） ═══
 const SPACE_ICONS: Record<string, React.ElementType> = {
@@ -61,7 +81,7 @@ const GREETING_EMOJIS: Record<string, string> = {
 export function FamilyHome() {
   const now = useTime();
   const nav = useNavigate();
-  const greeting = useMemo(() => getGreeting(), [Math.floor(now.getTime() / 60000)]);
+  const greeting = useMemo(() => getGreeting(now), [now]);
   const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
 
   const timeStr = now.toLocaleTimeString("zh-CN", { hour12: false });

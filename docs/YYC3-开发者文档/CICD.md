@@ -206,6 +206,44 @@ flowchart LR
 
 ---
 
+## 九、Console 公网部署 | Console Server Deploy
+
+> 服务器 [`deploy/console-server.mjs`](../../deploy/console-server.mjs) · 鉴权逻辑 [`deploy/console-auth.mjs`](../../deploy/console-auth.mjs)
+
+### 9.1 环境变量 | Environment Variables
+
+全部为**运行时读取**（与构建产物无关，`VITE_` 前缀不适用）；完整清单与占位符见 [`.env.example`](../../.env.example)。
+
+| 变量 | 必填 | 默认值 | 说明 |
+| ---- | ---- | ------ | ---- |
+| `CONSOLE_AUTH_SECRET` | 鉴权启用需配置 | — | ≥32 字节随机串，HMAC-SHA256 会话令牌签名密钥 |
+| `CONSOLE_ADMIN_PASSWORD` | 鉴权启用需配置 | — | console 管理登录密码 |
+| `GW_ADMIN_KEY` | 可选 | — | 转发 `/console/gw/*` 时注入的网关 ADMIN 密钥；缺失则已认证会话收到 503 |
+| `PORT` | 可选 | `3100` | 监听端口 |
+| `DIST_DIR` | 可选 | `../dist` | 静态产物目录（相对 `deploy/` 解析，与 LAN 版 `server.mjs` 语义对齐） |
+
+### 9.2 鉴权启用条件与失效语义 | Auth Semantics
+
+- **启用条件**：`CONSOLE_AUTH_SECRET` 与 `CONSOLE_ADMIN_PASSWORD` **二者同时**配置；任一缺失则登录/状态端点报 503（fail-closed）
+- **未认证访问** `/console/gw/*`、`/console/ollama/*`：一律 401
+- **登录限流**：5 次 / 5 分钟 / IP（内存滑动窗口，重启即清零）
+- **会话令牌**：HttpOnly Cookie `console_session`（SameSite=Strict），TTL 12 小时
+
+### 9.3 启动示例 | Launch Example
+
+```bash
+# 密钥仅经环境注入，禁止写入任何入库文件
+CONSOLE_AUTH_SECRET="$(openssl rand -hex 32)" \
+CONSOLE_ADMIN_PASSWORD="$(openssl rand -base64 18)" \
+GW_ADMIN_KEY="sk-admin-..." \
+PORT=3100 \
+node deploy/console-server.mjs
+```
+
+> 验证链路：`pnpm test:e2e`（Playwright，auth 链路 ×3 + 路由冒烟，见 `e2e/auth.spec.ts`）。
+
+---
+
 <div align="center">
 
 **® YANYUCLOUDCUBE** · © 2025-2026 言语（河南）智能科技有限公司 · Yanyu Intelligent Technology Co., Ltd.

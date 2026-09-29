@@ -248,6 +248,25 @@ export function useBigModelSDK() {
     return getCapabilities(providerId).includes(cap);
   }, [getCapabilities]);
 
+  // ========== 统计更新 ==========
+  // 批9: 原定义于 L633 (两个消费方之后), deps 引用会 TDZ 崩溃 — 上移至首个使用点之前
+  const updateStats = useCallback((response: SDKChatResponse) => {
+    setUsageStats((prev) => {
+      const totalReqs = prev.totalRequests + 1;
+      const newAvg = ((prev.avgLatencyMs * prev.totalRequests) + response.latencyMs) / totalReqs;
+      const next: SDKUsageStats = {
+        totalRequests: totalReqs,
+        totalTokensIn: prev.totalTokensIn + response.usage.promptTokens,
+        totalTokensOut: prev.totalTokensOut + response.usage.completionTokens,
+        avgLatencyMs: Math.round(newAvg),
+        lastRequestAt: Date.now(),
+        errorCount: prev.errorCount,
+      };
+      saveStats(next);
+      return next;
+    });
+  }, []);
+
   // ========== 核心: 发送消息 (同步) ==========
 
   const sendMessage = useCallback(async (
@@ -420,7 +439,7 @@ export function useBigModelSDK() {
         latencyMs: latency,
       };
     }
-  }, [activeSessionId, sessions]);
+  }, [activeSessionId, sessions, updateStats]);
 
   // ========== 核心: 流式发送 ==========
 
@@ -618,7 +637,7 @@ export function useBigModelSDK() {
         latencyMs: Date.now() - start,
       };
     }
-  }, [activeSessionId, sessions]);
+  }, [activeSessionId, sessions, updateStats]);
 
   // ========== 中断请求 ==========
 
@@ -626,25 +645,6 @@ export function useBigModelSDK() {
     abortRef.current?.abort();
     setStreaming(false);
     setStreamingContent("");
-  }, []);
-
-  // ========== 统计更新 ==========
-
-  const updateStats = useCallback((response: SDKChatResponse) => {
-    setUsageStats((prev) => {
-      const totalReqs = prev.totalRequests + 1;
-      const newAvg = ((prev.avgLatencyMs * prev.totalRequests) + response.latencyMs) / totalReqs;
-      const next: SDKUsageStats = {
-        totalRequests: totalReqs,
-        totalTokensIn: prev.totalTokensIn + response.usage.promptTokens,
-        totalTokensOut: prev.totalTokensOut + response.usage.completionTokens,
-        avgLatencyMs: Math.round(newAvg),
-        lastRequestAt: Date.now(),
-        errorCount: prev.errorCount,
-      };
-      saveStats(next);
-      return next;
-    });
   }, []);
 
   // ========== 连接测试 (真实 API 调用) ==========

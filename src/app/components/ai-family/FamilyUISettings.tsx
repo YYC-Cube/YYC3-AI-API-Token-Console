@@ -55,6 +55,18 @@ import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FAMILY_MEMBERS, hexToRgb } from "./shared";
 
+// 全量存储键 — 模块级常量 (批9: 原组件内定义致 exhaustive-deps 警告 ×4, 上提后身份稳定)
+const ALL_STORAGE_KEYS = [
+  "yyc3-family-comm-messages",
+  "yyc3-family-voice-profiles",
+  "yyc3-family-voice-conversations",
+  "yyc3-family-model-assignments",
+  "yyc3-family-provider-keys",
+  "yyc3-family-diagnostics",
+  "yyc3-family-ui-config",
+  "yyc3-family-activities",
+];
+
 // ═══ Settings Types ═══
 
 interface FamilyUIConfig {
@@ -398,17 +410,6 @@ export function FamilyUISettings() {
 
   // ═══ 数据管理 ═══
 
-  const ALL_STORAGE_KEYS = [
-    "yyc3-family-comm-messages",
-    "yyc3-family-voice-profiles",
-    "yyc3-family-voice-conversations",
-    "yyc3-family-model-assignments",
-    "yyc3-family-provider-keys",
-    "yyc3-family-diagnostics",
-    "yyc3-family-ui-config",
-    "yyc3-family-activities",
-  ];
-
   const storageStats = useMemo(() => {
     let totalSize = 0;
     const items: { key: string; size: number }[] = [];
@@ -423,7 +424,9 @@ export function FamilyUISettings() {
       } catch { /* noop */ }
     }
     return { totalSize, items };
-  }, [config]); // re-calc on config change as proxy for storage change
+    // config 为存储变更代理 (导入/清空后 setConfig 触发重算), 故意保留
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   const handleExportAll = useCallback(() => {
     const allData: Record<string, unknown> = {};
