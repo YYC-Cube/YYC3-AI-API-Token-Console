@@ -88,6 +88,121 @@
     "isBuiltin": true
   },
   {
+    "id": "anthropic",
+    "label": "Anthropic",
+    "baseUrl": "https://api.anthropic.com/v1",
+    "authType": "api-key",
+    "protocol": "chat",
+    "models": ["claude-opus-4-1", "claude-sonnet-4-5", "claude-haiku-4-5"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "gemini",
+    "label": "Google Gemini",
+    "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+    "authType": "api-key",
+    "protocol": "chat",
+    "models": ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "qwen",
+    "label": "阿里云百炼 (Qwen)",
+    "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["qwen3-max", "qwen-plus", "qwen-turbo", "qwen-long", "qwen-vl-max"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "hunyuan",
+    "label": "腾讯混元",
+    "baseUrl": "https://api.hunyuan.cloud.tencent.com/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["hunyuan-t1", "hunyuan-turbo", "hunyuan-standard", "hunyuan-lite"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "spark",
+    "label": "讯飞星火",
+    "baseUrl": "https://spark-api-open.xf-yun.com/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["4.0Ultra", "generalv3.5", "generalv3"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "minimax",
+    "label": "MiniMax",
+    "baseUrl": "https://api.minimaxi.com/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["MiniMax-M1", "MiniMax-Text-01", "abab6.5s-chat"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "stepfun",
+    "label": "阶跃星辰",
+    "baseUrl": "https://api.stepfun.com/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["step-2-16k", "step-2-mini", "step-1v-8k"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "xai",
+    "label": "xAI (Grok)",
+    "baseUrl": "https://api.x.ai/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["grok-4", "grok-3", "grok-3-mini", "grok-code-fast-1"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "siliconflow",
+    "label": "硅基流动",
+    "baseUrl": "https://api.siliconflow.cn/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": [
+      "deepseek-ai/DeepSeek-V3",
+      "deepseek-ai/DeepSeek-R1",
+      "Qwen/Qwen2.5-72B-Instruct",
+      "moonshotai/Kimi-K2-Instruct"
+    ],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
+    "id": "openrouter",
+    "label": "OpenRouter",
+    "baseUrl": "https://openrouter.ai/api/v1",
+    "authType": "bearer",
+    "protocol": "chat",
+    "models": ["openrouter/auto"],
+    "requiresApiKey": true,
+    "isLocal": false,
+    "isBuiltin": true
+  },
+  {
     "id": "ollama",
     "label": "Ollama (本地)",
     "baseUrl": "http://localhost:11434",

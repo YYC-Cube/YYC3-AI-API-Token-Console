@@ -14,8 +14,29 @@ describe("useModelProvider", () => {
   });
 
   describe("MODEL_PROVIDERS 注册表", () => {
-    it("应有 14 个提供商（9 云端 + 5 本地生产服务 yyc3-*）", () => {
-      expect(MODEL_PROVIDERS.length).toBe(14);
+    it("应有 24 个提供商（18 云端 + 6 本地: Ollama + 5 生产服务 yyc3-*）", () => {
+      expect(MODEL_PROVIDERS.length).toBe(24);
+    });
+
+    it("批18 扩容: 应含三大缺失云厂与聚合商 (Anthropic/Gemini/Qwen/混元/星火/MiniMax/阶跃/xAI/硅基流动/OpenRouter)", () => {
+      for (const id of [
+        "anthropic",
+        "gemini",
+        "qwen",
+        "hunyuan",
+        "spark",
+        "minimax",
+        "stepfun",
+        "xai",
+        "siliconflow",
+        "openrouter",
+      ]) {
+        const svc = MODEL_PROVIDERS.find((p) => p.id === id);
+        expect(svc, id).toBeDefined();
+        expect(svc?.isLocal, id).toBe(false);
+        expect(svc?.protocol, id).toBe("chat");
+        expect(svc?.models.length, id).toBeGreaterThan(0);
+      }
     });
 
     it("应含本地生产服务群（网关/ComfyUI/SyncNet/TTS/H3）", () => {

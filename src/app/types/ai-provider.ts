@@ -20,6 +20,8 @@ export interface ModelProviderDef {
   label: string;
   baseUrl: string;
   authType: "bearer" | "api-key" | "none";
+  /** schema v2 (批11): models 列表协议族语义消歧 (与 provider-schema.ts 对齐) */
+  protocol?: "chat" | "image" | "tts" | "video" | "score";
   models: string[];
   requiresApiKey: boolean;
   isLocal: boolean;           // Ollama = true
