@@ -625,6 +625,7 @@ curl -s https://token.yyc3.vip/sw.js | rg "PRECACHE_MANIFEST|prewarmAssets|ignor
 | 异 profile 启动被转交 | macOS Chrome 单进程模型 | 先清全部 Chrome 实例再启动（批13/14 成功正因当时无实例） |
 | Playwright channel:chrome 报错 | 本机无 Google Chrome | 安装 Chrome 或回落 chromium |
 | `pnpm install` 构建脚本被拦 | 原生依赖未入 allowBuilds | pnpm-workspace.yaml 补录 + 复核日期 |
+| vitest jsdom 全灭（`localStorage.clear` undefined ×7 文件） | 本地 node 被 homebrew 升至 v26，与 CI 22 漂移（vitest4/jsdom 兼容破坏） | `export PATH="/opt/homebrew/opt/node@22/bin:$PATH"` 后跑门禁；注意 nvm.sh 实际缺失（zshrc 惰性加载空转），勿信 `nvm use` |
 
 **验收**：doctor 全绿；探针命令按权限矩阵预期通过或明确报告阻塞。
 
@@ -648,6 +649,7 @@ curl -s https://token.yyc3.vip/sw.js | rg "PRECACHE_MANIFEST|prewarmAssets|ignor
 | app shim 不可控 | `open -a` 拉起欢迎页 | shim 按系统 LastUsed profile 定位 → 同 profile `--app` 等价复验 |
 | AppleEvent 超时 -1712 | tell Chrome 无响应 | 无窗口驻留进程不响应 AppleEvent → ps 级进程处置 |
 | 时序余量不足 | 合成事件后断言偶发 false | 等待时间给余量（1.2s 不够用 1.5s+）；轮询代替单次等待 |
+| Node 版本漂移 | 本地门禁 158 测试环境级失败（CI 却绿） | homebrew 自动升级 node 大版本 → 固定 `/opt/homebrew/opt/node@22/bin` 前置 PATH；失败特征=「localStorage undefined 群发」即环境级，先查 `node -v` 再查代码 |
 
 **验收**：新判例三要素齐全；跨批引用可溯（CONTEXT_LINK）。
 
@@ -660,6 +662,7 @@ curl -s https://token.yyc3.vip/sw.js | rg "PRECACHE_MANIFEST|prewarmAssets|ignor
 ```bash
 # ── 环境 ─────────────────────────────────────────────
 pnpm doctor                     # 环境一键体检
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"  # node 22 对齐 CI（homebrew node 已漂 26, 见第24章）
 pnpm install --frozen-lockfile  # 严格安装
 pnpm dev                        # 开发服务器 :3030
 pnpm dev:host                   # 局域网联调
@@ -815,6 +818,7 @@ description/author/version/created/updated/status/tags/category
 | --- | --- | --- |
 | v1.0.0 | 2026-09-29 | 初版：八卷 25 章 + 三附录，锚定批12-15 实战沉淀（批16，`6f9e808`） |
 | v2.0.0 | 2026-10-02 | 全正文补全：25 章逐章扩至五要素全量（失败处置矩阵/判例引用/数字链路）；判例库 12→14；附录 3→5（新增 D 模板骨架、E 门禁-CI 映射）；读者矩阵与术语表；修正 knip 七类基线口径（批17） |
+| v2.1.0 | 2026-10-02 | 判例入库（批18 首例按维护约定执行）：Node 26 漂移判例入第24章故障矩阵 + 第25章判例库；附录 A 环境段补 node@22 PATH 对齐行 |
 
 ---
 

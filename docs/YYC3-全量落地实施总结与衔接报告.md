@@ -2,7 +2,7 @@
 file: YYC3-全量落地实施总结与衔接报告.md
 description: YYC3-AI-API-Token-Console 四项目可借鉴项全量落地 — 深度分析 · 实施规划 · 交付总结 · 跨会话衔接（三合一）
 author: YanYuCloudCube Team <admin@0379.email>
-version: v2.14.0
+version: v2.15.0
 created: 2026-09-20
 updated: 2026-10-02
 status: stable
@@ -405,6 +405,8 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 ### 8.2 上次中断点
 
+2026-10-02 第十八轮批18（功能主线回归 · 推理矩阵扩容）已完成: **①** [builtin-providers.json](../src/app/config/providers/builtin-providers.json) 声明式扩容 **14→24 提供商**——补齐三大缺失云厂（Anthropic Claude / Google Gemini / 阿里云百炼 Qwen）+ 五家国产云（腾讯混元/讯飞星火/MiniMax/阶跃星辰/xAI Grok）+ 双聚合商（硅基流动/OpenRouter），+33 模型种子（36→69），全部 protocol:"chat" 声明、零代码改动路径（指南三步法）；**②** 类型层最小补齐——[ai-provider.ts](../src/app/types/ai-provider.ts) `ModelProviderDef` 补可选 `protocol` 字段（批11 schema v2 未同步运行时类型的遗留缺口，本批守护测试首消费）；**③** 测试——[useModelProvider.test.tsx](../src/app/__tests__/useModelProvider.test.tsx) 计数断言 14→24（新构成 18 云端 + 6 本地）+ 批18 十家守护测试（存在性/isLocal=false/protocol=chat/models>0），全量 **1997/1997**；**④** 运行时实证——preview + Playwright /models 探针 10/10 新提供商全渲染、零页面错误（PROBE PASS）。**环境判例（已入库手册第24/25章）**: 本地 homebrew node 自动升级 26 与 CI 22 漂移致 vitest4/jsdom 七文件 `localStorage undefined` 群发（158 失败），`export PATH="/opt/homebrew/opt/node@22/bin:$PATH"` 对齐后复绿——**下次会话跑门禁前必须先挂 node@22 PATH**（nvm.sh 实际缺失，`nvm use` 不可用）。
+
 2026-10-02 第十七轮批17（指导目录全面审核 + 全正文补全）已完成: **①** 全面审核——实况核验 [knip.config.ts](../knip.config.ts) 七类基线（files 0 / dependencies 0 / devDependencies 4 / exports 11 / types 3 / duplicates 1 / binaries 1）、pnpm-workspace catalog 与 allowBuilds 机制、开发者文档 8 件，修正 v1.0.0 中「knip 基线仅 files/dependencies 两类」的口径偏差；发现 catalog 内存在 `^` 范围版本（vitest ^4.0.18 / eslint ^9.39.5 等）与红线 4「精确锁定」的口径张力，登记为审核建议（§8.3 候选观察项）；**②** [全链路闭环操作指导目录](./YYC3-全链路闭环操作指导目录.md) **v2.0.0 全正文补全**——25 章逐章扩至五要素全量（每章：定位/操作步骤/关键命令/事实源/验收标准，高风险环节附失败处置矩阵与判例引用）；判例库 12→14（新增 AppleEvent 超时 -1712 / 时序余量不足）；附录 3→5（新增 D 会话文档模板骨架四件套精简版、E 门禁-CI 映射对照表）；卷首新增读者矩阵与术语表；维护约定内嵌「新判例同步入库第25章」机制；**③** 批16（v1.0.0 目录初版 `6f9e808`，八卷 25 章 + 三附录，CI run 36993859884 六阶段全绿 + Pages 部署成功）回顾入账。全文档纯 docs 变更，无代码/配置改动。
 
 2026-09-29 第十二轮批15（附录 A 组执行——macOS OS 级自动化攻坚）已完成: 桌面安装链路 §1.1 全部收口至自动化终界——**①** 权限攻坚：屏幕录制 ❌（screencapture 被拒）→ 辅助功能经用户授权 ✅（System Events UI 树可用），确定 a11y + AXPress 路线；**②** §1.1.5 **原生对话框实机点击全闭环**（历史性突破）——真实 bip → 横幅点击 → `prompt()` → AppleScript 深遍历原生 a11y 树（跳过 AXWebArea 防网页树爆炸）定位对话框 `[安装应用]` 的 `AXButton d=安装` → **AXPress 实机点击成功** → `userChoice=accepted` + **`appinstalled` 事件触发** + `~/Applications/Chrome Apps.localized/YYC³ 本地多端推理矩阵数据库 · 数据看盘.app` **真实落盘**——批14 遗留的「对话框内单击」人工残留清零；**③** §1.1.6 **安装后检查 6/6 全过**——`.app` 落盘（Launchpad/Dock 可发现性直接证据）+ 同 profile `--app` 独立窗口等价复验（standalone=true + SW active + 标题正确）+ a11y chromeless 铁证（app 窗口名无 `- Google Chrome` 后缀 + 无「新标签页」tab strip）+ **卸载复原**完成；**④** §1.1.4 **协议级推定闭环**——真实 bip ×3 轮复现 + 对话框 `AXHeading d=安装应用`（应用名/图标）a11y dump；Chromium 不向 System Events 暴露 browser UI 树（toolbar 仅对 VoiceOver 级 AT 构建，`AXEnhancedUserInterface` 亦无效）+ 屏幕录制未授权 → 两条像素取证路均达硬边界，像素级人眼确认降级为可选项。技术要点沉淀：AppleScript `path` 为保留字；macOS Chrome 单进程模型（异 profile 启动亦被转交既有实例）；安装后后台驻留进程持 SingletonLock 须清理；app shim `open -a` 按 LastUsed profile 定位对受控 profile 不可行。附录 A 组操作清单三行已回填执行结果；PWA 清单批15 实机安装轮回填（§1.1.4/§1.1.5/§1.1.6 + §五判定 + §七 + 附录）。临时脚本 ×4 与测试 profile/.app 均已清理。
@@ -415,12 +417,13 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 
 2026-09-29 第九轮批12（P2 自动化推进 + OBS-5 修复 + 死代码清偿）已完成: **①** 死代码批量复核清偿——11 文件归档移除（DatabaseConnectionPanel+测试 / HostFileManager / CLITerminal / RefactoringReport / PerformanceMonitor / usePerformanceMonitor / usePushNotifications / useValidation / figma/ImageWithFallback / e2e/playwright.config）+ **15 处伪导航入口清理**（指向重定向路由的 hostFiles ×4 / dbConnections ×1 / performance ×3 / refactoring ×3 / terminal ×2 / ide ×1 / theme ×1——Sidebar/BottomNav/TopBar/CommandPalette 四导航 + ArchitectureAudit 路由事实表 7 行 + i18n 双语 8 键），knip files 基线 9→**0 归零**（`NodeRuntime` 白名单保留: useTerminal→IntegratedTerminal、useLocalFileSystem→LocalFileManager 均有活跃消费者），测试 2007→1993 全绿；**②** OBS-5 预缓存增强闭环——根因三重修复：`scripts/inject-precache.mjs` 构建后产物清单注入（99 项/2981KB 挂接 `pnpm build`）+ sw.js install 阶段逐条预热（失败容忍）+ **`Vary: Origin` MISS 根因修复**（preview/Pages assets 响应带 Vary: Origin，预热请求无 Origin 而页面 module script 带 → 缓存命中校验失败 → 四处 match 统一 `ignoreVary: true`）+ sw-register.test 新增结构守护 ×3；Playwright 实测断网深链 /settings（bodyLen 454 完整渲染 vs 修复前 408 空壳）与 /pwa（326）全过；**③** P2 真机项自动化边界推进——§1.2 提示交互全链路 ✅（合成 beforeinstallprompt：横幅出现 → 关闭 → `pwa_install_dismissed` 持久化 → reload 不再现）、§1.1.5 组件链路 ✅、iOS/Android 维持 🔒 物理设备阻塞；PWA 清单批12 轮回填（§1.1.5/§1.2×3/OBS-5 关闭行/§五判定/§七记录）；**④** 部署链路收尾修复——CI 首次部署实测暴露 Pages Deploy 裸 `vite build --base=/` 绕过 package.json build script（inject-precache 未执行，线上 sw.js 空占位）→ `pages.yml` 改走 `pnpm build` 完整链（`703af5f`），二次部署线上复验 sw.js manifest **99 项**生效 + prewarmAssets/ignoreVary 齐备；另 `check-size.mjs` 补 existsSync 过滤（git 索引滞后于已删文件致门禁误报，归档连带）。
 
-### 8.3 当前优先级（2026-10-02 第十七轮批17 执行后）
+### 8.3 当前优先级（2026-10-02 第十八轮批18 执行后）
 
-1. **[P2]** 真机人工最终残留（桌面侧自动化空间已全部用尽）：§1.1.4 地址栏图标像素看一眼（可选，协议级证据链已完整）/ §二 iOS（🔒 物理设备）/ §三 Android（🔒 物理设备）
-2. **[P3]** 2027-03 季度核对（Phase 4 台账剩余六项 + knip 剩余五类基线收敛评审：devDependencies 4 / exports 11 / types 3 / duplicates 1 / binaries 1）
-3. **[P3]** 预热体积常态观测：阈值 6MB 告警已挂接 `pnpm build`（当前 2.91 MB 正常）；若未来产物翻倍触发 `::warning`，评审核心路由子集预热（清单过滤需扩展 inject-precache.mjs）
-4. **[P3]** 审核新登记候选观察项：catalog 内 `^` 范围版本（vitest ^4.0.18 / eslint ^9.39.5 等）与红线 4「精确锁定（无 ^/~）」的口径张力——季度核对时统一口径（精确化或红线注释豁免 catalog 族），避免下次新成员入职时理解歧义
+1. **[P1]** 本地环境对齐：**跑门禁前必挂 `export PATH="/opt/homebrew/opt/node@22/bin:$PATH"`**（判例已入库手册第24/25章；中期治本可选：brew pin node@22 或修复 nvm 安装）
+2. **[P2]** 真机人工最终残留（桌面侧自动化空间已全部用尽）：§1.1.4 地址栏图标像素看一眼（可选，协议级证据链已完整）/ §二 iOS（🔒 物理设备）/ §三 Android（🔒 物理设备）
+3. **[P3]** 2027-03 季度核对（Phase 4 台账剩余六项 + knip 剩余五类基线收敛评审：devDependencies 4 / exports 11 / types 3 / duplicates 1 / binaries 1）
+4. **[P3]** 预热体积常态观测：阈值 6MB 告警已挂接 `pnpm build`（当前 2.91 MB 正常）；若未来产物翻倍触发 `::warning`，评审核心路由子集预热（清单过滤需扩展 inject-precache.mjs）
+5. **[P3]** 审核新登记候选观察项：catalog 内 `^` 范围版本（vitest ^4.0.18 / eslint ^9.39.5 等）与红线 4「精确锁定（无 ^/~）」的口径张力——季度核对时统一口径（精确化或红线注释豁免 catalog 族），避免下次新成员入职时理解歧义
 
 > 批12 前挂账回顾: P2 真机自动化推进 ✅（§1.2 全链路 + §1.1.5 组件链路，iOS/Android 维持阻塞）/ OBS-5 ✅ 修复闭环（注入+预热+Vary 根因，断网深链实测全过）/ DatabaseConnectionPanel 等死代码 ✅ 批量清偿（11 文件 + 15 伪入口，knip files 归零）
 >
@@ -433,6 +436,8 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 > 批16 前挂账回顾: 全链路闭环操作指导目录 v1.0.0 ✅ 初版落地（八卷 25 章 + 三附录，锚定项目实况与批12-15 沉淀，`6f9e808` CI/Pages 全绿）
 >
 > 批17 前挂账回顾: 指导目录全面审核 ✅（knip 七类基线口径修正 + catalog 范围版本张力登记）+ v2.0.0 全正文补全 ✅（25 章五要素全量 + 判例库 14 条 + 附录 5 件 + 读者矩阵/术语表）
+>
+> 批18 前挂账回顾: 功能主线回归 ✅（推荐方向①落地）——矩阵扩容 14→24（三大缺失云厂 + 五国产 + 双聚合商，零代码声明式）+ protocol 类型缺口补齐 + Node 26 漂移判例入库；七门禁全绿 + /models 运行时探针 10/10
 
 ### 8.4 文档资产索引
 
@@ -473,6 +478,7 @@ pnpm doctor && pnpm typecheck && pnpm lint && pnpm test:unit
 | 2026-09-29 | v2.12.0 | 第十一轮批14: 真机项剩余部分——真实 Chrome 实机链二次收口 —— Playwright `channel:chrome` 真实 Google Chrome：① §1.1.7 全闭环（launchPersistentContext + --app 真窗口 standalone=**true**，批13 页签误查根因修正，4/4 全过）；② §1.1.4 可安装态实证（CDP `Page.getInstallabilityErrors`=[] + 真实 bip 触发 + 横幅渲染）；③ §1.1.5 实机链全通（真实 bip→点击安装→prompt() 成功调用=原生对话框唤起，对话框内单击留人工）；④ 文件系统探针确认本机无安装记录（§1.1.6 为首次安装后人工项）；最终人工残留压缩至像素/单击/物理设备；PWA 清单批14 实机链轮回填（§1.1.4/§1.1.5/§1.1.7 + §五 + §七） | 用户指令「继续执行真机人工增强项（§8.3 P2）的剩余部分」 |
 | 2026-09-29 | v2.13.0 | 第十二轮批15: 附录 A 组执行——macOS OS 级自动化攻坚 —— 授权辅助功能后 System Events 路线打通：① §1.1.5 **原生对话框实机点击全闭环**（AppleScript 深遍历原生 a11y 树跳过 AXWebArea → 定位 `[安装应用]` 的 AXButton d=安装 → AXPress 点击 → userChoice=accepted + appinstalled + `.app` 真实落盘，批14「对话框内单击」人工残留清零）；② §1.1.6 安装后检查 6/6（.app 落盘 + 同 profile --app 独立窗口 standalone/SW active + a11y chromeless 铁证 + 卸载复原）；③ §1.1.4 协议级推定闭环（真实 bip ×3 + 对话框应用名/图标 dump；Chromium 不向 System Events 暴露 browser UI 树 + 屏幕录制未授权 → 像素确认留人工可选）；桌面侧自动化空间全部用尽；附录 A 组三行回填 + PWA 清单批15 实机安装轮回填（§1.1.4/5/6 + §五 + §七 + 附录）+ 批15 总结文档 | 用户指令「执行附录 A 组三连并回填结果」 |
 | 2026-10-02 | v2.14.0 | 第十六/十七轮批16+17: 全链路闭环操作指导手册从 0 到全正文 —— ① 批16 v1.0.0 初版（八卷 25 章 + 三附录，锚定 package.json scripts/CI 六阶段/pages 部署链实况 + 批12-15 沉淀，`6f9e808`）；② 批17 全面审核（knip 七类基线口径修正：files/dependencies 之外尚有 devDeps 4/exports 11/types 3/duplicates 1/binaries 1；catalog `^` 范围版本与红线 4 口径张力登记为 §8.3 候选观察项）+ v2.0.0 全正文补全（25 章逐章五要素全量 + 失败处置矩阵 + 判例库 12→14 + 附录 3→5 新增 D 模板骨架/E 门禁-CI 映射 + 读者矩阵/术语表 + 维护约定判例入库机制） | 用户指令「继续全面审核，分析完成剩余章节的正文补全，包含附录所有所需；完成后提交推送远程，并衔接全局全面分析建议下一步」 |
+| 2026-10-02 | v2.15.0 | 第十八轮批18: 功能主线回归——推理矩阵声明式扩容 —— ① [builtin-providers.json](../src/app/config/providers/builtin-providers.json) **14→24 提供商**（+33 模型种子 36→69）：补齐 Anthropic/Gemini/Qwen 三大缺失云厂 + 腾讯混元/讯飞星火/MiniMax/阶跃星辰/xAI 五家 + 硅基流动/OpenRouter 双聚合商，全 protocol:"chat"、零代码路径（指南三步法）；② [ai-provider.ts](../src/app/types/ai-provider.ts) ModelProviderDef 补可选 `protocol`（批11 schema v2 类型层遗留缺口）；③ useModelProvider.test 计数 14→24（18 云端+6 本地）+ 批18 十家守护测试，全量 **1997/1997**；④ preview+Playwright /models 探针 **10/10** 全渲染零报错；⑤ 环境判例：homebrew node 26 与 CI 22 漂移致 jsdom 七文件 localStorage undefined 群发 → node@22 PATH 对齐复绿，判例入库手册第24/25章 + §8.3 升 P1；七门禁全绿（build 注入 99 项/2.91MB 正常） | 用户指令「好的，执行吧」（批准功能主线回归推荐方向①） |
 
 ---
 
