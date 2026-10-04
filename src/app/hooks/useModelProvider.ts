@@ -70,9 +70,7 @@ function loadProviders(): ModelProviderDef[] {
 }
 
 function saveProviders(providers: ModelProviderDef[]) {
-  try {
-    lsSetJSON(PROVIDERS_KEY, providers);
-  } catch { /* Storage unavailable */ }
+  lsSetJSON(PROVIDERS_KEY, providers);
 }
 
 function loadModels(): ConfiguredModel[] {
@@ -85,9 +83,7 @@ function loadModels(): ConfiguredModel[] {
 }
 
 function saveModels(models: ConfiguredModel[]) {
-  try {
-    lsSetJSON(MODELS_KEY, models);
-  } catch { /* Storage unavailable */ }
+  lsSetJSON(MODELS_KEY, models);
 }
 
 // ============================================================

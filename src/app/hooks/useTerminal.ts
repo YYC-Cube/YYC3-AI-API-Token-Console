@@ -33,7 +33,7 @@ interface CommandResult {
 const COMMANDS: Record<string, string[]> = {
   cpim:   ["status", "node", "model", "alerts", "patrol", "report", "config", "help"],
   status: [],
-  node:   ["GPU-A100-01", "GPU-A100-02", "GPU-A100-03", "GPU-A100-04", "GPU-H100-01", "GPU-H100-02", "restart", "--all", "--force"],
+  node:   ["restart", "--all", "--force"],
   model:  ["deploy", "list", "migrate", "status"],
   alerts: ["--unresolved", "--critical", "--all"],
   patrol: ["run", "--full", "--quick", "history", "status"],
@@ -123,7 +123,6 @@ function aiTextToCli(prompt: string): { suggestion: string; explanation: string 
   }
   if (p.includes("跳转") || p.includes("打开") || p.includes("去")) {
     if (p.includes("监控")) return { suggestion: "goto /", explanation: "跳转到数据监控页面" };
-    if (p.includes("巡查")) return { suggestion: "goto /patrol", explanation: "跳转到巡查模式" };
     if (p.includes("操作")) return { suggestion: "goto /operations", explanation: "跳转到操作中心" };
     if (p.includes("设置")) return { suggestion: "goto /settings", explanation: "跳转到系统设置" };
     return { suggestion: "goto /", explanation: "跳转到首页" };
