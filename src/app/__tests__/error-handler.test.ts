@@ -11,7 +11,7 @@
  * - 错误统计计算
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from "vitest";
 
 // RF-002: Mock IndexedDB 操作（error-handler 现在导入 yyc3-storage）
 vi.mock("../lib/yyc3-storage", () => ({
@@ -27,12 +27,14 @@ import {
   captureParseError,
   captureWSError,
   getErrorLog,
+  getFullErrorLog,
   clearErrorLog,
   getErrorStats,
   trySafe,
   trySafeSync,
   installGlobalErrorListeners,
 } from "../lib/error-handler";
+import { idbGetAll } from "../lib/yyc3-storage";
 import type { AppError } from "../types";
 
 // Mock localStorage
@@ -270,6 +272,331 @@ describe("error-handler", () => {
       const figmaFilename = "https://www.figma.com/webpack-artifacts/assets/1741-0091e26ad4c06e70.min.js.br";
       expect(figmaFilename.includes("figma.com")).toBe(true);
       expect(figmaFilename.includes("webpack-artifacts")).toBe(true);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 错误分类补充分支 (DOMException / Event)
+  // ----------------------------------------------------------
+
+  describe("错误分类补充分支", () => {
+    it("QuotaExceededError 归类为 STORAGE/warning", () => {
+      const appError = captureError(new DOMException("quota exceeded", "QuotaExceededError"), {
+        silent: true,
+      });
+      expect(appError.category).toBe("STORAGE");
+      expect(appError.severity).toBe("warning");
+    });
+
+    it("SecurityError 归类为 AUTH/error", () => {
+      const appError = captureError(new DOMException("blocked", "SecurityError"), { silent: true });
+      expect(appError.category).toBe("AUTH");
+      expect(appError.severity).toBe("error");
+    });
+
+    it("其他 DOMException 归类为 UNKNOWN", () => {
+      const appError = captureError(new DOMException("aborted", "AbortError"), { silent: true });
+      expect(appError.category).toBe("UNKNOWN");
+    });
+
+    it("Event(type=error) 归类为 NETWORK", () => {
+      const appError = captureError(new Event("error"), { silent: true });
+      expect(appError.category).toBe("NETWORK");
+      expect(appError.severity).toBe("error");
+    });
+
+    it("非 error 类型 Event 归类为 UNKNOWN", () => {
+      const appError = captureError(new Event("close"), { silent: true });
+      expect(appError.category).toBe("UNKNOWN");
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 错误消息/堆栈提取
+  // ----------------------------------------------------------
+
+  describe("错误消息提取", () => {
+    it("对象带 message 属性时取其字符串形式", () => {
+      const appError = captureError({ message: 42 }, { silent: true });
+      expect(appError.message).toBe("42");
+    });
+
+    it("无法识别的错误对象返回 未知错误", () => {
+      const appError = captureError({ foo: "bar" }, { silent: true });
+      expect(appError.message).toBe("未知错误");
+    });
+
+    it("null 错误返回 未知错误", () => {
+      const appError = captureError(null, { silent: true });
+      expect(appError.message).toBe("未知错误");
+    });
+
+    it("非 Error 错误不含堆栈", () => {
+      const appError = captureError("plain text", { silent: true });
+      expect(appError.stack).toBeUndefined();
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 控制台分级输出
+  // ----------------------------------------------------------
+
+  describe("控制台分级输出", () => {
+    it("severity 为 error 时走 console.error", () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      captureError(new Error("plain"));
+      expect(spy).toHaveBeenCalledWith("[YYC³ UNKNOWN]", "plain", expect.any(String));
+      spy.mockRestore();
+    });
+
+    it("severity 为 critical 时走 console.error", () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      captureError(new Error("critical case"), { severity: "critical" });
+      expect(spy).toHaveBeenCalledWith("[YYC³ UNKNOWN]", "critical case", expect.any(String));
+      spy.mockRestore();
+    });
+
+    it("severity 为 warning 时走 console.warn", () => {
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      captureError(new Error("warn case"), { severity: "warning" });
+      expect(spy).toHaveBeenCalledWith("[YYC³ UNKNOWN]", "warn case");
+      spy.mockRestore();
+    });
+
+    it("severity 为 info 时走 console.info", () => {
+      const spy = vi.spyOn(console, "info").mockImplementation(() => {});
+      captureError(new Error("info case"), { severity: "info" });
+      expect(spy).toHaveBeenCalledWith("[YYC³ UNKNOWN]", "info case");
+      spy.mockRestore();
+    });
+  });
+
+  // ----------------------------------------------------------
+  // localStorage 损坏与配额降级
+  // ----------------------------------------------------------
+
+  describe("localStorage 损坏与配额降级", () => {
+    it("日志数据损坏时 getErrorLog 返回空数组", () => {
+      localStorageMock.setItem("yyc3_error_log", "{{{broken json");
+      expect(getErrorLog()).toEqual([]);
+    });
+
+    it("首次写入失败时降级为单条重写", () => {
+      localStorageMock.setItem.mockImplementationOnce(() => {
+        throw new Error("QuotaExceededError");
+      });
+      captureError(new Error("quota test"), { silent: true });
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0].message).toBe("quota test");
+    });
+
+    it("localStorage 完全不可写时静默失败", () => {
+      const original = localStorageMock.setItem.getMockImplementation();
+      localStorageMock.setItem.mockImplementation(() => {
+        throw new Error("no space left");
+      });
+
+      expect(() => captureError(new Error("swallowed"), { silent: true })).not.toThrow();
+      expect(getErrorLog()).toEqual([]);
+
+      if (original) localStorageMock.setItem.mockImplementation(original);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // getFullErrorLog — IndexedDB 优先 / localStorage 降级
+  // ----------------------------------------------------------
+
+  describe("getFullErrorLog", () => {
+    it("返回 IndexedDB 条目并按时间倒序排列", async () => {
+      const mk = (id: string, ts: number): AppError => ({
+        id,
+        category: "NETWORK",
+        severity: "warning",
+        message: `m-${id}`,
+        timestamp: ts,
+        resolved: false,
+      });
+      vi.mocked(idbGetAll).mockResolvedValueOnce([mk("a", 100), mk("b", 300), mk("c", 200)]);
+
+      const log = await getFullErrorLog();
+      expect(log.map((e) => e.id)).toEqual(["b", "c", "a"]);
+    });
+
+    it("IndexedDB 不可用时降级到 localStorage 日志", async () => {
+      vi.mocked(idbGetAll).mockRejectedValueOnce(new Error("idb down"));
+      captureError(new Error("local fallback"), { silent: true });
+
+      const log = await getFullErrorLog();
+      expect(log.some((e) => e.message === "local fallback")).toBe(true);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // getErrorStats 补充分支
+  // ----------------------------------------------------------
+
+  describe("getErrorStats 补充分支", () => {
+    const seed = (entry: Record<string, unknown> & { id: string }): void => {
+      localStorageMock.setItem(
+        "yyc3_error_log",
+        JSON.stringify([
+          {
+            category: "NETWORK",
+            severity: "error",
+            message: "seed",
+            timestamp: 1,
+            resolved: false,
+            ...entry,
+          },
+        ])
+      );
+    };
+
+    it("已解决的错误不计入未解决数", () => {
+      seed({ id: "e1", resolved: true, timestamp: 111, severity: "warning" });
+      const stats = getErrorStats();
+      expect(stats.total).toBe(1);
+      expect(stats.unresolvedCount).toBe(0);
+      expect(stats.lastErrorTime).toBe(111);
+      expect(stats.bySeverity.warning).toBe(1);
+    });
+
+    it("未知 category 字段容错计数不崩溃", () => {
+      seed({ id: "e2", category: "BOGUS" as unknown as AppError["category"] });
+      const stats = getErrorStats();
+      expect(stats.total).toBe(1);
+      expect(stats.unresolvedCount).toBe(1);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // installGlobalErrorListeners — 全局监听行为 (window stub)
+  // ----------------------------------------------------------
+
+  describe("installGlobalErrorListeners 监听行为", () => {
+    interface FakeGlobalErrorEvent {
+      error?: { name?: string; message?: string; stack?: string };
+      message?: string;
+      filename?: string;
+      lineno?: number;
+      colno?: number;
+      reason?: { name?: string; message?: string; stack?: string };
+      preventDefault?: () => void;
+    }
+    type GlobalHandler = (event: FakeGlobalErrorEvent) => void;
+
+    let handlers: Record<string, GlobalHandler>;
+    let addEventListener: ReturnType<typeof vi.fn>;
+
+    beforeAll(() => {
+      // 静默安装期与捕获期的控制台输出
+      vi.spyOn(console, "info").mockImplementation(() => {});
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      handlers = {};
+      addEventListener = vi.fn((type: string, handler: GlobalHandler) => {
+        handlers[type] = handler;
+      });
+      vi.stubGlobal("window", { addEventListener });
+      installGlobalErrorListeners(); // 首次安装（模块级 flag 置位）
+    });
+
+    afterAll(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    it("注册 error 与 unhandledrejection 两类监听器", () => {
+      expect(typeof handlers["error"]).toBe("function");
+      expect(typeof handlers["unhandledrejection"]).toBe("function");
+    });
+
+    it("重复安装不会重复注册", () => {
+      installGlobalErrorListeners();
+      expect(addEventListener).not.toHaveBeenCalled();
+    });
+
+    it("普通运行时错误按 critical 记录并标注来源行列", () => {
+      clearErrorLog();
+      handlers["error"]!({
+        error: new TypeError("boom"),
+        message: "boom",
+        filename: "app.tsx",
+        lineno: 10,
+        colno: 2,
+      });
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0]).toMatchObject({
+        category: "RUNTIME",
+        severity: "critical",
+        source: "app.tsx:10:2",
+        message: "boom",
+      });
+    });
+
+    it("event.error 缺失时降级使用 message 字符串", () => {
+      clearErrorLog();
+      handlers["error"]!({ message: "plain failure", filename: "f.js", lineno: 1, colno: 1 });
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0].message).toBe("plain failure");
+    });
+
+    it("Figma 平台错误被过滤，不写入日志", () => {
+      clearErrorLog();
+      handlers["error"]!({
+        error: { name: "IframeMessageAbortError", message: "Message aborted: message port was destroyed" },
+        message: "Message aborted",
+        filename: "https://www.figma.com/webpack-artifacts/1741-0091e26ad4c06e70.min.js",
+        lineno: 1,
+        colno: 1,
+      });
+
+      expect(getErrorLog()).toHaveLength(0);
+    });
+
+    it("未捕获 Promise 拒绝按 error 级别记录", () => {
+      clearErrorLog();
+      handlers["unhandledrejection"]!({
+        reason: new Error("async boom"),
+        preventDefault: vi.fn(),
+      });
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0]).toMatchObject({
+        category: "RUNTIME",
+        severity: "error",
+        source: "UnhandledPromiseRejection",
+      });
+    });
+
+    it("Figma 原因的 Promise 拒绝被拦截并调用 preventDefault", () => {
+      clearErrorLog();
+      const preventDefault = vi.fn();
+      handlers["unhandledrejection"]!({
+        reason: { name: "IframeMessageAbortError", message: "message port was destroyed" },
+        preventDefault,
+      });
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(getErrorLog()).toHaveLength(0);
+    });
+
+    it("reason 缺失时仍可记录未知错误", () => {
+      clearErrorLog();
+      handlers["unhandledrejection"]!({});
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0].message).toBe("未知错误");
     });
   });
 });

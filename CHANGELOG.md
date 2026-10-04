@@ -7,6 +7,14 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Added 新增
+
+- **e2e /models 提供商矩阵探针固化（批18 临时探针转常驻守护）**: 新增 `e2e/models.spec.ts` 3 用例——路由冒烟（/console/models 挂载）+ UI 登录后 24 提供商 label 全量渲染（18 云 + 6 本地，与 builtin-providers.json 单一事实源对齐，exact 匹配消除前缀包含）+ 页面健康（零 pageerror）；固化 console 鉴权形态 UI 登录前置（App.tsx 前端门卫 → supabaseClient console 分支 → HttpOnly Cookie），登录次数压至 2 次（限流 5 次/5 分钟窗口内与 auth.spec 合计 4 次 ≤ 5）；providers 扩容/改名后渲染回归即时拦截
+  e2e /models probe hardened: 24-provider rendering guard with UI login flow, rate-limit-aware
+
+- **覆盖率补测三连（P2 低覆盖文件清零）**: network-utils 48.1→100%（+21 用例，fetch 经 vi.stubGlobal mock）· error-handler 69→100%（+22 用例，错误分类/提取/分级纯函数分支）· yyc3-storage 42.7→100%（+23 用例，vi.stubGlobal 注入最小 IndexedDB/BroadcastChannel stub + vi.resetModules 动态重导入，零新增依赖）；全局覆盖率 lines 45.31→47.37 / branches 44.44→45.71 / functions 40.09→41.68 / statements 43.59→45.57 全线上升；单测 2004→2080（+76）
+  coverage triple-fill: network-utils/error-handler/yyc3-storage all to 100% lines; global coverage up across all four metrics
+
 ### Refactored 重构
 
 - **lint 84 警告清零（84 → 0）**: 48 文件未消费导入/解构/参数批量清理——codemod 安全摘除 31 绑定（eslint+tsc 双复验，2 文件回滚留证）+ 手动定点修复 64 项（类型导入 13 / lucide 图标 10 / 解构未用 23 / 未用参数 `_` 前缀 13 / catch err 可选绑定），并级联清理 9 条次生未用（FamilyHome 5 图标导入 / AIFamilyCenterPage now+useEffect 块 / ArchitectureAudit useI18n / DevGuidePage useContext / ProviderEditorModal useI18n）；lint 0 error 0 warning、typecheck 0 错、单测 1997+7 全绿
