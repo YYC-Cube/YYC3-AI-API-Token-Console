@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **覆盖率爬坡第二批（hooks 层主战场，全局 lines 47.37 → 56.49）**: AGENTS.md 钦点核心 Hook 补测四连——useWebSocketData 3.3→99.17%（+23 用例：重连/心跳/快照链路，globalThis WebSocket stub）· useSettingsStore 6.66→100%（+14）· useBigModelSDK 1.42→95.35%（+31：fetch mock/SDK 调用分支）· useHostFileSystem 0.57→98.56%（+54：File System Access API 最小契约 stub）；全局四指标 lines 47.37→56.49 / branches 45.71→49.91 / functions 41.68→45.83 / statements 45.57→54.0；单测 2080→2202（+122）；零生产代码改动、零新增依赖
+  coverage ramp batch 2 (hooks): four core hooks to 95-100%; global lines 47.37→56.49, tests 2080→2202
+
 - **e2e /models 提供商矩阵探针固化（批18 临时探针转常驻守护）**: 新增 `e2e/models.spec.ts` 3 用例——路由冒烟（/console/models 挂载）+ UI 登录后 24 提供商 label 全量渲染（18 云 + 6 本地，与 builtin-providers.json 单一事实源对齐，exact 匹配消除前缀包含）+ 页面健康（零 pageerror）；固化 console 鉴权形态 UI 登录前置（App.tsx 前端门卫 → supabaseClient console 分支 → HttpOnly Cookie），登录次数压至 2 次（限流 5 次/5 分钟窗口内与 auth.spec 合计 4 次 ≤ 5）；providers 扩容/改名后渲染回归即时拦截
   e2e /models probe hardened: 24-provider rendering guard with UI login flow, rate-limit-aware
 
