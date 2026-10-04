@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **覆盖率爬坡第三批（hooks 中段四文件，全局 lines 56.49 → 61.91）**: useLocalDatabase 44.2→99.63（+25：AbortError/5xx 重试/4xx 不重试/后端成功/备份恢复/密码编码）· useLocalFileSystem 47.94→100（+10：CRUD/导入导出/快速操作）· useTerminal 55.32→99.65（+28：env 命令/cpim 子命令/ai 意图矩阵/Unix 命令/补全，新建测试文件）· useModelProvider 56.86→99.34（+23：CRUD/Ollama 真实 fetch 路径/schema 兜底/导入导出/合并去重）；全局 lines 56.49→61.91 / branches 49.91→55.72 / functions 45.83→49.62 / statements 54.0→59.71；单测 2202→2301（+99）；顺带识别 3 处不可达死代码（saveProviders 外层 catch 自吞 / aiTextToCli 巡查跳转子项 / 补全大写 GPU-* 永不匹配）——登记 knip 候选观察
+  coverage ramp batch 3: four mid-tier hooks to 99-100%; global lines 56.49→61.91, tests 2202→2301
+
 - **覆盖率爬坡第二批（hooks 层主战场，全局 lines 47.37 → 56.49）**: AGENTS.md 钦点核心 Hook 补测四连——useWebSocketData 3.3→99.17%（+23 用例：重连/心跳/快照链路，globalThis WebSocket stub）· useSettingsStore 6.66→100%（+14）· useBigModelSDK 1.42→95.35%（+31：fetch mock/SDK 调用分支）· useHostFileSystem 0.57→98.56%（+54：File System Access API 最小契约 stub）；全局四指标 lines 47.37→56.49 / branches 45.71→49.91 / functions 41.68→45.83 / statements 45.57→54.0；单测 2080→2202（+122）；零生产代码改动、零新增依赖
   coverage ramp batch 2 (hooks): four core hooks to 95-100%; global lines 47.37→56.49, tests 2080→2202
 
