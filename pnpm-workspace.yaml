@@ -61,6 +61,8 @@ trustPolicyExclude:
   # undici-types 6.21.0 — Node 官方 @types/undici 伴生类型包, 锁定于 @types/node 传递依赖 (复核: 2026-09)
   - undici-types@6.21.0
 # 运行前校验: pnpm run 前若 lockfile 与 manifest 不一致自动补 install (防「本地装了但没锁」)
-verifyDepsBeforeRun: false
+# 注: 2026-09-24 1dc16c7 曾无说明改为 false (疑似依赖调试临时关闭未复原), 2026-10-05 复原 —
+#     doctor 8 项供应链策略清单与 Phase 1 Task 1.1 验收口径均要求 install
+verifyDepsBeforeRun: install
 # 乐观重复安装: lockfile 满足时跳过全量解析 (策略生效后安装提速)
 optimisticRepeatInstall: true

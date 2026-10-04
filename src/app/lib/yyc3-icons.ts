@@ -8,7 +8,7 @@ import type { ReactEventHandler } from "react";
  * 仓库: https://github.com/YYC-Cube/Cloudpivotintellimatrix
  * 路径: public/yyc3-icons/
  *
- * GitHub 仓库实际目录结构 (5 平台, 32 PNG):
+ * GitHub 仓库实际目录结构 (5 平台, 36 PNG):
  *   public/yyc3-icons/
  *   ├── Android/                     (6 files)
  *   │   ├── Play Store.png           512×512   160KB
@@ -95,7 +95,7 @@ function cdnPath(subPath: string): string {
 }
 
 // ============================================================
-//  完整图标路径集 — 与仓库 1:1 对齐 (32 文件)
+//  完整图标路径集 — 与仓库 1:1 对齐 (36 文件)
 // ============================================================
 
 export const icons = {
@@ -179,7 +179,7 @@ export const icons = {
 } as const;
 
 // ============================================================
-//  CDN 回退版 — 完整 32 文件映射
+//  CDN 回退版 — 完整 36 文件映射
 //  当本地 PNG 404 时使用 (GitHub Raw)
 // ============================================================
 
@@ -292,7 +292,7 @@ export const pwaManifestIcons = [
 
 // ============================================================
 //  下载清单 — 用于 download-icons.sh 参考
-//  完整列出仓库内 32 个 PNG 的相对路径
+//  完整列出仓库内 36 个 PNG 的相对路径
 // ============================================================
 
 export const REMOTE_FILE_MANIFEST = [

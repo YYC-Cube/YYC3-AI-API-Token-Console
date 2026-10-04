@@ -22,6 +22,12 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Fixed 修复
 
+- **verifyDepsBeforeRun 复原 install（doctor 唯一 warning 清零，12/12 + 0 warning）**: 溯源发现 2026-09-24 `1dc16c7`（第四轮 boundaries 修复）将其无说明改为 `false`（commit message 与 diff 均无解释，疑似依赖调试临时关闭未复原）——与 Phase 1 Task 1.1 验收口径、doctor 8 项供应链策略清单、workspace 注释三方矛盾；本次复原为 `install` 并附溯源注释（防再次误改），`pnpm run` 系列实测无副作用（lockfile 一致时仅快速校验），doctor 供应链检查「8 项齐备」
+  verifyDepsBeforeRun restored to install (silent drift in 1dc16c7); doctor now 12/12 with zero warnings
+
+- **yyc3-icons.ts 注释计数漂移修正（32 → 36，四处）**: 头部目录树自列 6+5+14+7+4=36 项、REMOTE_FILE_MANIFEST 36 项、守护测试 36 断言三源一致，注释头部「32 PNG」/「32 文件」×3 处为笔误；顺带登记新观察：本地 public/yyc3-icons 实存 29/36（缺 7 个 iOS Settings/Notification 专项图标，manifest/PWA 消费的 14 项全部在位，download-icons.sh 可补全，非阻塞）
+  yyc3-icons comment count fixed 32→36 (tree/manifest/tests all say 36); local assets 29/36 noted as P3 observation
+
 - **doctor Node 版本硬对齐校验（漂移防复发闭环）**: 原检查 `>= 22` 会放行 Node 26 漂移（判例：vitest4/jsdom `localStorage undefined` 群发 158 失败）——改为「主版本必须 = 22」与 CI 对齐，失败时输出 PATH 修复命令与判例引用（操作手册第 24/25 章）；`pnpm doctor` 12/12 复验通过
   doctor.mjs now hard-blocks Node major ≠ 22 (CI-aligned), with actionable PATH fix in the error message
 
