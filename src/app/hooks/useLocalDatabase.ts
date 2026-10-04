@@ -33,7 +33,6 @@ import type {
   DBConnection,
   DBConnectionStatus,
   DBTable,
-  DBColumn,
   QueryResult,
   DBBackup,
   SQLTemplate,

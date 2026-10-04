@@ -11,7 +11,7 @@
  * 架构概览 · 存储策略
  */
 
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {
   BookOpen, Server, Database, Globe, Cpu,
   Check, Clock, AlertCircle, ChevronRight,
@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
-import { ViewContext } from "../lib/view-context";
 
 /* ============================================================
  *  10.1 技术选型
@@ -301,9 +300,7 @@ const statusIcon: Record<PhaseStatus, { icon: React.ElementType; color: string; 
 };
 
 export function DevGuidePage() {
-  const view = useContext(ViewContext);
   const { t } = useI18n();
-  const isMobile = view?.isMobile ?? false;
   const [activeTab, setActiveTab] = useState<string>("tech");
 
   const tabs = [

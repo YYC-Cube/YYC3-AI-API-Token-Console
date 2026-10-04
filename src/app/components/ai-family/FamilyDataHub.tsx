@@ -13,8 +13,8 @@
 import React, { useState, useMemo } from "react";
 import {
   Database, Users, Trophy, Heart, MessageCircle,
-  TrendingUp, Award, BarChart3, Activity,
-  Download, Star, Zap, Shield,
+  TrendingUp, Award,
+  Download, Shield,
   BookOpen, Gamepad2, Sparkles, CalendarDays,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";

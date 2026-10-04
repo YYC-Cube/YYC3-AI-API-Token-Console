@@ -73,7 +73,7 @@ export function ReportExporter() {
   ];
 
   // Chart data from report
-  const chartData = report?.performanceHistory.map((p, i) => ({
+  const chartData = report?.performanceHistory.map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
     gpu: Number(p.gpuUsage.toFixed(1)),
     cpu: Number(p.cpuUsage.toFixed(1)),

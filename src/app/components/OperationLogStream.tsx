@@ -42,7 +42,7 @@ interface OperationLogStreamProps {
 }
 
 export function OperationLogStream({
-  logs, filter, onFilterChange, searchQuery, onSearchChange, isMobile = false,
+  logs, filter, onFilterChange, searchQuery, onSearchChange,
 }: OperationLogStreamProps) {
   return (
     <GlassCard className="p-4" data-testid="operation-log-stream">

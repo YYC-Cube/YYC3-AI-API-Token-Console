@@ -13,8 +13,6 @@ import { createLocalStore } from "../lib/create-local-store";
 import type {
   DetectedPattern,
   AIRecommendation,
-  AIAnalysisResult,
-  AnomalyPatternType,
   PatternSeverity,
 } from "../types";
 

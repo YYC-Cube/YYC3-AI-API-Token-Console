@@ -13,7 +13,7 @@ interface LanguageSwitcherProps {
 }
 
 export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
-  const { locale, setLocale, locales, t } = useI18n();
+  const { locale, setLocale, locales } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

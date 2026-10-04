@@ -143,7 +143,6 @@ export function ModelProviderPanel() {
     removeProvider,
     resetProvider,
     addModelToProvider,
-    removeModelFromProvider,
     exportConfig,
     importConfig,
   } = useModelProvider();

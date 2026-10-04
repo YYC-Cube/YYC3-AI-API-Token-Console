@@ -21,7 +21,7 @@ interface ColorPickerProps {
   onClose?: () => void;
 }
 
-export function ColorPicker({ value, onChange, onClose }: ColorPickerProps) {
+export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const [rgb, setRgb] = useState<[number, number, number]>(() => hexToRgb(value));
   const [hsv, setHsv] = useState<[number, number, number]>(() => rgbToHsv(...hexToRgb(value)));
   // 解构元组供 hook deps 使用 (批9: 索引访问 hsv[0] 无法被静态检查, 触发 exhaustive-deps ×7)

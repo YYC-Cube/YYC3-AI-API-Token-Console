@@ -197,7 +197,7 @@ function processEnvCommand(parts: string[]): CommandResult {
       newVal = rawVal.replace(/^["']|["']$/g, ""); // strip quotes
     }
 
-    const updated = setEnvConfig({ [k]: newVal } as Partial<EnvConfig>);
+    setEnvConfig({ [k]: newVal } as Partial<EnvConfig>);
     return {
       status: "success",
       output: `✅ ${k} = ${typeof newVal === "string" ? `"${newVal}"` : newVal}  (已保存到 localStorage)\n  旧值: ${typeof currentVal === "string" ? `"${currentVal}"` : currentVal}`,

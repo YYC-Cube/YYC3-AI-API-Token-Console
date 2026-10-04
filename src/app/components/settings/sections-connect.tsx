@@ -2,7 +2,7 @@
  * settings/sections-connect.tsx — 连接与集成设置分区 (§6.6 Facade+Siblings)
  * 自 SystemSettings.tsx 迁入: WebSocket / AI 大模型 / PWA 离线 / 环境变量
  */
-import { AlertTriangle, Database, Monitor, Sliders, Terminal, Wifi, Zap } from "lucide-react";
+import { AlertTriangle, Monitor, Sliders, Terminal, Wifi, Zap } from "lucide-react";
 import { useModelProvider } from "../../hooks/useModelProvider";
 import { EditableField, Toggle, type SettingsSectionProps } from "./shared";
 

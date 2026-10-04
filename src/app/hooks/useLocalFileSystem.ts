@@ -27,7 +27,6 @@ import type {
 // ============================================================
 
 const STORAGE_KEY = "yyc3_file_tree";
-const LOGS_STORAGE_KEY = "yyc3_mock_logs";
 const FILE_CONTENT_KEY = "yyc3_file_contents";
 
 // ============================================================
@@ -143,17 +142,6 @@ function saveFileTree(tree: FileItem[]) {
 // 树操作工具
 // ============================================================
 
-function findParent(tree: FileItem[], targetId: string): FileItem | null {
-  for (const item of tree) {
-    if (item.children?.some((c) => c.id === targetId)) return item;
-    if (item.children) {
-      const found = findParent(item.children, targetId);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
 function findItem(tree: FileItem[], id: string): FileItem | null {
   for (const item of tree) {
     if (item.id === id) return item;
@@ -265,9 +253,6 @@ export function useLocalFileSystem() {
   /** 新增文件 */
   const addFile = useCallback((parentPath: string, name: string, ext?: string) => {
     const tree = JSON.parse(JSON.stringify(fileTree)) as FileItem[];
-    const parent = parentPath === "~/.yyc3-cloudpivot"
-      ? { children: tree } as FileItem
-      : findItem(tree, "") || null;
 
     // 查找父目录
     function findByPath(items: FileItem[], p: string): FileItem | null {

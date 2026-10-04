@@ -12,22 +12,17 @@ import {
   BookOpen,
   ChevronRight,
   Clock,
-  Cloud,
-  Coffee,
   Database,
-  FileText,
   Gamepad2,
   HandHeart,
   Heart,
   MessageCircle,
-  Moon,
   Music,
   Phone,
   Radio,
   Server,
   Settings2,
   Smile,
-  Sun,
   TrendingUp,
   Trophy,
   Users,
@@ -39,13 +34,6 @@ import { useNavigate } from "react-router";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { DEEP_BG, FAMILY_MEMBERS, getGreeting, hexToRgb } from "./shared";
-
-// ═══ 图标映射（家园空间） ═══
-const SPACE_ICONS: Record<string, React.ElementType> = {
-  heart: HandHeart, users: Users, message: MessageCircle,
-  share: Heart, book: BookOpen, music: Music,
-  trending: TrendingUp, file: FileText,
-};
 
 // ═══ 家庭动态 ═══
 const FAMILY_MOMENTS = [
@@ -63,14 +51,6 @@ function useTime() {
     return () => clearInterval(t);
   }, []);
   return now;
-}
-
-function getGreetingIcon(emoji: string): React.ElementType {
-  const map: Record<string, React.ElementType> = {
-    night: Moon, dawn: Sun, morning: Coffee, noon: Coffee,
-    afternoon: Sun, evening: Cloud,
-  };
-  return map[emoji] || Sun;
 }
 
 const GREETING_EMOJIS: Record<string, string> = {

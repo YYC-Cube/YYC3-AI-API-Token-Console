@@ -13,10 +13,10 @@ import { usePersistedList } from "./usePersistedState";
 // ============================================================
 
 import type {
-  DiagnosticStatus, PatternType, ConfidenceLevel, ActionPriority,
+  DiagnosticStatus, PatternType,
   DiagnosticPattern, AnomalyRecord, SuggestedAction,
   PredictiveForecast, DiagnosticSession,
-  WsNodeSnapshot, DiagnosticsOptions,
+  DiagnosticsOptions,
   DiagnosticHistoryEntry, DiagnosticView,
 } from "../types";
 

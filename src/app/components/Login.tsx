@@ -52,7 +52,7 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
       if (data) {
         onLoginSuccess();
       }
-    } catch (err) {
+    } catch {
       setError("登录失败，请检查网络连接");
     } finally {
       setLoading(false);

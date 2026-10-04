@@ -68,10 +68,6 @@ export function createLocalStore<T extends { id: string }>(
     } catch { /* ignore */ }
   }
 
-  function invalidate(): void {
-    _cache = null;
-  }
-
   return {
     getAll: () => [...load()],
 

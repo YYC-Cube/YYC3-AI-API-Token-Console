@@ -13,8 +13,8 @@
  * - 数据库连接 (dbConnections)
  */
 
-import { createLocalStore, type LocalStore } from "../lib/create-local-store";
-import type { LogEntry, LogLevel } from "../types";
+import { createLocalStore } from "../lib/create-local-store";
+import type { LogLevel } from "../types";
 
 // ============================================================
 // 1. 节点存储

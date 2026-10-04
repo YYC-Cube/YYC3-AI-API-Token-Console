@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Phone, PhoneCall, PhoneOff, Mic, MicOff, Volume2, VolumeX,
-  User, Clock, Heart, Star,
+  User, Clock,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";

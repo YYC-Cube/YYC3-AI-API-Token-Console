@@ -14,7 +14,6 @@ import {
   X, Plus, Trash2, Server, Globe, Key, Cpu,
   ChevronDown, Save, RotateCcw,
 } from "lucide-react";
-import { useI18n } from "../hooks/useI18n";
 import type { ModelProviderDef } from "../types";
 
 // ============================================================
@@ -49,7 +48,6 @@ export function ProviderEditorModal({
   onUpdate,
   onReset,
 }: ProviderEditorModalProps) {
-  const { t } = useI18n();
   const isEditing = !!editingProvider;
   const isBuiltin = editingProvider?.isBuiltin ?? false;
 

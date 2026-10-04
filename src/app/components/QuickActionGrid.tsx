@@ -40,7 +40,7 @@ interface QuickActionGridProps {
   isMobile?: boolean;
 }
 
-export function QuickActionGrid({ actions, isExecuting, onExecute, isMobile = false }: QuickActionGridProps) {
+export function QuickActionGrid({ actions, onExecute, isMobile = false }: QuickActionGridProps) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const handleClick = (action: OperationItem) => {

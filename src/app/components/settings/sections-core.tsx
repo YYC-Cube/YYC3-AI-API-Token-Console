@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import {
-  Clock, Database, Download, Globe, Key, Network, Upload, ChevronRight,
+  Clock, Download, Globe, Key, Network, Upload, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { NetworkConfig } from "../NetworkConfig";

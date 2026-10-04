@@ -35,7 +35,7 @@ import { useNavigate } from "react-router";
 import {
   DEEP_BG,
   FAMILY_MEMBERS,
-  getGreeting, getHourlyCare,
+  getHourlyCare,
   type FamilyMember,
 } from "./ai-family/shared";
 import { GlassCard } from "./GlassCard";
@@ -178,18 +178,11 @@ const TRUST_PRINCIPLES = [
 // ═══ 主组件 ═══
 export function AIFamilyCenterPage() {
   const nav = useNavigate();
-  const [now, setNow] = useState(new Date());
   const care = useMemo(() => getHourlyCare(), []);
-  const greeting = useMemo(() => getGreeting(now), [now]);
   const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const handleCall = useCallback((m: FamilyMember) => nav("/ai-family-phone"), [nav]);
-  const handleChat = useCallback((m: FamilyMember) => nav("/ai-family-chat"), [nav]);
+  const handleCall = useCallback((_m: FamilyMember) => nav("/ai-family-phone"), [nav]);
+  const handleChat = useCallback((_m: FamilyMember) => nav("/ai-family-chat"), [nav]);
 
   // 空间入口
   const spaces = [

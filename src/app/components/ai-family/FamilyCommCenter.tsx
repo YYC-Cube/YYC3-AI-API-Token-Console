@@ -509,7 +509,7 @@ export function FamilyCommCenter() {
                 暂无消息
               </div>
             ) : (
-              groupedMessages.map((group, gi) => (
+              groupedMessages.map((group, _gi) => (
                 <React.Fragment key={group.date}>
                   <DateSeparator label={formatDateGroup(group.date)} />
                   {group.msgs.map(msg => (

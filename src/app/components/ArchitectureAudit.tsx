@@ -33,7 +33,6 @@ import {
   XCircle,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import { useI18n } from "../hooks/useI18n";
 import { GlassCard } from "./GlassCard";
 
 /* ────────────────────────────────────────────────────── */
@@ -343,7 +342,6 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
 /* ── 主组件 ────────────────────────────────────────── */
 
 export function ArchitectureAudit() {
-  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<"overview" | "routes" | "stores" | "tests" | "checklist" | "gaps">("overview");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 

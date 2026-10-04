@@ -16,7 +16,6 @@ import type {
   StageResult,
   LoopRun,
   DataFlowEdge,
-  DataFlowNodeType,
   StageMeta,
   DataFlowNode,
 } from "../types";

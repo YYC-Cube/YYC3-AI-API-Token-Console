@@ -32,7 +32,7 @@ interface LoopStageCardProps {
   showConnector?: boolean;
 }
 
-export function LoopStageCard({ meta, result, index, isActive, showConnector }: LoopStageCardProps) {
+export function LoopStageCard({ meta, result, isActive, showConnector }: LoopStageCardProps) {
   const Icon = iconMap[meta.icon] ?? Activity;
   const stCfg = statusConfig[result.status];
 

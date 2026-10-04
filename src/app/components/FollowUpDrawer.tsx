@@ -8,8 +8,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User,
-  ChevronRight, Zap, Bot, CheckCircle, Loader2, RotateCcw,
-  Link2, Server, Activity, Copy, Check,
+  ChevronRight, Zap, Bot, CheckCircle, Loader2,
+  Link2, Server, Copy, Check,
 } from "lucide-react";
 import { OperationChain } from "./OperationChain";
 import { QuickActionGroup } from "./QuickActionGroup";

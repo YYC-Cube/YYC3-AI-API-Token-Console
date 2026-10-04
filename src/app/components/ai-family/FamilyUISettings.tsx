@@ -612,7 +612,7 @@ export function FamilyUISettings() {
                   </span>
                 </div>
                 <div className="space-y-2">
-                  {ECOSYSTEM_LINKS.map((link, i) => (
+                  {ECOSYSTEM_LINKS.map((link, _i) => (
                     <LinkNodeCard
                       key={link.id}
                       node={link}
@@ -716,7 +716,6 @@ export function FamilyUISettings() {
                   <div className="text-white/40 mb-2" style={{ fontSize: "0.65rem" }}>家人排序</div>
                   <div className="flex flex-wrap gap-1.5">
                     {FAMILY_MEMBERS.map(m => {
-                      const rgb = hexToRgb(m.color);
                       return (
                         <div
                           key={m.id}

@@ -59,7 +59,7 @@ export function closeChannel(name: string): void {
  * 关闭所有频道（用于测试清理 / 应用销毁）
  */
 export function closeAllChannels(): void {
-  for (const [name, ch] of channelMap) {
+  for (const [, ch] of channelMap) {
     try { ch.close(); } catch { /* ignore */ }
   }
   channelMap.clear();

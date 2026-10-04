@@ -13,8 +13,7 @@ import { usePersistedList } from "./usePersistedState";
 // ============================================================
 
 import type {
-  AlertSeverity, AlertMetric, AlertCondition, EscalationLevel,
-  AlertThreshold, EscalationPolicy, AlertRule, AlertEvent, AlertRulesOptions,
+  AlertSeverity, AlertRule, AlertEvent, AlertRulesOptions,
 } from "../types";
 
 // RF-011: Re-export 已移除
@@ -228,15 +227,12 @@ export function useAlertRules(opts: AlertRulesOptions = {}) {
     items: rules,
     upsert: upsertRule,
     remove: removeRule,
-    setAll: setAllRules,
-    loaded: rulesLoaded,
   } = usePersistedList<AlertRule>("alertRules", MOCK_RULES);
 
   const {
     items: events,
     setItems: setEvents,
     upsert: upsertEvent,
-    loaded: eventsLoaded,
   } = usePersistedList<AlertEvent>("alertEvents", MOCK_EVENTS);
 
   const [selectedRule, setSelectedRule] = useState<AlertRule | null>(null);

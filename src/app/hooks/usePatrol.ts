@@ -24,7 +24,6 @@ import type {
 // ============================================================
 
 function generateChecks(): PatrolCheckItem[] {
-  const categories = ["节点健康", "存储", "网络", "GPU", "内存", "安全"];
   const checks: PatrolCheckItem[] = [];
 
   const templates: Array<{
@@ -201,7 +200,6 @@ export function usePatrol() {
 
   const {
     items: history,
-    setItems: setHistory,
     prepend: prependHistory,
   } = usePersistedList<PatrolResult>(
     "patrolHistory",

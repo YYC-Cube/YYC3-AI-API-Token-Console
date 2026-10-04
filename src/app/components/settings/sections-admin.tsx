@@ -2,7 +2,7 @@
  * settings/sections-admin.tsx — 管理设置分区 (§6.6 Facade+Siblings)
  * 自 SystemSettings.tsx 迁入: Security / Notification / Advanced
  */
-import { AlertTriangle, Code, RefreshCw, Shield, Trash2 } from "lucide-react";
+import { AlertTriangle, Code, RefreshCw, Trash2 } from "lucide-react";
 import { EditableField, Toggle, type SettingsSectionProps } from "./shared";
 import { APIEndpointConfig } from "./APIEndpointConfig";
 

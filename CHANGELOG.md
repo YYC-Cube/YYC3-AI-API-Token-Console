@@ -9,6 +9,21 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Refactored 重构
 
+- **lint 84 警告清零（84 → 0）**: 48 文件未消费导入/解构/参数批量清理——codemod 安全摘除 31 绑定（eslint+tsc 双复验，2 文件回滚留证）+ 手动定点修复 64 项（类型导入 13 / lucide 图标 10 / 解构未用 23 / 未用参数 `_` 前缀 13 / catch err 可选绑定），并级联清理 9 条次生未用（FamilyHome 5 图标导入 / AIFamilyCenterPage now+useEffect 块 / ArchitectureAudit useI18n / DevGuidePage useContext / ProviderEditorModal useI18n）；lint 0 error 0 warning、typecheck 0 错、单测 1997+7 全绿
+  lint warnings cleared 84→0 across 48 files (imports/destructure/args + 9 cascaded); triple-verified green
+
+### Fixed 修复
+
+- **doctor Node 版本硬对齐校验（漂移防复发闭环）**: 原检查 `>= 22` 会放行 Node 26 漂移（判例：vitest4/jsdom `localStorage undefined` 群发 158 失败）——改为「主版本必须 = 22」与 CI 对齐，失败时输出 PATH 修复命令与判例引用（操作手册第 24/25 章）；`pnpm doctor` 12/12 复验通过
+  doctor.mjs now hard-blocks Node major ≠ 22 (CI-aligned), with actionable PATH fix in the error message
+
+### Added 新增
+
+- **yyc3-icons 守护测试（覆盖率 0 → 100% 首补）**: 新增 `yyc3-icons.test.tsx` 7 用例——icons/iconsCDN 45 键 1:1 对齐、本地路径 BASE_URL 挂载、CDN Raw 前缀+末段空格编码、handleIconError 回退与防循环守卫（jsdom URL 序列化形态断言）、pwaManifestIcons 14 项结构、REMOTE_FILE_MANIFEST 36 项唯一性
+  yyc3-icons coverage 0→100: 7 structural guard tests for icon config + CDN fallback chain
+
+### Refactored 重构
+
 - **no-explicit-any 全量清零（81 → 0）**: 16 个文件的显式 `any` 全部转型——catch 块统一 `err instanceof Error` / `errMessage()` 提取；浏览器非标准 API 经最小契约 interface 扩展（`WindowWithDirectoryPicker` / `NavigatorWithConnection` / `PerformanceWithMemory` / `RegistrationWithSync` / `MinimalSpeechRecognition`）；动态数据经 `Record<string, unknown>` / 具名联合收窄（`NodeStatusType` / `LogLevel` / `RecentOpEntry["status"]` / `keyof AlertThreshold`）；`globalThis.WebSocket` 经 `{ WebSocket?: typeof WebSocket }` 解析。lint 警告 216 → 121，typecheck 0 错，1965 用例全绿
   All 81 explicit `any` eliminated across 16 files: typed error handling, minimal-contract interfaces for non-standard browser APIs, and precise union narrowing; lint warnings 216 → 121
 - **SystemSettings.tsx Facade+Siblings 拆分（基线 4 → 3）**: 1373 行巨型设置组件拆分为 193 行主壳（侧栏导航 + 分区路由 + 操作条）+ 6 个领域 sibling（settings/ 目录：APIEndpointConfig 223 / ModelManagementSection 227 / sections-admin 215 / sections-connect 198 / sections-core 306 / shared 122，全部 ≤306 行）；12 个设置分区路由与测试 mock 契约保持兼容（1965 用例全绿）；顺带消除 2 处 `as any`（ModelManagementSection 类型契约化，SettingsToggles 替代裸 Record）

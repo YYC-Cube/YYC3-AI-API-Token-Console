@@ -236,7 +236,7 @@ export function captureNetworkError(
  */
 export function captureWSError(
   error: unknown,
-  detail?: string
+  _detail?: string
 ): AppError {
   return captureError(error, {
     category: "NETWORK",

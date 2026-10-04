@@ -61,7 +61,6 @@ export function DatabaseManager() {
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateFilter, setTemplateFilter] = useState<string>("all");
-  const [editingConn, setEditingConn] = useState<string | null>(null);
 
   /** Execute SQL directly from InlineEditableTable (for UPDATE operations) */
   const executeInlineSQL = useCallback(async (sql: string): Promise<{ ok: boolean; error?: string; affectedRows?: number }> => {

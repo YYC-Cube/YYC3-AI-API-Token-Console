@@ -27,9 +27,18 @@ const fail = (detail, level = "error") => {
 };
 
 // ── 1. 运行时版本 ──
-check("Node 版本 ≥ 22", () => {
-  const v = Number(process.versions.node.split(".")[0]);
-  if (v < 22) fail(`当前 ${process.versions.node}, 要求 ≥ 22 (CI 同版本)`);
+// Node 主版本必须与 CI 严格对齐 (CI 锁定 22): 仅 ">= 22" 会放行 Node 26 漂移,
+// 而判例证实 Node 26 下 vitest4/jsdom 七文件 localStorage undefined 群发 (158 失败)。
+// 判例出处: 全量落地实施总结与衔接报告 §8.2 批18 · 操作手册第 24/25 章
+check("Node 主版本 = 22 (CI 对齐)", () => {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major !== 22) {
+    fail(
+      `当前 ${process.versions.node}, CI 锁定 22 — 漂移会导致 vitest4/jsdom 群发失败。\n` +
+        `  修复: export PATH="/opt/homebrew/opt/node@22/bin:$PATH" 后重开终端 (判例见操作手册第 24/25 章);\n` +
+        `  治本: brew pin node@22 或修复 nvm 安装 (报告 §8.3 候选)`
+    );
+  }
   return process.versions.node;
 });
 

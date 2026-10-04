@@ -201,7 +201,6 @@ const DIAG_STEPS: DiagStep[] = [
 function MemberModelCard({
   member,
   assignment,
-  voiceProfile,
   apiKeys,
   diagResult,
   onChangeModel,

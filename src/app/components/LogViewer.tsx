@@ -121,7 +121,6 @@ export function LogViewer({
         {logs.length > 0 ? (
           logs.map((entry) => {
             const cfg = levelConfig[entry.level];
-            const LevelIcon = cfg.icon;
 
             return (
               <div

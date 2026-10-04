@@ -10,8 +10,6 @@
 import React, { useState } from "react";
 import {
   Check, X, AlertTriangle, Info, Loader2,
- Shield, Server, Database, Zap,
- ExternalLink,
 } from "lucide-react";
 import type { StatusDef, ComponentEntry, InteractionSpec } from "../../types";
 
@@ -232,7 +230,6 @@ export function ComponentShowcase() {
             </p>
             <div className="flex items-center gap-3">
               {STATUS_DEFINITIONS.map((s) => {
-                const Icon = s.icon;
                 return (
                   <div key={s.key} className="flex items-center gap-1">
                     <span
