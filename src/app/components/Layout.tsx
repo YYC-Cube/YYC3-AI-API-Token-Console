@@ -58,6 +58,13 @@ export function Layout() {
     meta.content = uiSettings.darkMode ? "#060e1f" : "#e8f0fa";
   }, [uiSettings.darkMode]);
 
+  // 壳层内联色响应 (CSS 变量无法覆盖 inline style → JS 层与桥同步取值)
+  const dark = uiSettings.darkMode;
+  const shellBg = dark
+    ? "linear-gradient(135deg, #060e1f 0%, #0a1628 30%, #081430 60%, #040c1a 100%)"
+    : "linear-gradient(135deg, #e8f0fa 0%, #dde9f6 30%, #e2eefb 60%, #eef4fb 100%)";
+  const gridColor = dark ? "rgba(0,212,255,1)" : "rgba(0,110,170,0.55)";
+
   const isDesktop = !view.isMobile && !view.isTablet;
 
   // 全局快捷键
@@ -76,27 +83,27 @@ export function Layout() {
     <WebSocketContext.Provider value={wsData}>
       <ViewContext.Provider value={view}>
         <div className="h-screen w-screen flex flex-col overflow-hidden" style={{
-          background: "linear-gradient(135deg, #060e1f 0%, #0a1628 30%, #081430 60%, #040c1a 100%)",
+          background: shellBg,
         }}>
           {/* Animated background elements */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
             {/* Grid pattern */}
             <div className="absolute inset-0 opacity-[0.03]" style={{
               backgroundImage: `
-                linear-gradient(rgba(0,212,255,1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,212,255,1) 1px, transparent 1px)
+                linear-gradient(${gridColor} 1px, transparent 1px),
+                linear-gradient(90deg, ${gridColor} 1px, transparent 1px)
               `,
               backgroundSize: view.isMobile ? "40px 40px" : "60px 60px",
             }} />
             {/* Gradient orbs */}
-            <div className="absolute top-[-20%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full opacity-[0.06]"
+            <div className={`absolute top-[-20%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full ${dark ? "opacity-[0.06]" : "opacity-[0.10]"}`}
               style={{ background: "radial-gradient(circle, #00d4ff, transparent 70%)" }} />
-            <div className="absolute bottom-[-20%] left-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full opacity-[0.04]"
+            <div className={`absolute bottom-[-20%] left-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full ${dark ? "opacity-[0.04]" : "opacity-[0.07]"}`}
               style={{ background: "radial-gradient(circle, #7b2ff7, transparent 70%)" }} />
-            <div className="absolute top-[40%] left-[50%] w-[250px] md:w-[400px] h-[250px] md:h-[400px] rounded-full opacity-[0.03]"
+            <div className={`absolute top-[40%] left-[50%] w-[250px] md:w-[400px] h-[250px] md:h-[400px] rounded-full ${dark ? "opacity-[0.03]" : "opacity-[0.06]"}`}
               style={{ background: "radial-gradient(circle, #00ff88, transparent 70%)" }} />
             {/* Scan line */}
-            <div className="absolute w-full h-[2px] opacity-[0.03] animate-[scanline_8s_linear_infinite]"
+            <div className={`absolute w-full h-[2px] animate-[scanline_8s_linear_infinite] ${dark ? "opacity-[0.03]" : "opacity-[0.08]"}`}
               style={{ background: "linear-gradient(90deg, transparent, #00d4ff, transparent)" }} />
           </div>
 

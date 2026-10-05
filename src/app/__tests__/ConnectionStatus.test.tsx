@@ -25,7 +25,7 @@ const defaultProps = {
 
 describe("ConnectionStatus", () => {
   // ----------------------------------------------------------
-  // 5 种连接状态
+  // 6 种连接状态 (rest = REST 轮询实况档, 2026-10-05)
   // ----------------------------------------------------------
 
   describe("连接状态渲染", () => {
@@ -35,6 +35,7 @@ describe("ConnectionStatus", () => {
       reconnecting: "重连中",
       disconnected: "已断开",
       simulated: "模拟模式",
+      rest: "轮询实况",
     };
 
     for (const [state, label] of Object.entries(stateLabels)) {

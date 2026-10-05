@@ -26,6 +26,7 @@ const DEFAULTS: APIEndpoints = {
   wsEndpoint: "ws://localhost:3113/ws",
   aiBase: "https://api.openai.com/v1",
   clusterBase: "/api/cluster",
+  metricsBase: "/console/metrics",
   enableBackend: false,
   timeout: 15000,
   maxRetries: 2,
@@ -168,4 +169,5 @@ export const ENDPOINT_META: Array<{
   { key: "wsEndpoint", label: "WebSocket", labelCn: "WebSocket 地址", description: "实时数据推送", type: "url", placeholder: "ws://localhost:3113/ws", group: "实时通信" },
   { key: "aiBase", label: "AI Inference API", labelCn: "AI 推理 API", description: "OpenAI 兼容接口", type: "url", placeholder: "https://api.openai.com/v1", group: "AI 推理" },
   { key: "clusterBase", label: "Cluster API", labelCn: "集群管理 API", description: "节点管理、模型部署", type: "url", placeholder: "/api/cluster", group: "集群" },
+  { key: "metricsBase", label: "Metrics API", labelCn: "节点指标 API", description: "GET /console/metrics 聚合各节点运行指标（WS 不可达时轮询档）", type: "url", placeholder: "/console/metrics", group: "集群" },
 ];

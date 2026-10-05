@@ -17,6 +17,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useWebSocketData } from "../hooks/useWebSocketData";
+import { __resetSettingsStoreForTests } from "../hooks/useSettingsStore";
 import type { NodeData, AlertData, ThroughputPoint } from "../types";
 
 // ============================================================
@@ -57,6 +58,9 @@ describe("useWebSocketData", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     localStorage.clear();
+    // T2 模拟节奏消费设置: 预置刷新间隔 2s, 保持既有 2000ms 断言节奏
+    localStorage.setItem("yyc3_system_settings", JSON.stringify({ values: { refreshInterval: "2" } }));
+    __resetSettingsStoreForTests();
     instances.length = 0;
     vi.stubGlobal("WebSocket", MockWebSocket);
   });
@@ -391,6 +395,9 @@ describe("P2 端点热重建", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     localStorage.clear();
+    // T2 模拟节奏消费设置: 预置刷新间隔 2s, 保持既有 2000ms 断言节奏
+    localStorage.setItem("yyc3_system_settings", JSON.stringify({ values: { refreshInterval: "2" } }));
+    __resetSettingsStoreForTests();
     instances.length = 0;
     vi.stubGlobal("WebSocket", MockWebSocket);
   });

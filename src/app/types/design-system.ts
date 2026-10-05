@@ -24,6 +24,8 @@ export interface APIEndpoints {
   aiBase: string;
   /** 集群管理 API 基地址 */
   clusterBase: string;
+  /** 节点指标聚合 API（console-server /console/metrics，WS 不可达时轮询档消费） */
+  metricsBase: string;
   /** 是否启用后端 API (false = 纯前端 Mock) */
   enableBackend: boolean;
   /** API 请求超时 (ms) */

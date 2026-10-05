@@ -37,6 +37,7 @@ import type {
 
 import { getAPIConfig, onAPIConfigChange } from "../lib/api-config";
 import { nodeStore } from "../lib/nodes";
+import { getSettingsSnapshot } from "./useSettingsStore";
 
 // ============================================================
 // Simulated Data Generator — 从 localStorage nodeStore 读取
@@ -78,6 +79,19 @@ function generateThroughputPoint(): ThroughputPoint {
 
 const MAX_THROUGHPUT_HISTORY = 60;
 const SIMULATE_INTERVAL_MS = 2000;
+
+/**
+ * T2 编辑即生效 (2026-10-05): 模拟数据节奏消费设置页「数据刷新间隔」
+ * (refreshInterval, 秒)。读取时机=每次建立模拟 interval (连接降级/重挂载),
+ * 修改设置后于下一次降级重建时生效; 非法值兜底 2s。
+ */
+function simulateIntervalMs(): number {
+  try {
+    const sec = Number.parseInt(getSettingsSnapshot().values.refreshInterval, 10);
+    if (Number.isFinite(sec) && sec >= 1 && sec <= 300) return sec * 1000;
+  } catch { /* 设置读取失败兜底 */ }
+  return SIMULATE_INTERVAL_MS;
+}
 const RECONNECT_DELAY_MS = 5000;
 
 export function useWebSocketData(): WebSocketDataState {
@@ -101,6 +115,7 @@ export function useWebSocketData(): WebSocketDataState {
   const wsRef = useRef<WebSocket | null>(null);
   const simulateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ----- P2 编辑即生效: 订阅 api-config 端点变更 → 热重建连接 -----
   // 原实现 connectWS 无 endpoint 依赖, 设置页改 wsEndpoint 后连接不重建 (断点③)。
@@ -110,6 +125,55 @@ export function useWebSocketData(): WebSocketDataState {
       setWsEndpoint(config.wsEndpoint);
     });
   }, []);
+
+  // ----- REST 轮询中间档（真实数据接入 P0 / 2026-10-05）-----
+  // WS 不可达时优先轮询 metricsBase（console-server 聚合各节点 Ollama /api/ps），
+  // 成功则呈现真实节点状态 (connectionState="rest"); 失败保持模拟底座。
+  // 兼容性: 降级路径同步先启模拟（REST 为异步验证），既有测试时序零影响。
+  const stopRestPolling = useCallback(() => {
+    if (restTimerRef.current) {
+      clearInterval(restTimerRef.current);
+      restTimerRef.current = null;
+    }
+  }, []);
+
+  const pollRestMetrics = useCallback(async () => {
+    try {
+      const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(4000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = (await r.json()) as {
+        activeCount?: string;
+        nodes?: Array<{ id: string; status: string; latencyMs: number; models?: string[] }>;
+      };
+      if (!Array.isArray(data.nodes) || data.nodes.length === 0) throw new Error("空节点集");
+      setNodes(
+        data.nodes.map((n) => ({
+          id: n.id,
+          status: n.status === "active" ? "active" : "inactive",
+          gpu: 0, mem: 0, temp: 0, // Ollama /api/ps 无硬件指标 — 状态/负载语义化呈现
+          model: n.models?.[0] ?? "",
+          tasks: n.models?.length ?? 0,
+        }))
+      );
+      if (data.activeCount) setActiveNodes(data.activeCount);
+      setConnectionState("rest");
+      // REST 命中后停掉模拟底座（真实数据优先）
+      if (simulateTimerRef.current) {
+        clearInterval(simulateTimerRef.current);
+        simulateTimerRef.current = null;
+      }
+    } catch {
+      // 轮询失败保持/回落模拟底座（由调用方保证模拟已运行）;
+      // 函数式更新断开对 connectionState 的依赖 → 避免 connectWS 依赖链重建循环
+      setConnectionState((prev) => (prev === "connected" ? prev : "simulated"));
+    }
+  }, []);
+
+  const startRestPolling = useCallback(() => {
+    if (restTimerRef.current) return;
+    void pollRestMetrics();
+    restTimerRef.current = setInterval(() => { void pollRestMetrics(); }, simulateIntervalMs());
+  }, [pollRestMetrics]);
 
   // ----- simulated data updater -----
   const runSimulation = useCallback(() => {
@@ -160,7 +224,8 @@ export function useWebSocketData(): WebSocketDataState {
       ws.onopen = () => {
         setConnectionState("connected");
         setReconnectCount(0);
-        // stop simulation if WS connected
+        // stop simulation & rest polling if WS connected
+        stopRestPolling();
         if (simulateTimerRef.current) {
           clearInterval(simulateTimerRef.current);
           simulateTimerRef.current = null;
@@ -205,10 +270,11 @@ export function useWebSocketData(): WebSocketDataState {
       ws.onclose = () => {
         wsRef.current = null;
         setConnectionState("simulated");
-        // fallback to simulation
+        // fallback to simulation (同步底座) + REST 轮询档异步探测真实指标
         if (!simulateTimerRef.current) {
-          simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
+          simulateTimerRef.current = setInterval(runSimulation, simulateIntervalMs());
         }
+        startRestPolling();
         // schedule reconnect
         reconnectTimerRef.current = setTimeout(() => {
           setReconnectCount((c) => c + 1);
@@ -220,13 +286,14 @@ export function useWebSocketData(): WebSocketDataState {
         ws.close();
       };
     } catch {
-      // WebSocket constructor error — fallback to simulation
+      // WebSocket constructor error — fallback to simulation + REST 轮询档
       setConnectionState("simulated");
       if (!simulateTimerRef.current) {
-        simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
+        simulateTimerRef.current = setInterval(runSimulation, simulateIntervalMs());
       }
+      startRestPolling();
     }
-  }, [runSimulation, wsEndpoint]);
+  }, [runSimulation, wsEndpoint, startRestPolling, stopRestPolling]);
 
   // ----- lifecycle -----
   useEffect(() => {
@@ -234,7 +301,7 @@ export function useWebSocketData(): WebSocketDataState {
     connectWS();
 
     // Start simulation immediately as fallback (will be stopped if WS connects)
-    simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
+    simulateTimerRef.current = setInterval(runSimulation, simulateIntervalMs());
 
     return () => {
       if (wsRef.current) {
@@ -249,8 +316,9 @@ export function useWebSocketData(): WebSocketDataState {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
       }
+      stopRestPolling();
     };
-  }, [connectWS, runSimulation]);
+  }, [connectWS, runSimulation, stopRestPolling]);
 
   // ----- public API -----
   const manualReconnect = useCallback(() => {

@@ -65,6 +65,15 @@ const stateConfig: Record<ConnectionState, {
     icon: Zap,
     pulse: false,
   },
+  rest: {
+    // REST 轮询档 — WS 不可达但 console-server 指标聚合可达（真实数据）
+    label: "轮询实况",
+    color: "#00ff88",
+    bgColor: "rgba(0,255,136,0.08)",
+    borderColor: "rgba(0,255,136,0.2)",
+    icon: Radio,
+    pulse: true,
+  },
 };
 
 export function ConnectionStatus({

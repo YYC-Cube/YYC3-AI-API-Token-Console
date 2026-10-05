@@ -150,7 +150,8 @@ export type ConnectionState =
   | "connected"
   | "disconnected"
   | "reconnecting"
-  | "simulated";
+  | "simulated"
+  | "rest";
 
 /**
  * RF-005: 统一基础严重级别类型

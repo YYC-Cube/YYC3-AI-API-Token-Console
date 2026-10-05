@@ -224,11 +224,12 @@ describe("RF-006: API_BASE 硬编码消除", () => {
       wsEndpoint: "ws://localhost:3113/ws",
       aiBase: "https://api.openai.com/v1",
       clusterBase: "/api/cluster",
+      metricsBase: "/console/metrics",
       enableBackend: false,
       timeout: 15000,
       maxRetries: 2,
     };
-    expect(Object.keys(config)).toHaveLength(8);
+    expect(Object.keys(config)).toHaveLength(9);
   });
 });
 
@@ -304,15 +305,16 @@ describe("Phase 2 综合验证", () => {
     expect(delay2).toBeLessThanOrEqual(2250);
   });
 
-  it("ENDPOINT_META 包含所有 8 个端点描述", async () => {
+  it("ENDPOINT_META 包含所有 9 个端点描述", async () => {
     const { ENDPOINT_META } = await import("../lib/api-config");
     expect(ENDPOINT_META).toBeDefined();
     expect(Array.isArray(ENDPOINT_META)).toBe(true);
-    expect(ENDPOINT_META).toHaveLength(8);
+    expect(ENDPOINT_META).toHaveLength(9);
     const keys = ENDPOINT_META.map((m: any) => m.key);
     expect(keys).toContain("fsBase");
     expect(keys).toContain("dbBase");
     expect(keys).toContain("wsEndpoint");
+    expect(keys).toContain("metricsBase");
     expect(keys).toContain("enableBackend");
     expect(keys).toContain("maxRetries");
   });

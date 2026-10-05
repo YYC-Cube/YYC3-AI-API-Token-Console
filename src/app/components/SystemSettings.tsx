@@ -41,6 +41,21 @@ export function SystemSettings() {
     setSaving(true);
     // 数据已自动持久化到 localStorage, 此处仅为 UI 反馈
     await new Promise(r => setTimeout(r, 500));
+    // P4 后端设置下发 (2026-10-05): 白名单子集 PUT /console/settings
+    // (console-server 形态持久化 console-settings.json; 本地 dev 无后端静默跳过)
+    try {
+      await fetch("/console/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ipWhitelist: values.ipWhitelist,
+          alertEmailAddr: values.alertEmailAddr,
+          webhookUrl: values.webhookUrl,
+          sessionTimeoutMin: Number.parseInt(values.sessionTimeout, 10) || undefined,
+        }),
+        signal: AbortSignal.timeout(4000),
+      });
+    } catch { /* 本地/无后端形态 — 前端侧已生效, 下发静默降级 */ }
     setSaving(false);
     setHasChanges(false);
     toast.success(t("settings.saved"), {

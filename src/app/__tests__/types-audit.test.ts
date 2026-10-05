@@ -315,6 +315,7 @@ describe("types/index.ts 完整性审计", () => {
       const config: APIEndpoints = {
         fsBase: "/api/fs", dbBase: "/api/db", wsEndpoint: "ws://localhost:3113/ws",
         aiBase: "https://api.openai.com/v1", clusterBase: "/api/cluster",
+        metricsBase: "/console/metrics",
         enableBackend: false, timeout: 15000, maxRetries: 2,
       };
       expect(config.maxRetries).toBe(2);

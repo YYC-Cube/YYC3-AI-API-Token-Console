@@ -26,6 +26,10 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "./console-auth.mjs";
+import {
+  collectNodeMetrics, consoleSettingsFile,
+  filterSettingsPayload, loadConsoleSettings, saveConsoleSettings,
+} from "./console-metrics.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 静态目录: 与 LAN 版 server.mjs 语义对齐 — 默认仓库根 dist/, 可经 DIST_DIR 覆盖
@@ -154,6 +158,54 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: `${node} ollama 不可达`, detail: String(e instanceof Error ? e.message : e) }));
     }
     return;
+  }
+
+  // ── 指标聚合（真实数据接入 P0 / 2026-10-05）：GET /console/metrics ──
+  // 聚合 OLLAMA_NODES 各节点 Ollama /api/ps（运行中模型 + 延迟）→ 前端轮询档消费
+  if (pathname === "/console/metrics" && req.method === "GET") {
+    if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
+    try {
+      const metrics = await collectNodeMetrics(OLLAMA_NODES);
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "Access-Control-Allow-Origin": "https://api.0379.world",
+      });
+      return res.end(JSON.stringify(metrics));
+    } catch (e) {
+      res.writeHead(502, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "指标聚合失败", detail: String(e instanceof Error ? e.message : e) }));
+    }
+  }
+
+  // ── 服务端设置（P4 下发 / 2026-10-05）：GET|PUT /console/settings ──
+  // 前端 settingsBus 白名单子集持久化（console-settings.json，运行时旁不入 git）;
+  // PUT 为部分更新语义（merge），未知键 422 回执 rejected 清单。
+  if (pathname === "/console/settings" && (req.method === "GET" || req.method === "PUT")) {
+    if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
+    const file = consoleSettingsFile(__dirname);
+    if (req.method === "GET") {
+      const settings = await loadConsoleSettings(file);
+      res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ settings }));
+    }
+    /** @type {Buffer[]} */
+    const chunks = [];
+    let size = 0;
+    for await (const c of req) { size += c.length; if (size > 64 * 1024) { res.writeHead(413); return res.end(); } chunks.push(c); }
+    let payload;
+    try { payload = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { payload = null; }
+    const { ok, settings, rejected } = filterSettingsPayload(payload);
+    if (!ok) { res.writeHead(422, { "Content-Type": "application/json" }); return res.end(JSON.stringify({ error: "载荷必须是对象" })); }
+    const merged = { ...(await loadConsoleSettings(file)), ...settings };
+    try {
+      await saveConsoleSettings(file, merged);
+      res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ ok: true, settings: merged, rejected }));
+    } catch (e) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "设置落盘失败", detail: String(e instanceof Error ? e.message : e) }));
+    }
   }
 
   // ── /console（无斜杠）→ 301 重定向到 /console/（否则浏览器相对路径解析到根，JS/CSS 404 蓝屏） ──
