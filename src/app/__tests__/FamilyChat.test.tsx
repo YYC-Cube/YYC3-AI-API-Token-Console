@@ -120,7 +120,7 @@ describe("FamilyChat 真实 LLM 回复", () => {
     }));
     vi.resetModules();
     // 重新 import 后组件与本用例的 fetch mock 才共享新 api-config
-    const fetchMock = vi.fn(async () => new Response(
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(
       JSON.stringify({ choices: [{ message: { content: "这是天枢的真实调度回复。" } }] }), { status: 200 }
     ));
     vi.stubGlobal("fetch", fetchMock);
