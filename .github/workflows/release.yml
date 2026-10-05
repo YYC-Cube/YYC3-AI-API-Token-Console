@@ -1,6 +1,8 @@
 # ============================================================================
 #  YYC³ Release Pipeline — YYC3-AI-API-Token-Console
 #  tag v*.*.* 触发 → Final Gates → vite build → GitHub Release + 制品归档
+#
+#  2026-10-05 判例: node24 对齐 + runner 钉 ubuntu-24.04 — 详见 ci.yml 头注
 # ============================================================================
 
 name: YYC³ Release
@@ -23,18 +25,18 @@ env:
 jobs:
   release-build:
     name: "📦 Release Build"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -63,7 +65,7 @@ jobs:
       - name: Package dist for release
         run: cd dist && zip -r ../yyc3-ai-api-token-console-${{ github.ref_name }}.zip . && cd ..
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: release-dist
           path: |
@@ -72,14 +74,14 @@ jobs:
 
   release-publish:
     name: "🚀 GitHub Release"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: release-build
     # 说明: 不绑定自定义 environment — 发布记录由 GitHub Release 页承载,
     # 线上 URL 跟踪由 pages.yml 的 github-pages deployment 负责
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: release-dist
           path: dist-release/
@@ -99,7 +101,7 @@ jobs:
 
   release-notify:
     name: "📣 Notify"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [release-build, release-publish]
     if: always()
     steps:

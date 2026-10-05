@@ -6,6 +6,14 @@
 #  阶段: 🔍 Typecheck → 🧹 Lint(含分层边界) → 🧪 Test(unit 分级+基线) → 🛡️ Security Scan
 #        → 🎭 E2E(Playwright·auth 链路) → 📦 Build(+工程纪律: ast-grep/门禁探针/体量/knip + 产物零密钥)
 #  下游: pages.yml (CI 全绿后自动部署 GitHub Pages → token.yyc3.vip)
+#
+#  2026-10-05 判例 (P2 Actions Runner 复核):
+#    - Node 20 已于 2026-09-23 从 runner 移除 (强制 node24) — 官方 actions
+#      升级至 node24 首版: checkout v5 / setup-node v5 / upload-artifact v6
+#      (v5 仍 node20, 陷阱) / download-artifact v5 / cache v5 / pnpm-setup v6
+#    - runner 钉 ubuntu-24.04: ubuntu-latest 于 2026-10-19 迁 Ubuntu 26,
+#      Playwright --with-deps 的 apt 依赖链未经验证前不随迁;
+#      回迁条件: Playwright 官方声明 26 支持后评审 (或 24.04 EOL 2027 年中前)
 # ============================================================================
 
 name: YYC³ CI
@@ -34,18 +42,18 @@ jobs:
   # ============================================================
   typecheck:
     name: "🔍 Typecheck · tsc --noEmit"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -61,18 +69,18 @@ jobs:
   # ============================================================
   lint:
     name: "🧹 Lint · eslint 0-errors"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -88,19 +96,19 @@ jobs:
   # ============================================================
   unit-test:
     name: "🧪 Unit Test · vitest + coverage"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [typecheck, lint]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -125,7 +133,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results
           path: test-results/
@@ -133,7 +141,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: coverage/
@@ -151,11 +159,11 @@ jobs:
   # ============================================================
   security-scan:
     name: "🛡️ Security Scan · gitleaks"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [typecheck, lint]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -175,19 +183,19 @@ jobs:
   # ============================================================
   e2e:
     name: "🎭 E2E · playwright auth"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [typecheck, lint]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -196,7 +204,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ms-playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
@@ -209,7 +217,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: playwright-report/
@@ -220,19 +228,19 @@ jobs:
   # ============================================================
   build:
     name: "📦 Build · vite production"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [unit-test, security-scan, e2e]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -277,7 +285,7 @@ jobs:
           echo "✓ Build artifacts clean (no secret patterns in dist/)"
 
       - name: Upload build output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-output
           path: dist/

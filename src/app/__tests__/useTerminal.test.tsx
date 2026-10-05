@@ -965,6 +965,32 @@ describe("useTerminal 覆盖率补测", () => {
       expect(items).toContain("glm-4-flash");
     });
 
+    it("configured models 接入补全源 (用户配置模型优先 + 与内置种子合并去重)", () => {
+      // 模拟用户在模型管理页配置的自定义模型 (零副作用 localStorage 读)
+      localStorage.setItem(
+        "yyc3_configured_models",
+        JSON.stringify([
+          { id: "cm-1", model: "my-finetuned-glm", providerId: "zhipu", providerLabel: "智谱" },
+          { id: "cm-2", model: "glm-4-flash", providerId: "zhipu", providerLabel: "智谱" }, // 与种子重复
+        ])
+      );
+      const { result } = renderHook(() => useTerminal());
+      const items = completionsOf(result, "cpim model deploy my-");
+      expect(items).toContain("my-finetuned-glm");
+      // 重复项不产生两个候选
+      const glm = completionsOf(result, "cpim model deploy glm-4-f");
+      expect(glm.filter((v) => v === "glm-4-flash").length).toBe(1);
+      localStorage.removeItem("yyc3_configured_models");
+    });
+
+    it("configured models 数据损坏时静默降级为仅内置种子", () => {
+      localStorage.setItem("yyc3_configured_models", "{broken json");
+      const { result } = renderHook(() => useTerminal());
+      const items = completionsOf(result, "cpim model deploy glm");
+      expect(items).toContain("glm-4-flash");
+      localStorage.removeItem("yyc3_configured_models");
+    });
+
     it("重复命令去重置顶 (输入历史导航去重)", () => {
       const { result } = renderHook(() => useTerminal());
       exec(result, "help");

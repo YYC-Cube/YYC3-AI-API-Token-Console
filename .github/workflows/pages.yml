@@ -6,6 +6,9 @@
 #  前置要求 (一次性, 仓库 Settings → Pages):
 #    Source: GitHub Actions
 #    Custom domain: token.yyc3.vip  (或由本工作流 CNAME 文件自动绑定)
+#
+#  2026-10-05 判例: node24 对齐 (configure-pages v6 / upload-pages-artifact
+#  v4 / deploy-pages v5) + runner 钉 ubuntu-24.04 — 详见 ci.yml 头注
 # ============================================================================
 name: YYC³ Pages Deploy
 
@@ -36,18 +39,18 @@ jobs:
   build:
     name: "📦 Build for Pages"
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -67,10 +70,10 @@ jobs:
         run: pnpm build
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
@@ -79,10 +82,10 @@ jobs:
     environment:
       name: github-pages
       url: https://token.yyc3.vip
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     timeout-minutes: 10
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

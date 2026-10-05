@@ -219,12 +219,16 @@ const COMMAND_REGISTRY: Record<string, (args: string[]) => TerminalLine[]> = {
   ],
 };
 
-// Tab completion candidates
-const COMPLETIONS = [
-  "help", "clear", "yyc3 status", "yyc3 alerts", "yyc3 patrol run", "yyc3 node",
-  "git status", "git log", "git branch", "git diff", "git add .", "git commit -m", "git push", "git pull",
-  "pnpm install", "pnpm dev", "pnpm build", "pnpm test", "pnpm lint",
-  "ls", "pwd", "cat", "echo", "date", "whoami", "neofetch",
+// Tab completion candidates — 2026-10-05 收敛: 不再手工维护独立数组 (与
+// COMMAND_REGISTRY 双份漂移的技术债), 改为从命令注册表单一事实源程序化派生
+// (能补全的必然可执行); 特殊前缀分支命令 (clear/cat/echo/yyc3 node) 显式补录
+const OWN_COMPLETIONS: string[] = [
+  ...Object.keys(COMMAND_REGISTRY),
+  "clear",
+  "yyc3 node",
+  "git commit -m ",
+  "cat ",
+  "echo ",
 ];
 
 interface IDETerminalProps {
@@ -301,8 +305,9 @@ export function IDETerminal({ isCollapsed, onToggleCollapse }: IDETerminalProps)
       executeCommand(input);
     } else if (e.key === "Tab") {
       e.preventDefault();
-      // Tab completion
-      const matches = COMPLETIONS.filter((c) => c.startsWith(input.toLowerCase()));
+      // Tab completion (候选自 COMMAND_REGISTRY 派生, 单一事实源)
+      const lower = input.toLowerCase();
+      const matches = OWN_COMPLETIONS.filter((c) => c.startsWith(lower) && c.trim() !== lower.trim());
       if (matches.length === 1) {
         setInput(matches[0]);
       } else if (matches.length > 1) {

@@ -25,6 +25,7 @@ import {
   TERMINAL_ROUTES,
   type CompletionItem, type TerminalExtraSources,
 } from "../lib/terminal-completions";
+import { LOCALSTORAGE_KEYS, lsGet } from "../lib/yyc3-storage";
 import builtinProvidersJson from "../config/providers/builtin-providers.json";
 
 // ============================================================
@@ -37,6 +38,23 @@ const ROUTE_LABELS = TERMINAL_ROUTES;
 /** 模型 ID 种子 (hooks→config 合规先例同 useModelProvider): 补全参数位消费 */
 const PROVIDER_MODELS: string[] = (builtinProvidersJson as { models?: string[] }[])
   .flatMap((p) => p.models ?? []);
+
+/**
+ * 补全模型源 = 用户已配置模型 (localStorage 零副作用读, 不触发 Ollama 运行时
+ * 探测 — 那在 useModelProvider 的 effect 内, 拉起整个 hook 对终端过重) + 内置种子。
+ * configured 数据结构: ConfiguredModel[] { model: 模型 ID, ... }
+ */
+function completionModelSources(): string[] {
+  const configured: string[] = [];
+  try {
+    const raw = lsGet(LOCALSTORAGE_KEYS.configuredModels);
+    const list = raw ? (JSON.parse(raw) as { model?: unknown }[]) : [];
+    for (const cm of list) {
+      if (typeof cm.model === "string" && cm.model) configured.push(cm.model);
+    }
+  } catch { /* 损坏数据静默降级为仅内置种子 */ }
+  return [...new Set([...configured, ...PROVIDER_MODELS])];
+}
 
 interface CommandResult {
   output: string;
@@ -809,7 +827,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     setInputValue(value);
     setCompletionItems(
       value.trim()
-        ? getSmartCompletions(value, { ...extraSources, models: PROVIDER_MODELS })
+        ? getSmartCompletions(value, { ...extraSources, models: completionModelSources() })
         : []
     );
   }, [extraSources]);
@@ -837,7 +855,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     parts[parts.length - 1] = completion;
     const newInput = parts.join(" ") + " ";
     setInputValue(newInput);
-    setCompletionItems(getSmartCompletions(newInput, { ...extraSources, models: PROVIDER_MODELS }));
+    setCompletionItems(getSmartCompletions(newInput, { ...extraSources, models: completionModelSources() }));
   }, [inputValue, extraSources]);
 
   // 对外兼容: completions 保持 string[] (既有 UI/测试), 元数据单独上抛
