@@ -16,21 +16,27 @@
  */
 
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../components/YYC3LogoSvg", () => ({
   YYC3LogoSvg: () => <div data-testid="yyc3-logo-svg" />,
 }));
 
+/** useModelProvider mock 的可变状态 (无模型/加载中场景需动态切换) */
+const mpState = vi.hoisted(() => ({
+  models: [
+    { id: "ollama-live-qwen2.5:7b", name: "qwen2.5:7b", provider: "Ollama (本地)", isLocal: true },
+    { id: "ollama-live-codegeex4:latest", name: "codegeex4:latest", provider: "Ollama (本地)", isLocal: true },
+  ] as Array<{ id: string; name: string; provider: string; isLocal: boolean }>,
+  loading: false,
+}));
+
 // Mock useModelProvider to return predictable data
 vi.mock("../hooks/useModelProvider", () => ({
   useModelProvider: () => ({
-    availableModels: [
-      { id: "ollama-live-qwen2.5:7b", name: "qwen2.5:7b", provider: "Ollama (本地)", isLocal: true },
-      { id: "ollama-live-codegeex4:latest", name: "codegeex4:latest", provider: "Ollama (本地)", isLocal: true },
-    ],
-    ollamaLoading: false,
+    availableModels: mpState.models,
+    ollamaLoading: mpState.loading,
   }),
 }));
 
@@ -65,6 +71,17 @@ describe("AIAssistant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
+    // 重置可变 mock 状态, 保证测试数据自包含
+    mpState.models = [
+      { id: "ollama-live-qwen2.5:7b", name: "qwen2.5:7b", provider: "Ollama (本地)", isLocal: true },
+      { id: "ollama-live-codegeex4:latest", name: "codegeex4:latest", provider: "Ollama (本地)", isLocal: true },
+    ];
+    mpState.loading = false;
+    mockSettingsValues.aiApiKey = "";
+    mockSettingsValues.aiModel = "ollama-live-qwen2.5:7b";
+    mockSettingsValues.aiTemperature = "0.7";
+    mockSettingsValues.aiTopP = "0.9";
+    mockSettingsValues.aiMaxTokens = "2048";
   });
 
   afterEach(() => {
@@ -313,6 +330,185 @@ describe("AIAssistant", () => {
       expect(screen.getByText("AI 智能助理")).toBeInTheDocument();
       // In mobile, no maximize button
       expect(screen.queryByTitle("最大化")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("消息发送与模拟回复", () => {
+    async function openPanelAndSend(input: string) {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      const textarea = screen.getByPlaceholderText(/输入指令/);
+      fireEvent.change(textarea, { target: { value: input } });
+      fireEvent.keyDown(textarea, { key: "Enter" });
+      // 推进虚拟时钟越过模拟延迟 (800~2000ms)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500);
+      });
+    }
+
+    const replyCases: Array<[string, RegExp]> = [
+      ["查看集群状态", /集群状态报告/],
+      ["集群总览", /集群状态报告/],
+      ["节点列表", /集群状态报告/],
+      ["部署新服务", /模型部署方案/],
+      ["切换模型", /模型部署方案/],
+      ["优化参数", /AI 优化建议/],
+      ["调整配置", /AI 优化建议/],
+      ["安全扫描", /安全审计摘要/],
+      ["执行审计", /安全审计摘要/],
+      ["数据库检查", /数据库健康报告/],
+      ["存储分析", /数据库健康报告/],
+      ["查看postgresql", /数据库健康报告/],
+      ["你好", /收到您的请求/],
+    ];
+
+    it.each(replyCases)("输入「%s」应返回对应模拟回复", async (input, matcher) => {
+      await openPanelAndSend(input);
+      expect(screen.getByText(matcher)).toBeInTheDocument();
+      // 回复后输入框保持清空
+      expect(screen.getByPlaceholderText(/输入指令/)).toHaveValue("");
+    });
+
+    it("点击发送按钮应发送消息", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.change(screen.getByPlaceholderText(/输入指令/), { target: { value: "按钮发送" } });
+      const allBtns = screen.getAllByRole("button", { name: "" });
+      fireEvent.click(allBtns[allBtns.length - 1]);
+      expect(screen.getByText("按钮发送")).toBeInTheDocument();
+    });
+
+    it("Shift+Enter 换行不应发送消息", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      const textarea = screen.getByPlaceholderText(/输入指令/);
+      fireEvent.change(textarea, { target: { value: "换行内容" } });
+      fireEvent.keyDown(textarea, { key: "Enter", shiftKey: true });
+      // 未发送: 输入框内容保留
+      expect(textarea).toHaveValue("换行内容");
+    });
+
+    it("空内容发送应被忽略", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      const textarea = screen.getByPlaceholderText(/输入指令/);
+      fireEvent.keyDown(textarea, { key: "Enter" });
+      // 欢迎消息仍在, 无新消息
+      expect(screen.getByText(/CP-IM AI 智能助理/)).toBeInTheDocument();
+    });
+  });
+
+  describe("消息复制与面板关闭", () => {
+    it("复制按钮应写入剪贴板", () => {
+      const writeTextSpy = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockResolvedValue(undefined);
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      // 欢迎消息气泡内含复制按钮 (仅 assistant 消息有)
+      const bubble = screen.getByText(/CP-IM AI 智能助理/).parentElement!;
+      const copyBtn = bubble.querySelector("button")!;
+      fireEvent.click(copyBtn);
+      expect(writeTextSpy).toHaveBeenCalled();
+      writeTextSpy.mockRestore();
+    });
+
+    it("关闭按钮应关闭面板并回到浮动按钮", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      // 头部按钮组: [清空对话, 最大化, 关闭] → 取最后一个
+      const headerBtns = screen.getByTitle("清空对话").parentElement!.querySelectorAll("button");
+      fireEvent.click(headerBtns[headerBtns.length - 1]);
+      expect(screen.queryByText("AI 智能助理")).not.toBeInTheDocument();
+      expect(screen.getByText("AI 智能助理 (⌘J)")).toBeInTheDocument();
+    });
+  });
+
+  describe("模型状态", () => {
+    it("未选择模型时应自动选中第一个可用模型", () => {
+      mockSettingsValues.aiModel = "";
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiModel", "ollama-live-qwen2.5:7b");
+    });
+
+    it("无模型且未加载时应显示未选择模型", () => {
+      mpState.models = [];
+      mockSettingsValues.aiModel = "";
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      expect(screen.getByText("未选择模型")).toBeInTheDocument();
+    });
+
+    it("模型加载中且列表为空时应显示加载提示", () => {
+      mpState.models = [];
+      mpState.loading = true;
+      mockSettingsValues.aiModel = "";
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      expect(screen.getByText("模型加载中...")).toBeInTheDocument();
+      // 配置页同步显示检测中与空列表提示
+      fireEvent.click(screen.getByText("配置"));
+      expect(screen.getByText("正在检测 Ollama 本地模型...")).toBeInTheDocument();
+      expect(screen.getByText("暂无可用模型，请前往「模型设置」页面添加")).toBeInTheDocument();
+    });
+  });
+
+  describe("参数配置交互", () => {
+    it("已配置 API Key 时应显示已配置提示", () => {
+      mockSettingsValues.aiApiKey = "sk-live";
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByText("配置"));
+      expect(screen.getByText(/API Key 已配置/)).toBeInTheDocument();
+    });
+
+    it("非法参数值应回退默认值显示", () => {
+      mockSettingsValues.aiTemperature = "abc";
+      mockSettingsValues.aiTopP = "xyz";
+      mockSettingsValues.aiMaxTokens = "oops";
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByText("配置"));
+      expect(screen.getByText("0.70")).toBeInTheDocument();
+      expect(screen.getByText("0.90")).toBeInTheDocument();
+      expect(screen.getByText("2048")).toBeInTheDocument();
+    });
+
+    it("调节三个滑块应分别调用 updateValue", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByText("配置"));
+      const ranges = document.querySelectorAll('input[type="range"]');
+      // 顺序: [温度, Top-P, 最大 Token]
+      expect(ranges.length).toBe(3);
+      fireEvent.change(ranges[0], { target: { value: "1.5" } });
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiTemperature", "1.5");
+      fireEvent.change(ranges[1], { target: { value: "0.5" } });
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiTopP", "0.5");
+      fireEvent.change(ranges[2], { target: { value: "4096" } });
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiMaxTokens", "4096");
+    });
+
+    it("恢复默认参数应重置三项配置", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByText("配置"));
+      fireEvent.click(screen.getByText("恢复默认参数"));
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiTemperature", "0.7");
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiTopP", "0.9");
+      expect(mockUpdateValue).toHaveBeenCalledWith("aiMaxTokens", "2048");
+    });
+  });
+
+  describe("自定义提示词", () => {
+    it("编辑自定义提示词应更新字数统计", () => {
+      render(<AIAssistant isMobile={false} />);
+      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByText("提示词"));
+      const textarea = screen.getByPlaceholderText("输入自定义系统提示词...");
+      fireEvent.change(textarea, { target: { value: "abc" } });
+      expect(screen.getByText(/字数: 3/)).toBeInTheDocument();
     });
   });
 });

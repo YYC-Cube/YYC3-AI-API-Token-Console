@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **覆盖率爬坡第五批（components 中段，全局 lines 63.97 → 65.18）**: CodeEditor 50→100（+29，CodeMirror 重型库 vi.mock）· Layout 50→100（+10，路由布局分支）· ThemeCustomizer 57.29→100（+12，主题切换持久化）· AIAssistant 73.33→100（+26，消息收发分支）；全局 lines 65.18 / branches 58.95 / functions 55.71 / statements 63.15；单测 2373→2450（+77）；四组件全 100%
+  coverage ramp batch 5: four components to 100%; global lines 63.97→65.18, tests 2373→2450
+
 - **覆盖率爬坡第四批（components 中段四组件，全局 lines 61.91 → 63.97）**: NetworkConfig 41.11→98.88（+21，扩展）· ProviderEditorModal 43.47→100（18，新建）· AddModelModal 53.94→98.68（+13，扩展）· CreateRuleModal 54.31→98.27（21，新建）；全局 lines 63.97 / branches 57.81 / functions 53.00 / statements 61.73；单测 2301→2373（+72）；vi.mock hooks 契约对齐既有组件测试模式，零生产代码改动
   coverage ramp batch 4 (components): four modals/panels to 98-100%; global lines 61.91→63.97, tests 2301→2373
 

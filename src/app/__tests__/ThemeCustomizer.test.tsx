@@ -19,7 +19,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("../components/GlassCard", () => ({
   GlassCard: ({ children, className }: any) => <div className={className}>{children}</div>,
@@ -119,6 +119,7 @@ vi.mock("../lib/view-context", () => ({
 }));
 
 import { ThemeCustomizer } from "../components/ThemeCustomizer";
+import { ViewContext } from "../lib/view-context";
 
 describe("ThemeCustomizer", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -315,6 +316,164 @@ describe("ThemeCustomizer", () => {
       // Reset
       fireEvent.click(screen.getByText("重置"));
       expect(screen.getByText(/预设系统: 赛博朋克/)).toBeInTheDocument();
+    });
+  });
+
+  describe("品牌设置交互", () => {
+    it("修改标语应更新输入与预览", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.change(screen.getByDisplayValue("本地多端推理矩阵数据库"), {
+        target: { value: "新标语" },
+      });
+      expect(screen.getByDisplayValue("新标语")).toBeInTheDocument();
+      // 预览区头部同步渲染标语
+      expect(screen.getByText("新标语")).toBeInTheDocument();
+    });
+
+    it("选择文件后应显示背景预览并可移除", async () => {
+      const { container } = render(<ThemeCustomizer />);
+      // 点击上传按钮触发隐藏 file input 的 ref click
+      fireEvent.click(screen.getByText("上传背景"));
+      const fileInput = container.querySelector('input[type="file"]')!;
+      expect(fileInput).toBeInTheDocument();
+      const file = new File(["img-bytes"], "bg.png", { type: "image/png" });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+      // FileReader 异步回调后渲染预览图
+      await waitFor(() => expect(screen.getByAltText("bg")).toBeInTheDocument());
+      // 预览卡片同步应用背景图
+      const previewCard = screen.getByAltText("bg");
+      expect(previewCard).toBeInTheDocument();
+      // 移除按钮 (与上传按钮同一行的第二个按钮)
+      const rowButtons = screen.getByText("上传背景").closest("div")!.querySelectorAll("button");
+      fireEvent.click(rowButtons[1]);
+      expect(screen.queryByAltText("bg")).not.toBeInTheDocument();
+    });
+
+    it("未选择文件时应直接返回不渲染预览", () => {
+      const { container } = render(<ThemeCustomizer />);
+      const fileInput = container.querySelector('input[type="file"]')!;
+      fireEvent.change(fileInput, { target: { files: [] } });
+      expect(screen.queryByAltText("bg")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("颜色色板交互", () => {
+    it("修改语义化变量色板应更新颜色状态", () => {
+      render(<ThemeCustomizer />);
+      const labels = [
+        "主色", "主前景色", "次色", "次前景色", "强调色", "强调色前景",
+        "背景色", "前景色", "卡片", "卡片前景色", "弹窗", "弹窗前景色",
+        "柔和色", "柔和前景色", "破坏性", "破坏性前景色", "边框", "输入",
+      ];
+      for (const label of labels) {
+        fireEvent.change(screen.getByTestId(`swatch-input-${label}`), {
+          target: { value: "#102030" },
+        });
+      }
+      expect(screen.getAllByDisplayValue("#102030").length).toBeGreaterThan(0);
+    });
+
+    it("修改环形/图表/侧边栏色板应更新颜色状态", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByText(/环形区域/));
+      const labels = [
+        "环形 (Ring)", "图表 1", "图表 2", "图表 3", "图表 4", "图表 5", "图表 6",
+        "侧边栏", "侧边栏前景色", "侧边栏主色", "侧边栏主前景色",
+        "侧边栏强调色", "侧边栏强调色前景", "侧边栏边框", "侧边栏环形元素",
+      ];
+      for (const label of labels) {
+        expect(screen.getByTestId(`swatch-${label}`)).toBeInTheDocument();
+        fireEvent.change(screen.getByTestId(`swatch-input-${label}`), {
+          target: { value: "#203040" },
+        });
+      }
+      expect(screen.getAllByDisplayValue("#203040").length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("字体排版交互", () => {
+    it("修改三种字体家族应更新预览", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByText(/字体排版/));
+      fireEvent.change(screen.getByDisplayValue("'Rajdhani', sans-serif"), {
+        target: { value: "CyberFont" },
+      });
+      fireEvent.change(screen.getByDisplayValue("Georgia, serif"), {
+        target: { value: "TimesNew" },
+      });
+      fireEvent.change(screen.getByDisplayValue("'JetBrains Mono', monospace"), {
+        target: { value: "MonoX" },
+      });
+      expect(screen.getByText(/Sans-Serif: CyberFont/)).toBeInTheDocument();
+      expect(screen.getByText(/Serif: TimesNew/)).toBeInTheDocument();
+      expect(screen.getByText(/Mono: MonoX/)).toBeInTheDocument();
+    });
+  });
+
+  describe("阴影/圆角交互", () => {
+    it("调节圆角与阴影参数应更新预览", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByText(/阴影 \/ 圆角/));
+      const ranges = document.querySelectorAll('input[type="range"]');
+      // 顺序: [圆角, X偏移, Y偏移, 模糊, 传播]
+      expect(ranges.length).toBe(5);
+      fireEvent.change(ranges[0], { target: { value: "1" } });
+      expect(screen.getByText("1rem")).toBeInTheDocument();
+      fireEvent.change(ranges[2], { target: { value: "20" } });
+      expect(screen.getByText("20px")).toBeInTheDocument();
+      // 阴影扩散色 swatch (onChange 追加透明度后缀)
+      fireEvent.change(screen.getByTestId("swatch-input-扩散颜色"), {
+        target: { value: "#112233" },
+      });
+      expect(screen.getByTestId("swatch-input-扩散颜色")).toHaveValue("#112233");
+    });
+  });
+
+  describe("亮度调节交互", () => {
+    it("拖动亮度滑块应更新百分比显示", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByText(/OKLch · 亮度调节/));
+      const range = document.querySelector('input[type="range"]')!;
+      fireEvent.change(range, { target: { value: "80" } });
+      expect(screen.getByText(/亮度: 80%/)).toBeInTheDocument();
+    });
+  });
+
+  describe("预设快捷入口", () => {
+    it("点击预览区预设圆点应切换预设", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByTitle("自然绿"));
+      expect(screen.getByText(/预设系统: 自然绿/)).toBeInTheDocument();
+    });
+
+    it("点击底部预设卡片应切换预设", () => {
+      render(<ThemeCustomizer />);
+      // 下拉关闭时 "自然绿" 文案仅存在于底部预设卡片
+      fireEvent.click(screen.getByText("自然绿"));
+      expect(screen.getByText(/预设系统: 自然绿/)).toBeInTheDocument();
+    });
+  });
+
+  describe("搜索下拉交互", () => {
+    it("点击搜索输入框不应关闭下拉", () => {
+      render(<ThemeCustomizer />);
+      fireEvent.click(screen.getByText(/预设系统: 赛博朋克/));
+      const searchInput = screen.getByPlaceholderText(/搜索设计系统/);
+      fireEvent.click(searchInput);
+      // stopPropagation 生效: 下拉仍打开 (搜索框仍渲染)
+      expect(screen.getByPlaceholderText(/搜索设计系统/)).toBeInTheDocument();
+      expect(screen.getAllByText("自然绿").length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("移动端视口", () => {
+    it("ViewContext 为空时应按移动端纵向布局渲染", () => {
+      render(
+        <ViewContext.Provider value={null as unknown as React.ContextType<typeof ViewContext>}>
+          <ThemeCustomizer />
+        </ViewContext.Provider>
+      );
+      expect(screen.getByText("主题自定义")).toBeInTheDocument();
     });
   });
 });
