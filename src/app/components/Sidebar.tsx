@@ -211,11 +211,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       style={{ width: sidebarW, transition: "width 0.2s cubic-bezier(.4,0,.2,1)" }}
     >
       {/* ── 侧边栏主体 ── */}
-      <div className="h-full flex flex-col bg-[rgba(4,10,22,0.95)] backdrop-blur-2xl border-r border-[rgba(0,180,255,0.08)]">
+      <div className="h-full flex flex-col yyc3-panel-bg backdrop-blur-2xl border-r yyc3-border-faint">
 
         {/* Logo */}
         <div
-          className="flex items-center gap-2 cursor-pointer shrink-0 border-b border-[rgba(0,180,255,0.06)]"
+          className="flex items-center gap-2 cursor-pointer shrink-0 border-b yyc3-border-faint"
           style={{ height: 52, padding: collapsed ? "0 12px" : "0 14px" }}
           onClick={() => navigate("/")}
         >
@@ -294,7 +294,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
                 {/* ── 展开模式下直接显示子项 ── */}
                 {!collapsed && (
-                  <div className="ml-[18px] pl-3 border-l border-[rgba(0,180,255,0.06)]">
+                  <div className="ml-[18px] pl-3 border-l yyc3-border-faint">
                     {cat.children.map((child) => {
                       const ChildIcon = child.icon;
                       const isActive = location.pathname === child.path;
@@ -305,8 +305,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                           className={`
                             w-full flex items-center gap-2 rounded-md my-px transition-all duration-150
                             ${isActive
-                              ? "bg-[rgba(0,212,255,0.08)] text-[#00d4ff]"
-                              : "text-[rgba(0,212,255,0.3)] hover:text-[rgba(0,212,255,0.65)] hover:bg-[rgba(0,212,255,0.03)]"
+                              ? "yyc3-brand-bg-soft text-[#00d4ff]"
+                              : "text-[rgba(0,212,255,0.3)] hover:text-[rgba(0,212,255,0.65)] hover:yyc3-brand-bg-soft"
                             }
                           `}
                           style={{ padding: "5px 8px", fontSize: "0.68rem" }}
@@ -335,7 +335,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                     <div className="ml-1.5 rounded-xl border yyc3-border bg-[rgba(6,14,30,0.98)] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
                       {/* 分类标题 */}
                       <div
-                        className="flex items-center gap-2 px-3 border-b border-[rgba(0,180,255,0.06)]"
+                        className="flex items-center gap-2 px-3 border-b yyc3-border-faint"
                         style={{ padding: "10px 14px 8px" }}
                       >
                         <CatIcon className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
@@ -359,8 +359,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                               className={`
                                 w-full flex items-center gap-2.5 text-left transition-all duration-100
                                 ${isActive
-                                  ? "bg-[rgba(0,212,255,0.08)] text-[#00d4ff]"
-                                  : "text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.04)]"
+                                  ? "yyc3-brand-bg-soft text-[#00d4ff]"
+                                  : "text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:yyc3-brand-bg-soft"
                                 }
                               `}
                               style={{ padding: "8px 14px", fontSize: "0.74rem" }}
@@ -383,7 +383,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </nav>
 
         {/* ── 底部操作 ── */}
-        <div className="shrink-0 border-t border-[rgba(0,180,255,0.06)] py-2">
+        <div className="shrink-0 border-t yyc3-border-faint py-2">
           <button
             onClick={onToggle}
             className="w-full flex items-center gap-2 text-[rgba(0,212,255,0.25)] hover:text-[rgba(0,212,255,0.5)] transition-all"

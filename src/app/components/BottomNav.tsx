@@ -174,17 +174,17 @@ export function BottomNav() {
             >
               {/* 拖拽指示条 */}
               <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 rounded-full bg-[rgba(0,180,255,0.15)]" />
+                <div className="w-10 h-1 rounded-full yyc3-accent-bg" />
               </div>
 
               {/* 标题 */}
               <div className="flex items-center justify-between px-5 pb-3">
-                <span className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>
+                <span className="yyc3-text-primary" style={{ fontSize: "0.9rem" }}>
                   {t("common.more")}
                 </span>
                 <button
                   onClick={() => setMoreOpen(false)}
-                  className="p-2 -mr-1 rounded-lg hover:bg-[rgba(0,212,255,0.06)] transition-all"
+                  className="p-2 -mr-1 rounded-lg hover:yyc3-brand-bg-soft transition-all"
                 >
                   <X className="w-5 h-5 text-[rgba(0,212,255,0.4)]" />
                 </button>
@@ -205,7 +205,7 @@ export function BottomNav() {
                         >
                           {t(cat.labelKey)}
                         </span>
-                        <div className="flex-1 h-px bg-[rgba(0,180,255,0.04)]" />
+                        <div className="flex-1 h-px yyc3-accent-bg-soft" />
                       </div>
 
                       {/* 子项网格：2 列 */}
@@ -221,7 +221,7 @@ export function BottomNav() {
                                 flex items-center gap-2.5 rounded-xl transition-all min-h-[48px] px-3
                                 ${isActive
                                   ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.2)]"
-                                  : "bg-[rgba(0,40,80,0.15)] text-[rgba(0,212,255,0.45)] border border-[rgba(0,180,255,0.04)] active:bg-[rgba(0,212,255,0.06)]"
+                                  : "bg-[rgba(0,40,80,0.15)] text-[rgba(0,212,255,0.45)] border yyc3-border-faint active:yyc3-brand-bg-soft"
                                 }
                               `}
                             >
@@ -243,7 +243,7 @@ export function BottomNav() {
       {/* ══ 底部导航栏主体 ══ */}
       <div className="fixed bottom-0 left-0 right-0 z-40">
         {/* 毛玻璃背景 */}
-        <div className="bg-[rgba(4,10,22,0.92)] backdrop-blur-2xl border-t border-[rgba(0,180,255,0.08)]">
+        <div className="yyc3-panel-bg backdrop-blur-2xl border-t yyc3-border-faint">
           <div className="flex items-end justify-around px-1">
             {/* ── 4 核心 Tab ── */}
             {PRIMARY_TABS.map((tab) => {

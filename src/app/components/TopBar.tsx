@@ -216,7 +216,7 @@ export function TopBar({
     <div className="w-full shrink-0">
       {/* ═══ 顶栏主体 ═══ */}
       <div
-        className="flex items-center justify-between bg-[rgba(4,10,22,0.95)] backdrop-blur-xl border-b border-[rgba(0,180,255,0.08)]"
+        className="flex items-center justify-between yyc3-panel-bg backdrop-blur-xl border-b yyc3-border-faint"
         style={{ height: 48, padding: isMobile ? "0 12px" : "0 20px" }}
       >
         {/* Left */}
@@ -225,7 +225,7 @@ export function TopBar({
           {!isDesktop && (
             <button
               onClick={onToggleMobileMenu}
-              className="relative p-2 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.08)] hover:border-[rgba(0,212,255,0.25)] transition-all min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="relative p-2 rounded-lg yyc3-inset-bg border yyc3-border-faint hover:border-[rgba(0,212,255,0.25)] transition-all min-w-[40px] min-h-[40px] flex items-center justify-center"
             >
               {mobileMenuOpen
                 ? <X className="w-5 h-5 text-[#00d4ff]" />
@@ -251,7 +251,7 @@ export function TopBar({
 
           {/* Ghost mode badge */}
           {ghost && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[rgba(0,212,255,0.06)] border border-[rgba(0,212,255,0.12)]">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md yyc3-brand-bg-soft border border-[rgba(0,212,255,0.12)]">
               <Ghost className="w-3 h-3 text-[rgba(0,212,255,0.4)]" />
               <span className="text-[rgba(0,212,255,0.35)] hidden sm:inline" style={{ fontSize: "0.52rem", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
                 GHOST
@@ -268,11 +268,11 @@ export function TopBar({
                 placeholder={t("palette.placeholder")}
                 className={`
                   w-full pl-8 pr-8 rounded-lg
-                  bg-[rgba(0,40,80,0.3)] border transition-all duration-300
-                  text-[#e0f0ff] placeholder-[rgba(0,212,255,0.2)] focus:outline-none
+                  yyc3-inset-bg border transition-all duration-300
+                  yyc3-text-primary placeholder-[rgba(0,212,255,0.2)] focus:outline-none
                   ${searchFocused
                     ? "border-[rgba(0,212,255,0.35)] shadow-[0_0_12px_rgba(0,180,255,0.08)]"
-                    : "border-[rgba(0,180,255,0.08)]"
+                    : "yyc3-border-faint"
                   }
                 `}
                 style={{ fontSize: "0.72rem", height: 32 }}
@@ -280,7 +280,7 @@ export function TopBar({
                 onBlur={() => setSearchFocused(false)}
               />
               <kbd
-                className="absolute right-2 px-1.5 py-0.5 rounded bg-[rgba(0,180,255,0.06)] border yyc3-border text-[rgba(0,212,255,0.25)] hidden lg:block"
+                className="absolute right-2 px-1.5 py-0.5 rounded yyc3-accent-bg-soft border yyc3-border text-[rgba(0,212,255,0.25)] hidden lg:block"
                 style={{ fontSize: "0.52rem" }}
               >
                 ⌘K
@@ -315,7 +315,7 @@ export function TopBar({
           {isDesktop && onToggleTerminal && (
             <button
               onClick={onToggleTerminal}
-              className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.05)] transition-all min-w-[36px] min-h-[36px] flex items-center justify-center group"
+              className="p-1.5 rounded-lg hover:yyc3-brand-bg-soft transition-all min-w-[36px] min-h-[36px] flex items-center justify-center group"
               title="集成终端 (Ctrl+`)"
             >
               <Terminal className="w-4 h-4 text-[rgba(0,212,255,0.35)] group-hover:text-[rgba(0,212,255,0.7)] transition-colors" />
@@ -326,7 +326,7 @@ export function TopBar({
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); }}
-              className="relative p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.05)] transition-all min-w-[36px] min-h-[36px] flex items-center justify-center"
+              className="relative p-1.5 rounded-lg hover:yyc3-brand-bg-soft transition-all min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
               <Bell className="w-4 h-4 text-[rgba(0,212,255,0.45)]" />
               <span
@@ -365,7 +365,7 @@ export function TopBar({
                     {/* 移动端拖拽指示 */}
                     {isMobile && (
                       <div className="flex justify-center mb-3">
-                        <div className="w-10 h-1 rounded-full bg-[rgba(0,180,255,0.15)]" />
+                        <div className="w-10 h-1 rounded-full yyc3-accent-bg" />
                       </div>
                     )}
                     <h4 className="text-[rgba(0,212,255,0.6)] mb-2" style={{ fontSize: "0.68rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
@@ -376,11 +376,11 @@ export function TopBar({
                       { msg: "LLaMA-70B 部署完成", time: t("common.minutesAgo", { n: 15 }), type: "success" },
                       { msg: "存储集群 C2 容量预警 (85%)", time: t("common.hoursAgo", { n: 1 }), type: "error" },
                     ].map((n, i) => (
-                      <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-[rgba(0,180,255,0.04)] cursor-pointer mb-0.5 transition-colors min-h-[48px]">
+                      <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:yyc3-accent-bg-soft cursor-pointer mb-0.5 transition-colors min-h-[48px]">
                         <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.type === "warn" ? "bg-[#ffdd00]" : n.type === "success" ? "bg-[#00ff88]" : "bg-[#ff3366]"
                           }`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>{n.msg}</p>
+                          <p className="yyc3-text-secondary" style={{ fontSize: "0.78rem" }}>{n.msg}</p>
                           <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>{n.time}</p>
                         </div>
                       </div>
@@ -393,13 +393,13 @@ export function TopBar({
           </div>
 
           {/* 分隔线 */}
-          {!isMobile && <div className="w-px h-5 bg-[rgba(0,180,255,0.06)] mx-0.5" />}
+          {!isMobile && <div className="w-px h-5 yyc3-accent-bg-soft mx-0.5" />}
 
           {/* User Avatar (桌面下拉菜单) */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-              className={`flex items-center gap-1.5 rounded-lg transition-all min-h-[36px] px-1.5 ${userMenuOpen ? "bg-[rgba(0,212,255,0.06)]" : "hover:bg-[rgba(0,212,255,0.04)]"
+              className={`flex items-center gap-1.5 rounded-lg transition-all min-h-[36px] px-1.5 ${userMenuOpen ? "yyc3-brand-bg-soft" : "hover:yyc3-brand-bg-soft"
                 }`}
             >
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center">
@@ -412,13 +412,13 @@ export function TopBar({
 
             {userMenuOpen && isDesktop && (
               <div className="absolute top-10 right-0 w-56 rounded-xl bg-[rgba(6,16,36,0.98)] backdrop-blur-xl border yyc3-border shadow-[0_8px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden">
-                <div className="px-3.5 py-2.5 border-b border-[rgba(0,180,255,0.08)]">
+                <div className="px-3.5 py-2.5 border-b yyc3-border-faint">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-md bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center">
                       <span className="text-white" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.6rem" }}>{initials}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#e0f0ff] truncate" style={{ fontSize: "0.75rem" }}>{displayName}</p>
+                      <p className="yyc3-text-primary truncate" style={{ fontSize: "0.75rem" }}>{displayName}</p>
                       <div className="flex items-center gap-1">
                         <Shield className="w-2.5 h-2.5 text-[rgba(0,212,255,0.3)]" />
                         <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>{roleLabel}</span>
@@ -434,7 +434,7 @@ export function TopBar({
                     <button
                       key={item.path}
                       onClick={() => { navigate(item.path); setUserMenuOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[rgba(0,212,255,0.55)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.04)] transition-all"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[rgba(0,212,255,0.55)] hover:text-[#00d4ff] hover:yyc3-brand-bg-soft transition-all"
                       style={{ fontSize: "0.72rem" }}
                     >
                       <item.icon className="w-3.5 h-3.5" />
@@ -442,7 +442,7 @@ export function TopBar({
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-[rgba(0,180,255,0.08)] py-1">
+                <div className="border-t yyc3-border-faint py-1">
                   <button
                     onClick={() => { setUserMenuOpen(false); onLogout(); }}
                     className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[#ff3366] hover:bg-[rgba(255,51,102,0.06)] transition-all"
@@ -492,13 +492,13 @@ export function TopBar({
               }}
             >
               {/* ── 用户信息卡 ── */}
-              <div className="shrink-0 p-4 border-b border-[rgba(0,180,255,0.06)]">
+              <div className="shrink-0 p-4 border-b yyc3-border-faint">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center shadow-[0_0_12px_rgba(0,180,255,0.3)]">
                     <span className="text-white" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "0.65rem" }}>{initials}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#e0f0ff] truncate" style={{ fontSize: "0.85rem" }}>{displayName}</p>
+                    <p className="yyc3-text-primary truncate" style={{ fontSize: "0.85rem" }}>{displayName}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <Shield className="w-3 h-3 text-[rgba(0,212,255,0.3)]" />
                       <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>{roleLabel}</span>
@@ -521,7 +521,7 @@ export function TopBar({
                   <input
                     type="text"
                     placeholder={t("palette.placeholder")}
-                    className="w-full pl-10 pr-4 rounded-xl bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.08)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.2)] focus:outline-none focus:border-[rgba(0,212,255,0.25)]"
+                    className="w-full pl-10 pr-4 rounded-xl yyc3-inset-bg border yyc3-border-faint yyc3-text-primary placeholder-[rgba(0,212,255,0.2)] focus:outline-none focus:border-[rgba(0,212,255,0.25)]"
                     style={{ height: 40, fontSize: "0.8rem" }}
                   />
                 </div>
@@ -585,7 +585,7 @@ export function TopBar({
                                       w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all min-h-[44px] my-0.5
                                       ${isActive
                                         ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.15)]"
-                                        : "text-[rgba(0,212,255,0.4)] active:bg-[rgba(0,212,255,0.04)] border border-transparent"
+                                        : "text-[rgba(0,212,255,0.4)] active:yyc3-brand-bg-soft border border-transparent"
                                       }
                                     `}
                                   >
@@ -609,7 +609,7 @@ export function TopBar({
               </div>
 
               {/* ── 底部操作 ── */}
-              <div className="shrink-0 border-t border-[rgba(0,180,255,0.06)] p-3 space-y-1">
+              <div className="shrink-0 border-t yyc3-border-faint p-3 space-y-1">
                 <div className="flex items-center gap-2 mb-2 px-2">
                   <LanguageSwitcher compact={false} />
                 </div>
