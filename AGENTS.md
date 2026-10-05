@@ -22,10 +22,10 @@ YYC³ AI API Token Console — 本地闭环多端推理矩阵数据看盘系统�
 ```bash
 pnpm typecheck      # tsc strict, 0 errors
 pnpm lint           # eslint 0 errors + import 分层边界 (boundaries)
-pnpm test:unit      # vitest 分级单测 (unit-dom + unit-node, 1965+ 用例)
-pnpm test:coverage  # 覆盖率基线锁定 (38/31/36/36, 月度爬坡)
+pnpm test:unit      # vitest 分级单测 (unit-dom + unit-node, 2986+ 用例)
+pnpm test:coverage  # 覆盖率门槛锁定 (lines 90 / funcs 85 / branches 80 / stmts 88, 退化即阻断)
 pnpm build          # 产物零密钥断言见 CI
-pnpm astgrep        # ast-grep 反模式扫描 (6 条规则 × ts/tsx 双语言)
+pnpm astgrep        # ast-grep 反模式扫描 (7 条规则 × ts/tsx 双语言)
 pnpm size:check     # 文件体量门禁 (基线只减不增)
 node scripts/knip-check.mjs  # 死代码基线门禁
 ```
@@ -54,7 +54,7 @@ components → hooks → lib → types
 
 | 目录 | 职责 | 局部细则 |
 | --- | --- | --- |
-| `src/app/__tests__/` | 全部测试（116 文件，~1965 用例） | [该目录 AGENTS.md](src/app/__tests__/AGENTS.md) |
+| `src/app/__tests__/` | 全部测试（170 文件，~2986 用例） | [该目录 AGENTS.md](src/app/__tests__/AGENTS.md) |
 | `src/app/hooks/` | 全局 Hooks（28 个） | [该目录 AGENTS.md](src/app/hooks/AGENTS.md) |
 | `src/app/components/ui/` | shadcn/ui 生成物，**禁手改**（改造走 wrapper） | — |
 | `src/app/lib/` | 纯逻辑层（无 UI 依赖；`lib/batch/checkpoint.ts` 检查点管线） | — |

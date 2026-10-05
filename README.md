@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/yyc3-Family.png" alt="YYC³ AI Family — 品牌主视觉" width="100%" />
+<img src="./public/yyc3-Family.png" alt="YYC³ AI Family — 品牌主视觉" />
 
 # YYC³ · AI Family Token Console
 
@@ -18,7 +18,7 @@
 [![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white)](./eslint.config.js)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-3178C6?logo=typescript&logoColor=white)](./tsconfig.json)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite&logoColor=white)](https://vite.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Radix UI](https://img.shields.io/badge/Radix_UI-Primitives-161618?logo=radixui&logoColor=white)](https://radix-ui.com)
 [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-Components-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com)
@@ -54,13 +54,14 @@
 | # | 中文 | English |
 | --- | ------ | --------- |
 | 1 | **六大功能域**：监控 / 运维 / AI 智能 / AI Family / 开发规范 / 系统管理 | **Six Domains**: Monitoring / Ops / AI / AI Family / Dev Standards / Admin |
-| 2 | **全端图标体系**：Android / Web / iOS / macOS / watchOS 五平台 32+ PNG 全链路对齐 | **Full-Platform Icons**: 5 platforms, 32+ PNGs, end-to-end aligned |
+| 2 | **全端图标体系**：Android / Web / iOS / macOS / watchOS 五平台 36 PNG 全链路对齐 | **Full-Platform Icons**: 5 platforms, 36 PNGs, end-to-end aligned |
 | 3 | **PWA 全链路**：manifest + 运行时 head 注入 + CDN 回退 + 安装引导 | **PWA Full-Chain**: manifest + runtime head injection + CDN fallback + install prompt |
 | 4 | **双语 i18n**：zh-CN / en-US 全量语言包一致性测试保障 | **Bilingual i18n**: zh-CN / en-US packs guarded by consistency tests |
-| 5 | **质量门禁**：TypeScript strict + Vitest 分级测试（1965+ 用例）+ 覆盖率基线爬坡 + a11y 审计 | **Quality Gates**: TS strict + tiered Vitest (1965+ tests) + baseline coverage ramp + a11y audit |
-| 6 | **闭环 CI/CD**：Typecheck → Lint(边界) → Unit Test → Security → Build(纪律三件套) 五阶段流水线 | **Closed-Loop CI/CD**: Typecheck → Lint(boundaries) → Unit Test → Security → Build(discipline) |
-| 7 | **零依赖部署**：Node 原生模块部署服务器 + Ollama 反向代理 | **Zero-Dep Deploy**: native Node server + Ollama reverse proxy |
+| 5 | **质量门禁**：TypeScript strict + Vitest 分级测试（2986+ 用例）+ 覆盖率门槛锁定（lines 90）+ a11y 审计 | **Quality Gates**: TS strict + tiered Vitest (2986+ tests) + locked coverage thresholds (lines 90) + a11y audit |
+| 6 | **闭环 CI/CD**：Typecheck → Lint(边界) → Unit+Coverage → Security → E2E → Build(纪律四件套) 六阶段流水线 | **Closed-Loop CI/CD**: Typecheck → Lint(boundaries) → Unit+Coverage → Security → E2E → Build(discipline) |
+| 7 | **零依赖部署**：Node 原生模块部署服务器（LAN/公网双形态 + HMAC 鉴权）+ Ollama 反向代理 | **Zero-Dep Deploy**: native Node servers (LAN/public + HMAC auth) + Ollama reverse proxy |
 | 8 | **设计系统内嵌**：Design Tokens / 组件展示 / 阶段评审一体化 | **Embedded Design System**: tokens / showcase / stage review in one |
+| 9 | **智能化终端补全闭环**：上下文感知引擎 × 五维协同源（节点/模型/家族成员/路由/环境变量）× 历史-频率反馈进化 | **Intelligent Terminal Completion**: context-aware engine × 5-dimension sources × frequency-ranked feedback loop |
 
 ## 📦 环境前置依赖 | Prerequisites
 
@@ -90,11 +91,12 @@ pnpm dev:host
 pnpm typecheck      # TypeScript strict 检查
 pnpm lint           # ESLint 0-errors + import 分层边界
 pnpm test:unit      # Vitest 分级单测 (零外部依赖档)
-pnpm test:coverage  # 覆盖率 ≥ 基线门槛 (月度爬坡, 见 CICD.md)
+pnpm test:coverage  # 覆盖率 ≥ 门槛 (90/85/80/88 已锁定, 退化即阻断)
 
 # 4'. 架构守护工具链 Architecture guards
 pnpm doctor         # 12 项环境/策略一键自诊断
-pnpm astgrep        # ast-grep 反模式扫描 (6 条规则 × ts/tsx 双语言)
+pnpm astgrep        # ast-grep 反模式扫描 (7 条规则 × ts/tsx 双语言)
+pnpm guardrail-probe # 门禁有效性探针 (植入违规样本断言真实拦截)
 pnpm size:check     # 文件体量门禁 (基线只减不增)
 pnpm knip           # 死代码盘点 (基线只减不增)
 
@@ -109,7 +111,8 @@ pnpm serve:local    # 零依赖部署服务器 (默认 3118) + Ollama 代理
 YYC3-AI-API-Token-Console/
 ├── AGENTS.md                       # AI 导师上下文总纲 (技术栈/门禁/红线)
 ├── .github/                        # CI 流水线 + Issue/PR 模板 + 标签清单
-│   ├── workflows/ci.yml            # 五阶段 CI（typecheck→lint→test→scan→build）
+│   ├── workflows/ci.yml            # 六阶段 CI（typecheck→lint→test+coverage→scan→e2e→build）
+│   ├── workflows/pages.yml         # CI 全绿后自动部署 GitHub Pages (token.yyc3.vip)
 │   ├── workflows/release.yml       # tag v* 触发 GitHub Release
 │   ├── ISSUE_TEMPLATE/             # Bug/Feature/Docs 三模板
 │   ├── PULL_REQUEST_TEMPLATE.md    # PR 规范（五高自检 + Footprint Ladder 档位）
@@ -122,14 +125,18 @@ YYC3-AI-API-Token-Console/
 ├── public/
 │   ├── manifest.json               # PWA manifest (yyc3-icons 对齐)
 │   ├── 404.html                    # SPA 404 回退 (静态资源不回退 + 深链还原; 经 Vite 进 dist)
-│   ├── yyc3-Family.png             # README 顶图 / 品牌主视觉
-│   └── yyc3-icons/                 # 全端图标体系 (5 平台 32+ PNG)
+│   ├── CNAME                       # 自定义域名 token.yyc3.vip
+│   ├── yyc3-Family.png             # README 顶图 / 品牌主视觉 (1800×450)
+│   └── yyc3-icons/                 # 全端图标体系 (5 平台 36 PNG)
 ├── deploy/
-│   └── server.mjs                  # 零依赖部署服务器 + Ollama 反向代理
+│   ├── server.mjs                  # 零依赖部署服务器 (LAN 形态, 默认 3118) + Ollama 反向代理
+│   └── console-server.mjs          # 公网形态 + HMAC 令牌鉴权 + 多节点代理
 ├── scripts/
-│   ├── ast-grep/                   # 结构化反模式守护 (6 条规则 × ts/tsx)
-│   ├── check-size.mjs              # 体量门禁 (1500 行阈值 + 基线)
+│   ├── ast-grep/                   # 结构化反模式守护 (7 条规则 × ts/tsx)
+│   ├── check-size.mjs              # 体量门禁 (阈值 + 基线)
 │   ├── knip-check.mjs              # knip 基线门禁
+│   ├── guardrail-probe.mjs         # 门禁有效性探针 (meta-gate)
+│   ├── inject-precache.mjs         # SW 预缓存产物清单注入 (build 后置)
 │   ├── doctor.mjs                  # 环境自诊断 (12 项)
 │   └── check_mermaid.py            # Mermaid 代码块开闭校验（pre-commit 闸）
 ├── src/
@@ -139,10 +146,10 @@ YYC3-AI-API-Token-Console/
 │       ├── App.tsx                 # 根组件 (ErrorBoundary + Auth + i18n + 404 深链还原)
 │       ├── routes.ts               # 路由表 (六大功能域)
 │       ├── components/             # 60+ 业务组件
-│       ├── hooks/                  # 30+ 自定义 Hooks (AGENTS.md 细则)
-│       ├── config/providers/       # 提供商声明式配置 (JSON + zod)
-│       ├── lib/                    # yyc3-icons / 存储 / 网络工具 / batch 检查点
-│       └── __tests__/              # 116 测试文件 · 1965 用例 (AGENTS.md 细则)
+│       ├── hooks/                  # 28 自定义 Hooks (AGENTS.md 细则)
+│       ├── config/providers/       # 提供商声明式配置 (JSON + zod, 24 提供商/69 模型)
+│       ├── lib/                    # yyc3-icons / 存储 / 网络工具 / terminal-completions 智能补全引擎 / batch 检查点
+│       └── __tests__/              # 170 测试文件 · 2986 用例 (AGENTS.md 细则)
 └── docs/                           # 文档体系（讲 why）
     ├── YYC3-全量落地实施总结与衔接报告.md   # 分析+规划+交付单一事实源 (Phase 1-4)
     ├── archive/                     # 历史文档归档 (深度分析/审计/规划原文)
@@ -170,10 +177,10 @@ YYC3-AI-API-Token-Console/
 | ----------- | --------- | ----------------- |
 | 类型检查 | `tsc --noEmit` | 0 errors (strict) |
 | 代码规范 | `eslint` (ESLint 9 + boundaries) | 0 errors · import 分层契约 |
-| 单元测试 | `vitest --project unit-dom unit-node` | 100% pass (1965+ 用例) |
-| 覆盖率 | `vitest --coverage` | ≥ 基线门槛 (38/31/36/36, 月度 +2% 爬坡) |
+| 单元测试 | `vitest --project unit-dom unit-node` | 100% pass (2986+ 用例) |
+| 覆盖率 | `vitest --coverage` | ≥ 门槛 90/85/80/88 (lines/funcs/branches/stmts, 已锁定) |
 | 安全扫描 | `gitleaks` | 0 secrets leaked |
-| 反模式守护 | `ast-grep` (6 条规则 × ts/tsx) | 0 命中 |
+| 反模式守护 | `ast-grep` (7 条规则 × ts/tsx) | 0 命中 |
 | 体量门禁 | `check-size.mjs` | 基线文件只减不增 |
 | 死代码盘点 | `knip-check.mjs` | 基线只减不增 |
 | 环境自诊断 | `doctor.mjs` | 12/12 通过 |
