@@ -28,9 +28,9 @@
 
 ## 覆盖率
 
-- 基线锁定: lines 38 / functions 31 / branches 36 / statements 36（`vitest.config.ts` thresholds，与 `codecov.yml` 同源）
-- 爬坡节奏: 每月 +2%，见 [`docs/YYC3-开发者文档/CICD.md`](../../../docs/YYC3-开发者文档/CICD.md)
-- 新增代码不得拉低整体基线；核心链路（hooks/lib）优先补测。
+- 基线锁定（2026-10-05 爬坡冲刺后）: lines 90 / functions 85 / branches 80 / statements 88（`vitest.config.ts` thresholds；实测 91.77/86.83/81.64/89.68）
+- 历史: 原基线 38/31/36/36（2026-09 锁定）→ 2026-10-05 六批补测冲刺至 91.77%，80% 长期目标达成
+- 新增代码不得拉低基线；核心链路（hooks/lib）优先补测。
 
 ## 运行命令
 

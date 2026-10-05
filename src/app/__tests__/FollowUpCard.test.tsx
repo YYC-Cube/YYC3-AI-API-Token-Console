@@ -12,8 +12,8 @@
  */
 
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { FollowUpCard } from "../components/FollowUpCard";
 import type { FollowUpItem } from "../types";
 
@@ -179,6 +179,105 @@ describe("FollowUpCard", () => {
       const item = { ...mockItem, status: "resolved" as const };
       render(<FollowUpCard item={item} />);
       expect(screen.getByText("已解决")).toBeInTheDocument();
+    });
+
+    it("ignored 状态应显示「已忽略」", () => {
+      const item = { ...mockItem, status: "ignored" as const };
+      render(<FollowUpCard item={item} />);
+      expect(screen.getByText("已忽略")).toBeInTheDocument();
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 覆盖率补测 A 域: 时间相对值 / 回调 / compact / 展开链路
+  // ----------------------------------------------------------
+
+  describe("时间相对值 (getTimeAgo)", () => {
+    it("1 分钟内应显示「刚刚」", () => {
+      const item = { ...mockItem, timestamp: Date.now() - 10 * 1000 };
+      render(<FollowUpCard item={item} />);
+      expect(screen.getByText("刚刚")).toBeInTheDocument();
+    });
+
+    it("1 小时内应显示分钟数", () => {
+      const item = { ...mockItem, timestamp: Date.now() - 5 * 60 * 1000 };
+      render(<FollowUpCard item={item} />);
+      expect(screen.getByText("5 分钟前")).toBeInTheDocument();
+    });
+
+    it("24 小时内应显示小时数", () => {
+      const item = { ...mockItem, timestamp: Date.now() - 3 * 60 * 60 * 1000 };
+      render(<FollowUpCard item={item} />);
+      expect(screen.getByText("3 小时前")).toBeInTheDocument();
+    });
+
+    it("超过 24 小时应显示天数", () => {
+      const item = { ...mockItem, timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000 };
+      render(<FollowUpCard item={item} />);
+      expect(screen.getByText("2 天前")).toBeInTheDocument();
+    });
+  });
+
+  describe("快速操作回调", () => {
+    // QuickActionGroup 经 600ms 模拟延迟后调用回调, 需 fake timers 推进
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("点击一键修复应调用 onQuickFix", async () => {
+      vi.useFakeTimers();
+      const onQuickFix = vi.fn();
+      render(<FollowUpCard item={mockItem} onQuickFix={onQuickFix} />);
+      fireEvent.click(screen.getByText("一键修复"));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+      expect(onQuickFix).toHaveBeenCalledWith(mockItem);
+    });
+
+    it("点击标记解决应调用 onMarkResolved", async () => {
+      vi.useFakeTimers();
+      const onMarkResolved = vi.fn();
+      render(<FollowUpCard item={mockItem} onMarkResolved={onMarkResolved} />);
+      fireEvent.click(screen.getByText("标记解决"));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+      expect(onMarkResolved).toHaveBeenCalledWith(mockItem);
+    });
+  });
+
+  describe("compact 变体", () => {
+    it("compact=true 应正常渲染内容", () => {
+      render(<FollowUpCard item={mockItem} compact={true} />);
+      expect(screen.getByText("GPU-A100-03 推理延迟异常")).toBeInTheDocument();
+      expect(screen.getByText("严重")).toBeInTheDocument();
+    });
+  });
+
+  describe("展开操作链路 (确定性)", () => {
+    it("点击展开按钮后应渲染链路事件", () => {
+      render(<FollowUpCard item={mockItem} />);
+      // 展开按钮: svg-only 且无 title (区别于 drawer 按钮)
+      const expandBtn = screen
+        .getAllByRole("button")
+        .find((b) => !b.getAttribute("title") && !b.textContent?.trim());
+      expect(expandBtn).toBeDefined();
+      fireEvent.click(expandBtn!);
+      expect(screen.getByText("操作链路")).toBeInTheDocument();
+      expect(screen.getByText("模型加载")).toBeInTheDocument();
+      expect(screen.getByText("延迟告警")).toBeInTheDocument();
+    });
+
+    it("再次点击应折叠链路", () => {
+      render(<FollowUpCard item={mockItem} />);
+      const expandBtn = screen
+        .getAllByRole("button")
+        .find((b) => !b.getAttribute("title") && !b.textContent?.trim())!;
+      fireEvent.click(expandBtn);
+      expect(screen.getByText("操作链路")).toBeInTheDocument();
+      fireEvent.click(expandBtn);
+      expect(screen.queryByText("操作链路")).not.toBeInTheDocument();
     });
   });
 });

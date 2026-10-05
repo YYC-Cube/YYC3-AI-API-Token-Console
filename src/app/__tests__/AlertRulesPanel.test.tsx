@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router";
 import { AlertRulesPanel } from "../components/AlertRulesPanel";
@@ -178,5 +178,84 @@ describe("AlertRulesPanel", () => {
 
     // Error should appear
     expect(screen.getByText("请填写必填项")).toBeInTheDocument();
+  });
+});
+
+describe("AlertRulesPanel 扩展覆盖", () => {
+  it("应渲染 WebSocket 连接状态指示", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    expect(screen.getByText("Simulated Data")).toBeInTheDocument();
+  });
+
+  it("编辑规则应打开编辑模式弹窗并回填名称", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    fireEvent.click(screen.getByTestId("edit-rule-rule-001"));
+    expect(screen.getByText("编辑告警规则")).toBeInTheDocument();
+    expect((screen.getByTestId("rule-name-input") as HTMLInputElement).value).toBe(
+      "GPU 利用率过高"
+    );
+    expect(screen.getByText("保存修改")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("cancel-btn"));
+    expect(screen.queryByTestId("create-rule-modal")).not.toBeInTheDocument();
+  });
+
+  it("切换规则启用/禁用开关", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    // 默认启用的规则 title 为 禁用
+    expect(screen.getAllByTitle("禁用").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByTitle("禁用")[0]);
+    // 切换后出现 启用 title
+    expect(screen.getAllByTitle("启用").length).toBeGreaterThan(0);
+  });
+
+  it("删除规则后从列表移除", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    const actions = screen
+      .getByTestId("edit-rule-rule-001")
+      .parentElement!;
+    const buttons = within(actions).queryAllByRole("button");
+    fireEvent.click(buttons[buttons.length - 1]); // 删除按钮 (无 title, 最后一个)
+    expect(screen.queryByText("GPU 利用率过高")).not.toBeInTheDocument();
+  });
+
+  it("选中规则应显示详情抽屉并可关闭", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    fireEvent.click(screen.getByText("GPU 利用率过高"));
+    expect(screen.getByText("阈值配置")).toBeInTheDocument();
+    expect(screen.getByText("升级策略")).toBeInTheDocument();
+    expect(screen.getByText("目标节点")).toBeInTheDocument();
+    // 抽屉头部关闭按钮
+    const drawerName = screen.getAllByText("GPU 利用率过高")[1];
+    fireEvent.click(drawerName.closest("div.justify-between")!.querySelector("button")!);
+    expect(screen.queryByText("阈值配置")).not.toBeInTheDocument();
+  });
+
+  it("事件视图确认事件", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    fireEvent.click(screen.getByText("告警事件"));
+    const before = screen.getAllByText("确认").length;
+    expect(before).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByText("确认")[0]);
+    expect(screen.getAllByText("确认").length).toBe(before - 1);
+  });
+
+  it("事件视图解决事件", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    fireEvent.click(screen.getByText("告警事件"));
+    const before = screen.getAllByText("解决").length;
+    expect(before).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByText("解决")[0]);
+    expect(screen.getAllByText("解决").length).toBe(before - 1);
+  });
+
+  it("严重性筛选按钮切换激活态", () => {
+    renderWithProviders(<AlertRulesPanel />);
+    const criticalBtn = screen.getByText("严重").closest("button")!;
+    fireEvent.click(criticalBtn);
+    expect(criticalBtn.style.background).toContain("0.1");
+    const warnBtn = screen.getByText("警告").closest("button")!;
+    fireEvent.click(warnBtn);
+    expect(warnBtn.style.background).toContain("0.1");
+    expect(criticalBtn.style.background).not.toContain("0.1");
   });
 });

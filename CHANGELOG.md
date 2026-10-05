@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **覆盖率 80% 长期目标达成（收官冲刺批 6-7，全局 lines 65.18 → 91.77）**: 双代理四域并行补测——settings 六 sibling + 0% 小组件 9 件（A 域）/ ide 目录 11 文件 IntegratedTerminal 4.5→93.7 · GitPanel 4.5→97.7 等（B 域）/ ai-family 家族 14 文件全 0%→76-100（C1）/ pages+hooks+theme 10 文件 useOfflineMode·useYYC3Head·useInstallPrompt·useNetworkConfig·useReportExporter 全 0→100（C2）；全局四指标 lines **91.77** / branches 81.64 / functions 86.83 / statements 89.68；单测 2450→**2946**（+496，169 文件）；**thresholds 基线锁定提升** 38/31/36/36 → 90/85/80/88（vitest.config.ts + `__tests__/AGENTS.md` 同步），退化即 CI 阻断
+  coverage 80% goal achieved: global lines 65.18→91.77 across 4 parallel domains; tests 2450→2946; thresholds locked at 90/85/80/88
+
 - **覆盖率爬坡第五批（components 中段，全局 lines 63.97 → 65.18）**: CodeEditor 50→100（+29，CodeMirror 重型库 vi.mock）· Layout 50→100（+10，路由布局分支）· ThemeCustomizer 57.29→100（+12，主题切换持久化）· AIAssistant 73.33→100（+26，消息收发分支）；全局 lines 65.18 / branches 58.95 / functions 55.71 / statements 63.15；单测 2373→2450（+77）；四组件全 100%
   coverage ramp batch 5: four components to 100%; global lines 63.97→65.18, tests 2373→2450
 

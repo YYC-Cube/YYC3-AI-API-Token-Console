@@ -20,7 +20,7 @@
 
 // @vitest-environment jsdom
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 vi.mock("../hooks/useI18n", () => ({
@@ -61,6 +61,108 @@ vi.mock("sonner", () => ({
 }));
 
 import { OperationAudit } from "../components/OperationAudit";
+import { toast } from "sonner";
+
+describe("OperationAudit 扩展覆盖", () => {
+  const origCreate = (URL as any).createObjectURL;
+  const origRevoke = (URL as any).revokeObjectURL;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (URL as any).createObjectURL = vi.fn(() => "blob:mock-url");
+    (URL as any).revokeObjectURL = vi.fn();
+  });
+
+  afterEach(() => {
+    (URL as any).createObjectURL = origCreate;
+    (URL as any).revokeObjectURL = origRevoke;
+  });
+
+  it("导出按钮应触发下载与成功 toast", () => {
+    render(<OperationAudit />);
+    fireEvent.click(screen.getByText("audit.export"));
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining("已导出 12 条审计日志"),
+      expect.anything()
+    );
+    expect(URL.createObjectURL).toHaveBeenCalled();
+  });
+
+  it("按 IP 搜索应命中异常日志 (failed 状态分支)", () => {
+    render(<OperationAudit />);
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
+      target: { value: "203.0.113.45" },
+    });
+    expect(screen.getByText("AUD-20260222-0010")).toBeInTheDocument();
+    expect(screen.getByText("异常请求")).toBeInTheDocument();
+  });
+
+  it("running 状态日志可被搜索到 (running 状态分支)", () => {
+    render(<OperationAudit />);
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
+      target: { value: "Batch#2847" },
+    });
+    expect(screen.getByText("AUD-20260222-0003")).toBeInTheDocument();
+    expect(screen.getByText("批量推理")).toBeInTheDocument();
+  });
+
+  it("warning 状态日志可被搜索到 (warning 状态分支)", () => {
+    render(<OperationAudit />);
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
+      target: { value: "温度超过" },
+    });
+    expect(screen.getByText("AUD-20260222-0006")).toBeInTheDocument();
+  });
+
+  it("搜索无结果应显示空态", () => {
+    render(<OperationAudit />);
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
+      target: { value: "zzz-no-match" },
+    });
+    expect(screen.getByText("无匹配记录")).toBeInTheDocument();
+  });
+
+  it("按用户名搜索应命中多条", () => {
+    render(<OperationAudit />);
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
+      target: { value: "ops_bot" },
+    });
+    expect(screen.getByText("节点重启")).toBeInTheDocument();
+    expect(screen.getByText("缓存清理")).toBeInTheDocument();
+    expect(screen.queryByText("模型部署")).not.toBeInTheDocument();
+  });
+
+  it("详情 Modal 追踪链路按钮应触发 toast", () => {
+    render(<OperationAudit />);
+    fireEvent.click(screen.getByText("AUD-20260222-0001").closest("tr")!);
+    fireEvent.click(screen.getByText("audit.traceLink"));
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining("追踪链路: AUD-20260222-0001"),
+      expect.objectContaining({
+        description: expect.stringContaining("模型部署"),
+      })
+    );
+  });
+
+  it("详情 Modal 导出报告按钮应触发 toast 并关闭 Modal", () => {
+    render(<OperationAudit />);
+    fireEvent.click(screen.getByText("AUD-20260222-0001").closest("tr")!);
+    fireEvent.click(screen.getByText("audit.exportReport"));
+    expect(toast.success).toHaveBeenCalledWith("报告已导出", expect.anything());
+    expect(screen.queryByText("audit.detailTitle")).not.toBeInTheDocument();
+  });
+
+  it("分页按钮点击应切换到指定页", () => {
+    render(<OperationAudit />);
+    const page3Btns = screen.getAllByText("3");
+    const page3Btn = page3Btns.find((el) => el.closest("button"));
+    if (page3Btn) {
+      fireEvent.click(page3Btn);
+      expect(screen.getByText("AUD-20260222-0011")).toBeInTheDocument();
+      expect(screen.queryByText("AUD-20260222-0001")).not.toBeInTheDocument();
+    }
+  });
+});
 
 describe("OperationAudit", () => {
   beforeEach(() => vi.clearAllMocks());

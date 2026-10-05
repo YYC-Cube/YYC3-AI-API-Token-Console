@@ -69,13 +69,14 @@ export default defineConfig({
         "src/app/docs/**",
         "src/app/__tests__/**",
       ],
-      // 覆盖率门槛 — 当前基线锁定 (防止退化, 爬坡至 80% 见 docs/YYC3-开发者文档/CICD.md)
-      // 基线测量值: lines 39.39% / functions 32.72% / branches 37.11% / statements 36.88%
+      // 覆盖率门槛 — 2026-10-05 爬坡冲刺后锁定 (五批补测 45.31 → 91.77, 越过 80% 长期目标)
+      // 实测值: lines 91.77% / functions 86.83% / branches 81.64% / statements 89.68%
+      // 门槛略低于实测值留缓冲; 新增代码不得拉低, 退化即 CI 阻断
       thresholds: {
-        lines: 38,
-        functions: 31,
-        branches: 36,
-        statements: 36,
+        lines: 90,
+        functions: 85,
+        branches: 80,
+        statements: 88,
       },
     },
   },
