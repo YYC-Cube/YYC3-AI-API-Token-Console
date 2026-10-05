@@ -163,6 +163,9 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 2026-10-05 终审: 对齐本地 8.30.1 — action 内置 8.24.3 的 generic-api-key
+          # 存在 yyc3-family-* 存储键名跨行拼接误报 (8.30.x 已修复), 曾误拦 CI 致 Pages 部署阻塞
+          GITLEAKS_VERSION: "8.30.1"
 
       - name: Mermaid fence check (docs quality gate)
         run: python3 scripts/check_mermaid.py
