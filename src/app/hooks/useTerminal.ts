@@ -2,26 +2,41 @@
  * useTerminal.ts
  * ===============
  * CLI 终端模拟 Hook
- * 解析 cpim 命令、维护历史记录、模拟命令补全
+ * 解析 cpim 命令、维护历史记录、智能补全闭环
  *
  * 支持:
  * - cpim 系列管理命令
  * - env 命令 — 真实读写 env-config.ts (localStorage 持久化)
+ * - family 命令 — AI Family 多 Agent 成员档案 (成员数据由组件层注入)
  * - 常见 *nix 工具命令 (ls, cat, ping …)
- * - goto / open 路由跳转
+ * - goto / open 路由跳转 (路由表与 routes.ts 对齐, 见 lib/terminal-completions)
  * - ai <prompt> Text-to-CLI (模拟)
+ * - 智能补全闭环: 历史/频率持久化反馈补全排序 (lib/terminal-completions.ts)
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import type { TerminalHistoryEntry } from "../types";
 import {
   env, getEnvConfig, setEnvConfig, resetEnvConfig, exportEnvConfig,
   type EnvConfig,
 } from "../lib/env-config";
+import {
+  getSmartCompletions, loadCommandHistory, recordCommand,
+  TERMINAL_ROUTES,
+  type CompletionItem, type TerminalExtraSources,
+} from "../lib/terminal-completions";
+import builtinProvidersJson from "../config/providers/builtin-providers.json";
 
 // ============================================================
-// Command Registry
+// Command Registry (静态命令表与路由表已迁至 lib/terminal-completions)
 // ============================================================
+
+/** 路由路径 → 中文名 映射 (单一事实源: lib/terminal-completions.TERMINAL_ROUTES) */
+const ROUTE_LABELS = TERMINAL_ROUTES;
+
+/** 模型 ID 种子 (hooks→config 合规先例同 useModelProvider): 补全参数位消费 */
+const PROVIDER_MODELS: string[] = (builtinProvidersJson as { models?: string[] }[])
+  .flatMap((p) => p.models ?? []);
 
 interface CommandResult {
   output: string;
@@ -29,53 +44,6 @@ interface CommandResult {
   navigate?: string;
   aiQuery?: string;
 }
-
-const COMMANDS: Record<string, string[]> = {
-  cpim:   ["status", "node", "model", "alerts", "patrol", "report", "config", "help"],
-  status: [],
-  node:   ["restart", "--all", "--force"],
-  model:  ["deploy", "list", "migrate", "status"],
-  alerts: ["--unresolved", "--critical", "--all"],
-  patrol: ["run", "--full", "--quick", "history", "status"],
-  report: ["--type", "performance", "health", "security", "--format", "json", "markdown", "--output"],
-  config: ["set", "get", "list", "patrol.interval", "notification.email"],
-  env:    ["list", "get", "set", "reset", "export"],
-  help:   [],
-  goto:   ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
-  open:   ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
-  ai:     [],
-};
-
-/** 路由路径 → 中文名 映射 */
-const ROUTE_LABELS: Record<string, string> = {
-  "/": "数据监控",
-  "/follow-up": "一键跟进",
-  "/patrol": "巡查模式",
-  "/operations": "操作中心",
-  "/files": "文件管理",
-  "/ai": "AI 决策",
-  "/loop": "服务闭环",
-  "/pwa": "PWA 状态",
-  "/design-system": "设计系统",
-  "/dev-guide": "开发指南",
-  "/models": "模型供应商",
-  "/theme": "主题定制",
-  "/terminal": "终端",
-  "/ide": "IDE 面板",
-  "/audit": "操作审计",
-  "/users": "用户管理",
-  "/settings": "系统设置",
-  "/security": "安全设置",
-  "/alerts": "告警管理",
-  "/reports": "报告管理",
-  "/ai-diagnosis": "AI 诊断",
-  "/data-editor": "数据管理",
-  "/performance": "性能监控",
-  "/env-config": "环境变量",
-  "/host-files": "主机文件",
-  "/database": "数据库",
-  "/refactoring": "重构报告",
-};
 
 // ============================================================
 // AI Text-to-CLI Mock
@@ -294,6 +262,10 @@ CPIM 命令:
 
 AI 助手:
   ai <描述>     自然语言转 CLI 命令 (Text-to-CLI)
+
+AI Family 多 Agent:
+  family                       列出 8 位家人成员档案
+  family chat <成员>           查看成员详情 (Tab 补全成员名)
 
 系统命令:
   ls [dir]      列出目录内容      cat <file>    查看文件内容
@@ -657,61 +629,29 @@ tmpfs           64G   12G   52G    19%   /dev/shm`,
     return { status: "error", output: file ? `cat: ${file}: No such file or directory` : "cat: missing operand" };
   }
   if (base === "cd") return { status: "success", output: "" };
-  if (base === "history") return { status: "info", output: "Command history is maintained in session.\nUse ↑/↓ arrow keys to navigate." };
+  if (base === "history") {
+    const persisted = loadCommandHistory();
+    if (persisted.length === 0) {
+      return { status: "info", output: "命令历史为空 (跨会话持久化于 localStorage)。\nUse ↑/↓ arrow keys to navigate." };
+    }
+    const lines = persisted
+      .slice(0, 20)
+      .map((h, i) => `  ${String(i + 1).padStart(3)}  ${h}`)
+      .join("\n");
+    return {
+      status: "info",
+      output: `Command history (持久化 · 最近 ${Math.min(persisted.length, 20)}/${persisted.length} 条):\n${lines}\n\nUse ↑/↓ arrow keys to navigate.`,
+    };
+  }
   if (base === "exit" || base === "quit") return { status: "info", output: "Use Ctrl+` or click ✕ to close the integrated terminal." };
 
   return { status: "error", output: `命令未找到: ${base}\n输入 help 查看可用命令` };
 }
 
 // ============================================================
-// Autocomplete
+// Autocomplete — 已升级为 lib/terminal-completions 智能闭环引擎
+// (上下文感知分派 + 历史/频率持久化排序; 本文件仅保留 Hook 接线)
 // ============================================================
-
-function getCompletions(input: string): string[] {
-  const parts = input.trim().split(/\s+/);
-  if (parts.length === 1) {
-    const prefix = parts[0].toLowerCase();
-    return ["cpim", "env", "help", "clear", "ls", "pwd", "whoami", "date", "uptime", "neofetch", "htop", "top", "ping", "df", "echo", "cat", "cd", "history", "goto", "open", "ai", "exit"]
-      .filter((c) => c.startsWith(prefix) && c !== prefix);
-  }
-  const base = parts[0].toLowerCase();
-
-  // env 命令补全
-  if (base === "env") {
-    if (parts.length === 2) {
-      const prefix = parts[1].toLowerCase();
-      return ["list", "get", "set", "reset", "export"].filter((c) => c.startsWith(prefix) && c !== prefix);
-    }
-    if (parts.length === 3 && (parts[1] === "get" || parts[1] === "set")) {
-      const prefix = parts[2].toUpperCase();
-      const cfg = getEnvConfig();
-      return Object.keys(cfg).filter((k) => k.startsWith(prefix) && k !== prefix);
-    }
-    return [];
-  }
-
-  if (base === "cpim") {
-    if (parts.length === 2) {
-      const prefix = parts[1].toLowerCase();
-      return (COMMANDS.cpim ?? []).filter((c) => c.startsWith(prefix) && c !== prefix);
-    }
-    if (parts.length >= 3) {
-      const sub = parts[1].toLowerCase();
-      const prefix = parts[parts.length - 1].toLowerCase();
-      return (COMMANDS[sub] ?? []).filter((c) => c.startsWith(prefix) && c !== prefix);
-    }
-  }
-  if (base === "goto" || base === "open") {
-    const prefix = parts[parts.length - 1].toLowerCase();
-    return (COMMANDS.goto ?? []).filter((c) => c.toLowerCase().startsWith(prefix) && c.toLowerCase() !== prefix);
-  }
-  if (base === "ls" || base === "cat") {
-    const prefix = parts[parts.length - 1].toLowerCase();
-    const dirs = ["logs", "reports", "backups", "configs", "cache", "logs/node", "logs/system", "configs/patrol.json", "configs/alerts.json", "configs/templates.json", "configs/env.json"];
-    return dirs.filter((d) => d.startsWith(prefix) && d !== prefix);
-  }
-  return [];
-}
 
 // ============================================================
 // Hook
@@ -720,10 +660,54 @@ function getCompletions(input: string): string[] {
 interface UseTerminalOptions {
   onNavigate?: (path: string) => void;
   tabId?: string;
+  /** 组件层注入的动态补全源 (family 成员等, 分层桥接) */
+  extraSources?: TerminalExtraSources;
+}
+
+/** family 命令处理 (成员数据由组件层注入, 不在 lib 依赖 components) */
+function processFamilyCommand(
+  input: string,
+  members: NonNullable<TerminalExtraSources["familyMembers"]>
+): CommandResult {
+  const parts = input.trim().split(/\s+/);
+  const action = parts[1]?.toLowerCase();
+
+  if (!action || action === "list") {
+    const lines = members
+      .map((m) => `  ${m.shortName.padEnd(4)}  ${m.name}  ·  ${m.role}  [${m.id}]`)
+      .join("\n");
+    return {
+      status: "success",
+      output: `AI Family 成员 (${members.length} 位):\n${lines}\n\n  提示: family chat <成员名> 查看详情 · Tab 可补全成员名`,
+    };
+  }
+
+  if (action === "chat") {
+    const target = parts.slice(2).join(" ").toLowerCase();
+    if (!target) {
+      return { status: "info", output: "用法: family chat <成员名>\n成员: " + members.map((m) => m.shortName).join(" / ") };
+    }
+    const member = members.find(
+      (m) => m.id.toLowerCase() === target || m.shortName === target || m.name === target ||
+             m.shortName.includes(target) || m.name.toLowerCase().includes(target)
+    );
+    if (!member) {
+      return { status: "error", output: `未找到成员: ${target}\n输入 family list 查看全部成员` };
+    }
+    return {
+      status: "success",
+      output: `👨‍👩‍👧 ${member.name} (${member.shortName} · ${member.id})
+  角色: ${member.role}
+  状态: 可对话
+  前往对话: goto /ai-family (Tab 补全路由)`,
+    };
+  }
+
+  return { status: "error", output: `未知 family 操作: ${action}\n用法: family [list|chat <成员>]` };
 }
 
 export function useTerminal(options: UseTerminalOptions = {}) {
-  const { onNavigate, tabId = "main" } = options;
+  const { onNavigate, tabId = "main", extraSources } = options;
   const sysName = env("SYSTEM_NAME");
   const sysVer = env("SYSTEM_VERSION");
 
@@ -731,29 +715,46 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     {
       id: `init-${tabId}`,
       input: "",
-      output: `${sysName} CLI v${sysVer}\n本地闭环终端 · 输入 help 查看可用命令\n提示: ai <自然语言> 可将描述转为 CLI 命令 · env list 查看环境变量\n`,
+      output: `${sysName} CLI v${sysVer}\n本地闭环终端 · 输入 help 查看可用命令\n提示: ai <自然语言> 可将描述转为 CLI 命令 · env list 查看环境变量 · Tab 智能补全\n`,
       timestamp: Date.now(),
       status: "info",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [completions, setCompletions] = useState<string[]>([]);
+  const [completionItems, setCompletionItems] = useState<CompletionItem[]>([]);
 
-  const inputHistory = useRef<string[]>([]);
+  // 跨会话历史: 初始化自持久化层 (闭环回流), 会话内新增置顶
+  const persistedHistory = useMemo(() => loadCommandHistory(), []);
+  const inputHistory = useRef<string[]>([...persistedHistory]);
 
   const execute = useCallback((input: string) => {
     if (!input.trim()) return;
 
-    inputHistory.current = [input, ...inputHistory.current.slice(0, 49)];
+    // 闭环写入: 历史 + 频率 (补全排序反馈)
+    recordCommand(input);
+    inputHistory.current = [input, ...inputHistory.current.filter((h) => h !== input).slice(0, 49)];
     setHistoryIndex(-1);
+
+    // ── family 命令 (成员注入) ──
+    const base = input.trim().split(/\s+/)[0]?.toLowerCase();
+    if (base === "family") {
+      const result = processFamilyCommand(input, extraSources?.familyMembers ?? []);
+      setHistory((prev) => [
+        ...prev,
+        { id: `cmd-${Date.now()}`, input, output: result.output, timestamp: Date.now(), status: result.status },
+      ]);
+      setInputValue("");
+      setCompletionItems([]);
+      return;
+    }
 
     const result = processCommand(input);
 
     if (result.output === "__CLEAR__") {
       setHistory([]);
       setInputValue("");
-      setCompletions([]);
+      setCompletionItems([]);
       return;
     }
 
@@ -785,7 +786,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
       }, 400);
 
       setInputValue("");
-      setCompletions([]);
+      setCompletionItems([]);
       return;
     }
 
@@ -801,17 +802,17 @@ export function useTerminal(options: UseTerminalOptions = {}) {
 
     setHistory((prev) => [...prev, entry]);
     setInputValue("");
-    setCompletions([]);
-  }, [onNavigate]);
+    setCompletionItems([]);
+  }, [onNavigate, extraSources]);
 
   const handleInputChange = useCallback((value: string) => {
     setInputValue(value);
-    if (value.trim()) {
-      setCompletions(getCompletions(value));
-    } else {
-      setCompletions([]);
-    }
-  }, []);
+    setCompletionItems(
+      value.trim()
+        ? getSmartCompletions(value, { ...extraSources, models: PROVIDER_MODELS })
+        : []
+    );
+  }, [extraSources]);
 
   const handleHistoryNav = useCallback((direction: "up" | "down") => {
     if (inputHistory.current.length === 0) return;
@@ -836,13 +837,22 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     parts[parts.length - 1] = completion;
     const newInput = parts.join(" ") + " ";
     setInputValue(newInput);
-    setCompletions(getCompletions(newInput));
-  }, [inputValue]);
+    setCompletionItems(getSmartCompletions(newInput, { ...extraSources, models: PROVIDER_MODELS }));
+  }, [inputValue, extraSources]);
+
+  // 对外兼容: completions 保持 string[] (既有 UI/测试), 元数据单独上抛
+  const completions = useMemo(() => completionItems.map((c) => c.value), [completionItems]);
+  const completionMeta = useMemo(() => {
+    const meta: Record<string, { source: CompletionItem["source"]; description?: string }> = {};
+    for (const c of completionItems) meta[c.value] = { source: c.source, description: c.description };
+    return meta;
+  }, [completionItems]);
 
   return {
     history,
     inputValue,
     completions,
+    completionMeta,
     execute,
     handleInputChange,
     handleHistoryNav,

@@ -23,6 +23,7 @@ const terminalMock = vi.hoisted(() => ({
   history: [] as Array<{ id: string; input?: string; output?: string; status?: string }>,
   inputValue: "",
   completions: [] as string[],
+  completionMeta: {} as Record<string, { source: string; description?: string }>,
   execute: vi.fn(),
   handleInputChange: vi.fn(),
   handleHistoryNav: vi.fn(),

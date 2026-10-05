@@ -380,6 +380,8 @@ export const LOCALSTORAGE_KEYS = {
   dashboardState: "dashboard_state",        // 仪表盘状态 (用于离线快照)
   // ── 2026-09-28 收口审计补录 (此前裸散在各组件/Hook, 未注册) ──
   modelProviders: "yyc3_model_providers",       // 模型提供商配置 (useModelProvider)
+  terminalHistory: "yyc3_terminal_history",        // 终端命令历史 (useTerminal / terminal-completions)
+  terminalCmdStats: "yyc3_terminal_cmd_stats",       // 终端命令频率统计 (补全排序闭环)
   systemSettings: "yyc3_system_settings",        // 系统设置 (useSettingsStore)
   perfHistory: "yyc3_perf_history",            // 性能历史 (usePerformanceMonitor)
   perfThresholds: "yyc3_perf_alert_thresholds",    // 性能告警阈值 (PerformanceMonitor)

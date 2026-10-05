@@ -18,8 +18,14 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useTerminal } from "../hooks/useTerminal";
 import { resetEnvConfig } from "../lib/env-config";
+import { resetTerminalCompletionData } from "../lib/terminal-completions";
 
 describe("useTerminal", () => {
+  // 补全闭环数据 (历史/频率持久化) 全局隔离 — 防跨用例泄漏
+  beforeEach(() => {
+    resetTerminalCompletionData();
+  });
+
   // ----------------------------------------------------------
   // 初始状态
   // ----------------------------------------------------------
@@ -509,6 +515,8 @@ describe("useTerminal 覆盖率补测", () => {
     // env 命令真实读写 localStorage, 每用例前复位单例缓存
     localStorage.removeItem("yyc3_env_config");
     resetEnvConfig();
+    // 补全闭环数据隔离 (历史/频率持久化, 防跨用例泄漏)
+    resetTerminalCompletionData();
   });
 
   // ----------------------------------------------------------
@@ -774,7 +782,7 @@ describe("useTerminal 覆盖率补测", () => {
   // ----------------------------------------------------------
 
   describe("自动补全补测", () => {
-    it("完整命令名不再补全 (排除自身)", () => {
+    it("完整命令名不再补全自身 (排除自身; 历史回填经隔离不干扰)", () => {
       const { result } = renderHook(() => useTerminal());
       expect(completionsOf(result, "ls")).toEqual([]);
       expect(completionsOf(result, "env list")).toEqual([]);
@@ -805,7 +813,10 @@ describe("useTerminal 覆盖率补测", () => {
       const { result } = renderHook(() => useTerminal());
       const routes = completionsOf(result, "goto /");
       expect(routes).toContain("/patrol");
-      expect(routes).toContain("/terminal");
+      // 缺陷修复回归: 已重定向死路径不再出现在补全中
+      expect(routes).not.toContain("/terminal");
+      expect(routes).not.toContain("/ide");
+      expect(routes).toContain("/ai-family");
       expect(completionsOf(result, "cat configs/p")).toEqual(["configs/patrol.json"]);
       expect(completionsOf(result, "cat configs").length).toBeGreaterThan(3);
       expect(completionsOf(result, "zzz q")).toEqual([]);
@@ -845,6 +856,128 @@ describe("useTerminal 覆盖率补测", () => {
       });
       // 已是最旧, 保持不变
       expect(result.current.inputValue).toBe("only-cmd");
+    });
+  });
+
+  // ----------------------------------------------------------
+  //  智能补全闭环 (2026-10-05 增强)
+  // ----------------------------------------------------------
+
+  describe("智能化脚本补全闭环", () => {
+    /** 注入家族成员的渲染 */
+    function renderWithFamily() {
+      return renderHook(() =>
+        useTerminal({
+          extraSources: {
+            familyMembers: [
+              { id: "navigator", shortName: "千行", name: "言启·千行", role: "翻译官" },
+              { id: "thinker", shortName: "万物", name: "语枢·万物", role: "哲学家" },
+            ],
+          },
+        })
+      );
+    }
+
+    it("family list 应列出注入的成员档案", () => {
+      const { result } = renderWithFamily();
+      const last = exec(result, "family list");
+      expect(last.output).toContain("言启·千行");
+      expect(last.output).toContain("语枢·万物");
+      expect(last.output).toContain("2 位");
+      expect(last.status).toBe("success");
+    });
+
+    it("family chat <成员> 应显示成员详情", () => {
+      const { result } = renderWithFamily();
+      expect(exec(result, "family chat 千行").output).toContain("言启·千行");
+      expect(exec(result, "family chat navigator").output).toContain("翻译官");
+      expect(exec(result, "family chat nobody").status).toBe("error");
+      expect(exec(result, "family chat").output).toContain("用法");
+      expect(exec(result, "family frob").output).toContain("未知 family 操作");
+    });
+
+    it("family 成员名 Tab 补全 (shortName + id 双源)", () => {
+      const { result } = renderWithFamily();
+      const items = completionsOf(result, "family chat 千");
+      expect(items).toContain("千行");
+      expect(completionsOf(result, "family chat na")).toContain("navigator");
+    });
+
+    it("execute 应写入持久化历史 (闭环写入点)", () => {
+      const { result } = renderHook(() => useTerminal());
+      exec(result, "cpim status");
+      exec(result, "cpim node");
+      const raw = localStorage.getItem("yyc3_terminal_history");
+      expect(raw).toContain("cpim status");
+      expect(raw).toContain("cpim node");
+      // 频率统计同步累计
+      const stats = localStorage.getItem("yyc3_terminal_cmd_stats");
+      expect(stats).toContain('"cpim":2');
+    });
+
+    it("跨会话历史: 新 hook 实例应继承持久化历史导航", () => {
+      const first = renderHook(() => useTerminal());
+      exec(first.result, "goto /patrol");
+      exec(first.result, "env list");
+      first.unmount();
+
+      // 模拟新会话 (重新渲染实例)
+      const second = renderHook(() => useTerminal());
+      act(() => {
+        second.result.current.handleHistoryNav("up");
+      });
+      expect(second.result.current.inputValue).toBe("env list");
+      act(() => {
+        second.result.current.handleHistoryNav("up");
+      });
+      expect(second.result.current.inputValue).toBe("goto /patrol");
+    });
+
+    it("history 命令应输出持久化历史列表", () => {
+      const { result } = renderHook(() => useTerminal());
+      exec(result, "cpim alerts");
+      const last = exec(result, "history");
+      expect(last.output).toContain("Command history");
+      expect(last.output).toContain("cpim alerts");
+    });
+
+    it("completionMeta 应携带来源与描述元数据", () => {
+      const { result } = renderHook(() => useTerminal());
+      act(() => {
+        result.current.handleInputChange("goto /pat");
+      });
+      const meta = result.current.completionMeta["/patrol"];
+      expect(meta).toBeDefined();
+      expect(meta?.source).toBe("route");
+      expect(meta?.description).toBe("巡查模式");
+    });
+
+    it("cpim node 参数位补全真实节点名 (nodeStore 协同)", () => {
+      const { result } = renderHook(() => useTerminal());
+      const items = completionsOf(result, "cpim node gpu");
+      expect(items.length).toBeGreaterThan(0);
+      expect(items[0]).toMatch(/^GPU-/);
+    });
+
+    it("cpim model deploy 参数位补全 provider 模型种子", () => {
+      const { result } = renderHook(() => useTerminal());
+      const items = completionsOf(result, "cpim model deploy glm");
+      expect(items).toContain("glm-4-flash");
+    });
+
+    it("重复命令去重置顶 (输入历史导航去重)", () => {
+      const { result } = renderHook(() => useTerminal());
+      exec(result, "help");
+      exec(result, "cpim status");
+      exec(result, "help");
+      act(() => {
+        result.current.handleHistoryNav("up");
+      });
+      expect(result.current.inputValue).toBe("help");
+      act(() => {
+        result.current.handleHistoryNav("up");
+      });
+      expect(result.current.inputValue).toBe("cpim status");
     });
   });
 });

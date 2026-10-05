@@ -34,6 +34,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate } from "react-router";
+import { FAMILY_MEMBERS } from "./ai-family/shared";
 import { useTerminal } from "../hooks/useTerminal";
 import { AuthContext } from "../lib/authContext";
 import { isGhostMode } from "../lib/supabaseClient";
@@ -59,6 +60,28 @@ interface TerminalTabMeta {
   createdAt: number;
 }
 
+/** 家族成员注入源 (components→components 合规; hooks 层禁止引 components) */
+const FAMILY_COMPLETION_SOURCES = FAMILY_MEMBERS.map((m) => ({
+  id: m.id,
+  shortName: m.shortName,
+  name: m.name,
+  role: m.role,
+}));
+
+/** 补全来源徽标 (source → 显示名/色) */
+const SOURCE_BADGE: Record<string, { label: string; color: string }> = {
+  history: { label: "历", color: "#ffd700" },
+  node: { label: "节", color: "#00ff88" },
+  model: { label: "模", color: "#ff69b4" },
+  family: { label: "家", color: "#ff006e" },
+  route: { label: "路", color: "#00d4ff" },
+  "env-key": { label: "环", color: "#ffa500" },
+  intent: { label: "AI", color: "#9d4edd" },
+  command: { label: "令", color: "rgba(0,212,255,0.6)" },
+  subcommand: { label: "子", color: "rgba(0,212,255,0.4)" },
+  path: { label: "件", color: "rgba(0,212,255,0.4)" },
+};
+
 /* ── 单 Tab 终端渲染 ──────────────────── */
 function TerminalTabPane({
   tabId,
@@ -82,11 +105,16 @@ function TerminalTabPane({
     history,
     inputValue,
     completions,
+    completionMeta,
     execute,
     handleInputChange,
     handleHistoryNav,
     applyCompletion,
-  } = useTerminal({ onNavigate: handleNavigate, tabId });
+  } = useTerminal({
+    onNavigate: handleNavigate,
+    tabId,
+    extraSources: { familyMembers: FAMILY_COMPLETION_SOURCES },
+  });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -191,19 +219,38 @@ function TerminalTabPane({
           />
         </div>
 
-        {/* Completions */}
+        {/* Completions (智能闭环: 描述 + 来源徽标) */}
         {completions.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1 ml-4">
-            {completions.map((c) => (
-              <button
-                key={c}
-                onClick={() => applyCompletion(c)}
-                className="px-1.5 py-0.5 rounded bg-[rgba(0,212,255,0.06)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.12)] transition-all"
-                style={{ fontSize: "0.68rem" }}
-              >
-                {c}
-              </button>
-            ))}
+            {completions.map((c) => {
+              const meta = completionMeta[c];
+              const badge = meta ? SOURCE_BADGE[meta.source] : undefined;
+              const title = meta?.description ? `${c} — ${meta.description}` : c;
+              return (
+                <button
+                  key={c}
+                  onClick={() => applyCompletion(c)}
+                  title={title}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[rgba(0,212,255,0.06)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.12)] transition-all"
+                  style={{ fontSize: "0.68rem" }}
+                >
+                  {badge && (
+                    <span
+                      className="shrink-0 rounded-sm px-0.5"
+                      style={{ fontSize: "0.5rem", color: badge.color, background: "rgba(255,255,255,0.04)" }}
+                    >
+                      {badge.label}
+                    </span>
+                  )}
+                  <span>{c}</span>
+                  {meta?.description && (
+                    <span className="text-[rgba(224,240,255,0.25)] truncate max-w-[140px]">
+                      {meta.description}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
