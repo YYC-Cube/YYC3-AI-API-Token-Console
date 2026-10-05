@@ -332,7 +332,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                       minWidth: 180,
                     }}
                   >
-                    <div className="ml-1.5 rounded-xl border border-[rgba(0,180,255,0.15)] bg-[rgba(6,14,30,0.98)] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
+                    <div className="ml-1.5 rounded-xl border yyc3-border bg-[rgba(6,14,30,0.98)] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
                       {/* 分类标题 */}
                       <div
                         className="flex items-center gap-2 px-3 border-b border-[rgba(0,180,255,0.06)]"

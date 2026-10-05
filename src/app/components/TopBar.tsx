@@ -280,7 +280,7 @@ export function TopBar({
                 onBlur={() => setSearchFocused(false)}
               />
               <kbd
-                className="absolute right-2 px-1.5 py-0.5 rounded bg-[rgba(0,180,255,0.06)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.25)] hidden lg:block"
+                className="absolute right-2 px-1.5 py-0.5 rounded bg-[rgba(0,180,255,0.06)] border yyc3-border text-[rgba(0,212,255,0.25)] hidden lg:block"
                 style={{ fontSize: "0.52rem" }}
               >
                 ⌘K
@@ -358,8 +358,8 @@ export function TopBar({
                     transition={isMobile ? { type: "spring", damping: 25, stiffness: 300 } : { duration: 0.15 }}
                     className={
                       isMobile
-                        ? "fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-[rgba(6,16,36,0.99)] backdrop-blur-xl border-t border-x border-[rgba(0,180,255,0.12)] shadow-[0_-8px_40px_rgba(0,0,0,0.5)] p-4"
-                        : "absolute top-10 right-0 z-50 w-72 rounded-xl bg-[rgba(6,16,36,0.98)] backdrop-blur-xl border border-[rgba(0,180,255,0.15)] shadow-[0_8px_40px_rgba(0,0,0,0.5)] p-3"
+                        ? "fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-[rgba(6,16,36,0.99)] backdrop-blur-xl border-t border-x yyc3-border shadow-[0_-8px_40px_rgba(0,0,0,0.5)] p-4"
+                        : "absolute top-10 right-0 z-50 w-72 rounded-xl bg-[rgba(6,16,36,0.98)] backdrop-blur-xl border yyc3-border shadow-[0_8px_40px_rgba(0,0,0,0.5)] p-3"
                     }
                   >
                     {/* 移动端拖拽指示 */}
@@ -411,7 +411,7 @@ export function TopBar({
             </button>
 
             {userMenuOpen && isDesktop && (
-              <div className="absolute top-10 right-0 w-56 rounded-xl bg-[rgba(6,16,36,0.98)] backdrop-blur-xl border border-[rgba(0,180,255,0.15)] shadow-[0_8px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden">
+              <div className="absolute top-10 right-0 w-56 rounded-xl bg-[rgba(6,16,36,0.98)] backdrop-blur-xl border yyc3-border shadow-[0_8px_40px_rgba(0,0,0,0.5)] z-50 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-[rgba(0,180,255,0.08)]">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-md bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center">

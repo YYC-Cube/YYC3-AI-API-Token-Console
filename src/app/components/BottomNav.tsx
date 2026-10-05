@@ -169,7 +169,7 @@ export function BottomNav() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-[rgba(6,14,31,0.98)] backdrop-blur-2xl border-t border-x border-[rgba(0,180,255,0.12)] shadow-[0_-10px_50px_rgba(0,0,0,0.5)]"
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-[rgba(6,14,31,0.98)] backdrop-blur-2xl border-t border-x yyc3-border shadow-[0_-10px_50px_rgba(0,0,0,0.5)]"
               style={{ maxHeight: "70vh" }}
             >
               {/* 拖拽指示条 */}

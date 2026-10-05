@@ -190,7 +190,33 @@
   }
 }
 
-/* ── Mobile touch & scroll optimization ── */
+/* ── 骨架语义工具类 (渐进收敛首批 / 2026-10-05) ─────────────────
+ * 全站骨架 (TopBar/Sidebar/BottomNav/GlassCard) 高频硬编码色收敛为语义类,
+ * 透明度近邻归一 (边框 0.04-0.08→faint / 0.1-0.15→normal 等两档);
+ * dark=原值, light=覆盖层。品牌实色 (#00d4ff 等) 本批不动 (下批收敛)。 */
+.yyc3-panel-bg       { background-color: rgba(4, 10, 22, 0.95); }
+.yyc3-panel-bg-soft  { background-color: rgba(4, 10, 22, 0.5); }
+.yyc3-inset-bg       { background-color: rgba(0, 40, 80, 0.3); }
+.yyc3-accent-bg      { background-color: rgba(0, 180, 255, 0.15); }
+.yyc3-accent-bg-soft { background-color: rgba(0, 180, 255, 0.06); }
+.yyc3-brand-bg-soft  { background-color: rgba(0, 212, 255, 0.06); }
+.yyc3-border         { border-color: rgba(0, 180, 255, 0.12); }
+.yyc3-border-faint   { border-color: rgba(0, 180, 255, 0.06); }
+.yyc3-text-primary   { color: #e0f0ff; }
+.yyc3-text-secondary { color: #c0dcf0; }
+
+:root[data-theme="light"] .yyc3-panel-bg       { background-color: rgba(255, 255, 255, 0.92); }
+:root[data-theme="light"] .yyc3-panel-bg-soft  { background-color: rgba(240, 246, 252, 0.6); }
+:root[data-theme="light"] .yyc3-inset-bg       { background-color: rgba(0, 110, 170, 0.1); }
+:root[data-theme="light"] .yyc3-accent-bg      { background-color: rgba(0, 130, 190, 0.16); }
+:root[data-theme="light"] .yyc3-accent-bg-soft { background-color: rgba(0, 130, 190, 0.08); }
+:root[data-theme="light"] .yyc3-brand-bg-soft  { background-color: rgba(0, 146, 196, 0.08); }
+:root[data-theme="light"] .yyc3-border         { border-color: rgba(10, 60, 110, 0.16); }
+:root[data-theme="light"] .yyc3-border-faint   { border-color: rgba(10, 60, 110, 0.1); }
+:root[data-theme="light"] .yyc3-text-primary   { color: #0a2240; }
+:root[data-theme="light"] .yyc3-text-secondary { color: #2c4f74; }
+
+/* ── Mobile touch & scroll optimization ─── */
 .scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
