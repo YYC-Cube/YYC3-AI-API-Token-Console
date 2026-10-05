@@ -10,6 +10,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { AddModelModal } from "../components/AddModelModal";
 import { I18nContext } from "../hooks/useI18n";
 import { MODEL_PROVIDERS } from "../hooks/useModelProvider";
+import type { ModelProviderDef, OllamaModel } from "../types";
 import zhCN from "../i18n/zh-CN";
 
 function getNestedValue(obj: Record<string, any>, path: string): string {
@@ -135,5 +136,228 @@ describe("AddModelModal", () => {
     fireEvent.click(screen.getByTestId("provider-select"));
     fireEvent.click(screen.getByTestId("provider-option-ollama"));
     expect(screen.getByText("连接失败")).toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// 自定义 Provider 夹具 — 覆盖完整交互流 (选择/模型/密钥/代理/提交)
+// ============================================================
+
+const TEST_PROVIDERS: ModelProviderDef[] = [
+  {
+    id: "zai",
+    label: "Z.ai 测试",
+    baseUrl: "https://api.z.ai",
+    authType: "bearer",
+    models: ["glm-4.6", "glm-4.5-air"],
+    requiresApiKey: true,
+    isLocal: false,
+  },
+  {
+    id: "ollama",
+    label: "Ollama 测试",
+    baseUrl: "http://localhost:11434",
+    authType: "none",
+    models: [],
+    requiresApiKey: false,
+    isLocal: true,
+  },
+  {
+    id: "empty",
+    label: "空模型测试",
+    baseUrl: "https://empty.example.com",
+    authType: "bearer",
+    models: [],
+    requiresApiKey: false,
+    isLocal: false,
+  },
+];
+
+const OLLAMA_MODELS: OllamaModel[] = [
+  {
+    name: "qwen3:8b",
+    model: "qwen3:8b",
+    modified_at: "2026-01-01T00:00:00Z",
+    size: 5.2e9,
+    digest: "abc123",
+    details: {
+      parent_model: "",
+      format: "gguf",
+      family: "qwen",
+      parameter_size: "8B",
+      quantization_level: "Q4_K_M",
+    },
+  },
+  {
+    name: "llama3:70b",
+    model: "llama3:70b",
+    modified_at: "2026-01-01T00:00:00Z",
+    size: 42.5e9,
+    digest: "def456",
+    details: {
+      parent_model: "",
+      format: "gguf",
+      family: "llama",
+      parameter_size: "70B",
+      quantization_level: "Q4_0",
+    },
+  },
+];
+
+function selectProvider(id: string) {
+  fireEvent.click(screen.getByTestId("provider-select"));
+  fireEvent.click(screen.getByTestId(`provider-option-${id}`));
+}
+
+describe("AddModelModal 交互流", () => {
+  it("完整提交流程: 选服务商 → 选模型 → 填密钥 → onAdd", () => {
+    const onAdd = vi.fn();
+    const onClose = vi.fn();
+    renderModal({ providers: TEST_PROVIDERS, onAdd, onClose });
+    selectProvider("zai");
+    fireEvent.click(screen.getByTestId("model-select"));
+    fireEvent.click(screen.getByTestId("model-option-glm-4.6"));
+    // 需密钥服务商: 未填密钥时提交禁用
+    expect(screen.getByTestId("submit-add-model")).toBeDisabled();
+    fireEvent.change(screen.getByTestId("api-key-input"), { target: { value: "sk-test" } });
+    expect(screen.getByTestId("submit-add-model")).not.toBeDisabled();
+    fireEvent.click(screen.getByTestId("submit-add-model"));
+    expect(onAdd).toHaveBeenCalledWith("zai", "glm-4.6", "sk-test", undefined, undefined);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("模型下拉互斥: 打开模型下拉应关闭服务商下拉", () => {
+    renderModal({ providers: TEST_PROVIDERS });
+    selectProvider("zai");
+    fireEvent.click(screen.getByTestId("provider-select"));
+    expect(screen.getByTestId("provider-dropdown")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("model-select"));
+    expect(screen.queryByTestId("provider-dropdown")).not.toBeInTheDocument();
+    expect(screen.getByTestId("model-dropdown")).toBeInTheDocument();
+  });
+
+  it("点击下拉外部应关闭下拉", () => {
+    renderModal({ providers: TEST_PROVIDERS });
+    fireEvent.click(screen.getByTestId("provider-select"));
+    expect(screen.getByTestId("provider-dropdown")).toBeInTheDocument();
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByTestId("provider-dropdown")).not.toBeInTheDocument();
+  });
+
+  it("Enter 确认自定义模型名应回调 onAddModelToProvider 并选中", () => {
+    const onAddModelToProvider = vi.fn();
+    renderModal({ providers: TEST_PROVIDERS, onAddModelToProvider });
+    selectProvider("zai");
+    fireEvent.click(screen.getByText("输入自定义模型名"));
+    const input = screen.getByPlaceholderText("输入模型名称，回车确认...");
+    fireEvent.change(input, { target: { value: "glm-5-preview" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onAddModelToProvider).toHaveBeenCalledWith("zai", "glm-5-preview");
+    expect(screen.getByTestId("model-select").textContent).toContain("glm-5-preview");
+  });
+
+  it("确认按钮提交自定义模型名", () => {
+    const onAddModelToProvider = vi.fn();
+    renderModal({ providers: TEST_PROVIDERS, onAddModelToProvider });
+    selectProvider("zai");
+    fireEvent.click(screen.getByText("输入自定义模型名"));
+    fireEvent.change(screen.getByPlaceholderText("输入模型名称，回车确认..."), {
+      target: { value: "glm-5-preview" },
+    });
+    fireEvent.click(screen.getByText("确认"));
+    expect(onAddModelToProvider).toHaveBeenCalledWith("zai", "glm-5-preview");
+  });
+
+  it("自定义模型名为空时确认按钮禁用", () => {
+    renderModal({ providers: TEST_PROVIDERS });
+    selectProvider("zai");
+    fireEvent.click(screen.getByText("输入自定义模型名"));
+    expect(screen.getByText("确认").closest("button")).toBeDisabled();
+  });
+
+  it("收起自定义输入应隐藏输入框", () => {
+    renderModal({ providers: TEST_PROVIDERS });
+    selectProvider("zai");
+    fireEvent.click(screen.getByText("输入自定义模型名"));
+    expect(screen.getByPlaceholderText("输入模型名称，回车确认...")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("收起自定义"));
+    expect(screen.queryByPlaceholderText("输入模型名称，回车确认...")).not.toBeInTheDocument();
+  });
+
+  it("代理 URL 应透传给 onAdd", () => {
+    const onAdd = vi.fn();
+    renderModal({ providers: TEST_PROVIDERS, onAdd });
+    selectProvider("zai");
+    fireEvent.click(screen.getByTestId("model-select"));
+    fireEvent.click(screen.getByTestId("model-option-glm-4.5-air"));
+    fireEvent.change(screen.getByTestId("api-key-input"), { target: { value: "sk-test" } });
+    fireEvent.click(screen.getByText("输入代理 URL"));
+    fireEvent.change(screen.getByPlaceholderText("输入代理 URL，回车确认..."), {
+      target: { value: "https://proxy.yyc3.vip" },
+    });
+    fireEvent.click(screen.getByTestId("submit-add-model"));
+    expect(onAdd).toHaveBeenCalledWith(
+      "zai",
+      "glm-4.5-air",
+      "sk-test",
+      undefined,
+      "https://proxy.yyc3.vip"
+    );
+  });
+
+  it("空模型服务商应显示暂无可用模型", () => {
+    renderModal({ providers: TEST_PROVIDERS });
+    selectProvider("empty");
+    fireEvent.click(screen.getByTestId("model-select"));
+    expect(screen.getByText("暂无可用模型")).toBeInTheDocument();
+  });
+
+  it("选择 Ollama 应触发拉取并显示模型详情", () => {
+    const onFetchOllama = vi.fn().mockResolvedValue([]);
+    renderModal({ providers: TEST_PROVIDERS, onFetchOllama, ollamaModels: OLLAMA_MODELS });
+    selectProvider("ollama");
+    expect(onFetchOllama).toHaveBeenCalledWith("http://localhost:11434");
+    expect(screen.getByText("已检测到 2 个本地模型")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("model-select"));
+    expect(screen.getByTestId("model-option-qwen3:8b").textContent).toContain("8B · Q4_K_M · 5.2GB");
+    expect(screen.getByTestId("model-option-llama3:70b").textContent).toContain("70B");
+  });
+
+  it("刷新按钮应以当前 URL 重新拉取", () => {
+    const onFetchOllama = vi.fn().mockResolvedValue([]);
+    renderModal({ providers: TEST_PROVIDERS, onFetchOllama });
+    selectProvider("ollama");
+    fireEvent.change(screen.getByTestId("ollama-url-input"), {
+      target: { value: "http://192.168.3.45:11434" },
+    });
+    fireEvent.click(screen.getByTestId("refresh-ollama"));
+    expect(onFetchOllama).toHaveBeenLastCalledWith("http://192.168.3.45:11434");
+  });
+
+  it("加载中应显示加载文案", () => {
+    renderModal({ providers: TEST_PROVIDERS, ollamaLoading: true, ollamaModels: [] });
+    selectProvider("ollama");
+    fireEvent.click(screen.getByTestId("model-select"));
+    expect(screen.getByText("正在加载模型...")).toBeInTheDocument();
+  });
+
+  it("Ollama 提交无需密钥且透传端点 URL", () => {
+    const onAdd = vi.fn();
+    const onFetchOllama = vi.fn().mockResolvedValue([]);
+    renderModal({ providers: TEST_PROVIDERS, onAdd, onFetchOllama, ollamaModels: OLLAMA_MODELS });
+    selectProvider("ollama");
+    fireEvent.click(screen.getByTestId("model-select"));
+    fireEvent.click(screen.getByTestId("model-option-qwen3:8b"));
+    expect(screen.getByTestId("submit-add-model")).not.toBeDisabled();
+    fireEvent.click(screen.getByTestId("submit-add-model"));
+    expect(onAdd).toHaveBeenCalledWith("ollama", "qwen3:8b", "", "http://localhost:11434", undefined);
+  });
+
+  it("点击遮罩应调用 onClose", () => {
+    const onClose = vi.fn();
+    const { container } = renderModal({ providers: TEST_PROVIDERS, onClose });
+    const backdrop = container.querySelector('[data-testid="add-model-modal"] > div')!;
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalled();
   });
 });

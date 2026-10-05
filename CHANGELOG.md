@@ -9,6 +9,9 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ### Added 新增
 
+- **覆盖率爬坡第四批（components 中段四组件，全局 lines 61.91 → 63.97）**: NetworkConfig 41.11→98.88（+21，扩展）· ProviderEditorModal 43.47→100（18，新建）· AddModelModal 53.94→98.68（+13，扩展）· CreateRuleModal 54.31→98.27（21，新建）；全局 lines 63.97 / branches 57.81 / functions 53.00 / statements 61.73；单测 2301→2373（+72）；vi.mock hooks 契约对齐既有组件测试模式，零生产代码改动
+  coverage ramp batch 4 (components): four modals/panels to 98-100%; global lines 61.91→63.97, tests 2301→2373
+
 - **覆盖率爬坡第三批（hooks 中段四文件，全局 lines 56.49 → 61.91）**: useLocalDatabase 44.2→99.63（+25：AbortError/5xx 重试/4xx 不重试/后端成功/备份恢复/密码编码）· useLocalFileSystem 47.94→100（+10：CRUD/导入导出/快速操作）· useTerminal 55.32→99.65（+28：env 命令/cpim 子命令/ai 意图矩阵/Unix 命令/补全，新建测试文件）· useModelProvider 56.86→99.34（+23：CRUD/Ollama 真实 fetch 路径/schema 兜底/导入导出/合并去重）；全局 lines 56.49→61.91 / branches 49.91→55.72 / functions 45.83→49.62 / statements 54.0→59.71；单测 2202→2301（+99）；顺带识别 3 处不可达死代码（saveProviders 外层 catch 自吞 / aiTextToCli 巡查跳转子项 / 补全大写 GPU-* 永不匹配）——登记 knip 候选观察
   coverage ramp batch 3: four mid-tier hooks to 99-100%; global lines 56.49→61.91, tests 2202→2301
 
