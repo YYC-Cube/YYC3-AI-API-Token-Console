@@ -79,3 +79,4 @@ __pycache__/
 
 # 模型资产与路径（本地资产档案目录，整目录不入库——含大体积 HTML Hub 页与资产详情快照）
 docs/模型资产与路径/
+smart-audit-report.json

@@ -45,6 +45,7 @@
     "test:ci": "pnpm test:unit --reporter=junit --outputFile=test-results/junit.xml",
     "knip": "knip",
     "doctor": "node scripts/doctor.mjs",
+    "smart:audit": "node scripts/smart-audit.mjs",
     "astgrep": "node_modules/@ast-grep/cli/ast-grep scan -c scripts/ast-grep/sgconfig.yml src/",
     "guardrail-probe": "node scripts/guardrail-probe.mjs",
     "size:check": "node scripts/check-size.mjs",
