@@ -16,6 +16,8 @@
  *    必须通过 env() 读取, 禁止硬编码
  */
 
+import { getSharedChannel } from "./broadcast-channel";
+
 // ============================================================
 // 类型定义
 // ============================================================
@@ -172,6 +174,48 @@ function buildConfig(): EnvConfig {
 }
 
 // ============================================================
+// 变更订阅三件套 — P1 编辑即生效 (2026-10-05, 复刻 api-config 范本)
+// listeners 驱动同页订阅方 (含 React useSyncExternalStore 桥),
+// BroadcastChannel 驱动跨标签页同步 (收远端 → 重建缓存 → 通知)。
+// ============================================================
+
+const ENV_CHANNEL_NAME = "yyc3_env_config_sync";
+
+type EnvListener = (config: EnvConfig) => void;
+const _envListeners = new Set<EnvListener>();
+
+function _notifyEnvListeners() {
+  if (!_envConfig) return;
+  for (const fn of _envListeners) {
+    try { fn(_envConfig); } catch { /* listener 异常不阻断传播 */ }
+  }
+}
+
+function _broadcastEnvUpdate() {
+  if (!_envConfig) return;
+  try {
+    getSharedChannel(ENV_CHANNEL_NAME)?.postMessage({ type: "env_update", config: _envConfig });
+  } catch { /* ignore */ }
+}
+
+/** 订阅环境配置变更 (返回退订函数) */
+export function subscribeEnvConfig(fn: EnvListener): () => void {
+  _envListeners.add(fn);
+  return () => { _envListeners.delete(fn); };
+}
+
+// 跨标签页接收: 远端变更 → 静默更新本页缓存 (不回声广播, 防循环)
+try {
+  const _ch = getSharedChannel(ENV_CHANNEL_NAME);
+  _ch?.addEventListener("message", (e: MessageEvent) => {
+    if (e.data?.type === "env_update" && e.data.config) {
+      _envConfig = e.data.config as EnvConfig;
+      _notifyEnvListeners();
+    }
+  });
+} catch { /* BroadcastChannel not available */ }
+
+// ============================================================
 // 公开 API
 // ============================================================
 
@@ -187,20 +231,27 @@ export function getEnvConfig(): Readonly<EnvConfig> {
   return { ..._envConfig };
 }
 
-/** 更新环境配置 (持久化到 localStorage) */
+/** 更新环境配置 (持久化到 localStorage + 通知订阅者 + 跨标签页广播)
+ *  P1 编辑即生效 / 2026-10-05: 原实现只写缓存与 localStorage, 已挂载消费方
+ *  无法感知 — 补齐 api-config 同款「listeners + BroadcastChannel」三件套 */
 export function setEnvConfig(updates: Partial<EnvConfig>): EnvConfig {
   if (!_envConfig) _envConfig = buildConfig();
   _envConfig = { ..._envConfig, ...updates };
   try {
     localStorage.setItem(ENV_STORAGE_KEY, JSON.stringify(_envConfig));
   } catch { /* ignore */ }
+  _notifyEnvListeners();
+  _broadcastEnvUpdate();
   return { ..._envConfig };
 }
 
-/** 重置环境配置 (清除 localStorage, 仅保留 env 和默认值) */
+/** 重置环境配置 (清除 localStorage, 仅保留 env 和默认值; 同样通知+广播) */
 export function resetEnvConfig(): EnvConfig {
   try { localStorage.removeItem(ENV_STORAGE_KEY); } catch { /* ignore */ }
   _envConfig = null;
+  _envConfig = buildConfig();
+  _notifyEnvListeners();
+  _broadcastEnvUpdate();
   return getEnvConfig();
 }
 

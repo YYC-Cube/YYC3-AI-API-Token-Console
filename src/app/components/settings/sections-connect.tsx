@@ -4,6 +4,7 @@
  */
 import { AlertTriangle, Monitor, Sliders, Terminal, Wifi, Zap } from "lucide-react";
 import { useModelProvider } from "../../hooks/useModelProvider";
+import { setAPIConfig } from "../../lib/api-config";
 import { EditableField, Toggle, type SettingsSectionProps } from "./shared";
 
 // ============================================================
@@ -18,7 +19,18 @@ export function WebSocketSection({ settings, values, updateValue, toggleSetting 
         WebSocket 连接配置
       </h3>
       <div className="space-y-3">
-        <EditableField label="WebSocket 端点" value={values.wsEndpoint} onChange={v => updateValue("wsEndpoint", v)} mono description="实时数据推送 WebSocket 服务地址" />
+        <EditableField
+          label="WebSocket 端点"
+          value={values.wsEndpoint}
+          onChange={v => {
+            // P2 双源合一: settingsStore 副本保留展示一致, 真实消费源直写 api-config
+            // (useWebSocketData 订阅 api-config → 编辑即热重建连接, 无需刷新)
+            updateValue("wsEndpoint", v);
+            setAPIConfig({ wsEndpoint: v });
+          }}
+          mono
+          description="实时数据推送 WebSocket 服务地址 (编辑即重连)"
+        />
         <div className="flex items-center justify-between p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
           <div>
             <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>自动重连</p>

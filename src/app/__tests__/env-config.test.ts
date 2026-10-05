@@ -239,3 +239,56 @@ describe("env-config", () => {
     });
   });
 });
+
+// ============================================================
+// P1 编辑即生效: 变更订阅三件套 (2026-10-05)
+// ============================================================
+
+describe("env-config 变更订阅", () => {
+  it("setEnvConfig 应通知 subscribeEnvConfig 订阅者", async () => {
+    const { setEnvConfig, subscribeEnvConfig, env } = await freshImport();
+    const received: string[] = [];
+    const unsub = subscribeEnvConfig((cfg) => received.push(cfg.SYSTEM_NAME));
+
+    setEnvConfig({ SYSTEM_NAME: "New-Name" });
+    expect(received).toEqual(["New-Name"]);
+    expect(env("SYSTEM_NAME")).toBe("New-Name");
+
+    unsub();
+    setEnvConfig({ SYSTEM_NAME: "After-Unsub" });
+    expect(received).toEqual(["New-Name"]); // 退订后不再接收
+  });
+
+  it("resetEnvConfig 应同样通知订阅者并回到默认", async () => {
+    const { setEnvConfig, resetEnvConfig, subscribeEnvConfig } = await freshImport();
+    setEnvConfig({ SYSTEM_NAME: "Temp" });
+    const received: string[] = [];
+    subscribeEnvConfig((cfg) => received.push(cfg.SYSTEM_NAME));
+
+    resetEnvConfig();
+    expect(received).toEqual(["YYC³ CloudPivot Intelli-Matrix"]);
+  });
+
+  it("setEnvConfig 应经 BroadcastChannel 广播 env_update", async () => {
+    const posts: unknown[] = [];
+    const handlers: Array<(e: { data: unknown }) => void> = [];
+    vi.doMock("../lib/broadcast-channel", () => ({
+      getSharedChannel: () => ({
+        postMessage: (m: unknown) => posts.push(m),
+        addEventListener: (_t: string, h: (e: { data: unknown }) => void) => handlers.push(h),
+        removeEventListener: () => undefined,
+      }),
+    }));
+    const { setEnvConfig } = await freshImport();
+
+    setEnvConfig({ SYSTEM_NAME: "Broadcast-Name" });
+    expect(posts.length).toBe(1);
+    expect((posts[0] as { type: string }).type).toBe("env_update");
+
+    // 跨标签页接收: 远端消息 → 缓存更新 (handler 在模块注册时被捕获)
+    handlers.forEach((h) => h({ data: { type: "env_update", config: { SYSTEM_NAME: "Remote-Name" } } }));
+    const { env } = await import("../lib/env-config");
+    expect(env("SYSTEM_NAME")).toBe("Remote-Name");
+    vi.doUnmock("../lib/broadcast-channel");
+  });
+});

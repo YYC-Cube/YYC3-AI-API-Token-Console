@@ -379,3 +379,49 @@ describe("useWebSocketData", () => {
     });
   });
 });
+
+// ============================================================
+// P2 编辑即生效: wsEndpoint 热重建 (2026-10-05)
+// 治断点③ — 设置页改端点 → api-config listeners → 旧连接关闭/新连接建立
+// ============================================================
+
+describe("P2 端点热重建", () => {
+  // 独立顶层 describe — 外层 beforeEach 不适用, 需自备环境 (stub WS + fake timers)
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    localStorage.clear();
+    instances.length = 0;
+    vi.stubGlobal("WebSocket", MockWebSocket);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("setAPIConfig 变更 wsEndpoint → 旧 WS 关闭 + 新 WS 以新端点建立", async () => {
+    const { setAPIConfig, resetAPIConfig } = await import("../lib/api-config");
+    resetAPIConfig();
+
+    const { result } = renderHook(() => useWebSocketData());
+    // 初始连接: 默认端点
+    expect(instances.length).toBeGreaterThanOrEqual(1);
+    const oldWs = instances[0];
+    expect(oldWs.url).toBe("ws://localhost:3113/ws");
+
+    // 模拟设置页编辑端点 (双写 api-config)
+    act(() => {
+      setAPIConfig({ wsEndpoint: "ws://hot-rebuild:3114/ws" });
+    });
+
+    // 新连接以新端点建立
+    const newWs = instances[instances.length - 1];
+    expect(newWs).not.toBe(oldWs);
+    expect(newWs.url).toBe("ws://hot-rebuild:3114/ws");
+    // 旧连接被生命周期 cleanup 关闭
+    expect(oldWs.close).toHaveBeenCalled();
+    expect(result.current.connectionState).toBe("connecting");
+
+    resetAPIConfig();
+  });
+});

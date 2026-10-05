@@ -1,4 +1,4 @@
-import React, { useState, useContext, Suspense } from "react";
+import React, { useState, useContext, Suspense, useEffect } from "react";
 import { Outlet, useLocation } from "react-router";
 import { Toaster } from "sonner";
 import { TopBar } from "./TopBar";
@@ -13,6 +13,7 @@ import { IntegratedTerminal } from "./IntegratedTerminal";
 import { useWebSocketData } from "../hooks/useWebSocketData";
 import { useMobileView } from "../hooks/useMobileView";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useSettingsStore } from "../hooks/useSettingsStore";
 import { AuthContext } from "../lib/authContext";
 import { WebSocketContext, ViewContext } from "../lib/view-context";
 
@@ -41,6 +42,21 @@ export function Layout() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [terminalOpen, setTerminalOpen] = useState(false);
+  const { settings: uiSettings } = useSettingsStore();
+
+  // P3 编辑即生效 CSS 桥: darkMode 开关 → 根节点 data-theme + meta theme-color
+  // (settingsBus 订阅驱动, 设置页切换即刻反映, 零刷新)
+  useEffect(() => {
+    const theme = uiSettings.darkMode ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.content = uiSettings.darkMode ? "#060e1f" : "#e8f0fa";
+  }, [uiSettings.darkMode]);
 
   const isDesktop = !view.isMobile && !view.isTablet;
 

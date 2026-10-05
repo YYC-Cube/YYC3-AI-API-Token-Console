@@ -11,7 +11,7 @@
  * - BroadcastChannel 多标签页同步
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { getSharedChannel } from "../lib/broadcast-channel";
 import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 
@@ -186,25 +186,64 @@ function saveState(state: SettingsState) {
 }
 
 // ============================================================
+// 模块级单例源 — 编辑即生效核心 (P1 / 2026-10-05)
+// ============================================================
+// 原实现: 每个 useSettingsStore() 实例独立 useState + BroadcastChannel,
+//   但 getSharedChannel 为共享单例不回声 → 同标签页多实例互盲 (断点①)。
+// 现实现: 状态上提模块级真值 + listeners 订阅 (复刻 api-config 范本),
+//   Hook 经 useSyncExternalStore 订阅 → 多实例同源, 任一实例编辑全树生效。
+// 跨标签页仍由每实例 BC 监听驱动 (兼容既有测试 mock 契约)。
+
+let _state: SettingsState = loadState();
+const _listeners = new Set<(state: SettingsState) => void>();
+
+function notifyListeners() {
+  for (const fn of _listeners) {
+    try { fn(_state); } catch { /* listener 异常不阻断传播 */ }
+  }
+}
+
+/** 提交新状态: 更新真值 → 持久化 → 通知全部订阅者 */
+function commitState(next: SettingsState) {
+  _state = next;
+  saveState(next);
+  notifyListeners();
+}
+
+/** useSyncExternalStore 订阅入口 (返回稳定引用, 避免无限重渲染) */
+export function subscribeSettings(fn: (state: SettingsState) => void): () => void {
+  _listeners.add(fn);
+  return () => { _listeners.delete(fn); };
+}
+
+/** useSyncExternalStore 快照入口 (模块级真值引用稳定) */
+export function getSettingsSnapshot(): SettingsState {
+  return _state;
+}
+
+/** 测试专用: 复位模块级单例 (从 localStorage 重读并通知) — 生产代码勿用
+ *  单例上提后跨用例状态残留, 测试 beforeEach 须同步存储与单例 */
+export function __resetSettingsStoreForTests(): void {
+  _state = loadState();
+  notifyListeners();
+}
+
+// ============================================================
 // Hook
 // ============================================================
 
 export function useSettingsStore() {
-  const [state, setState] = useState<SettingsState>(loadState);
+  // 多实例共享模块级真值 — 任一来源变更 (本实例操作/同页其他实例/跨标签页 BC) 即重渲染
+  const state = useSyncExternalStore(subscribeSettings, getSettingsSnapshot);
 
-  // 持久化
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
-
-  // BroadcastChannel 多标签页同步
+  // 跨标签页同步: 收到广播 → 提交真值 (listeners 驱动本页全部实例)
   useEffect(() => {
     try {
       const channel = getSharedChannel(CHANNEL_NAME);
       if (!channel) return;
       const handler = (e: MessageEvent) => {
-        if (e.data?.type === "settings_update") {
-          setState(e.data.state);
+        if (e.data?.type === "settings_update" && e.data.state) {
+          commitState(e.data.state as SettingsState);
         }
       };
       channel.addEventListener("message", handler);
@@ -221,38 +260,28 @@ export function useSettingsStore() {
 
   // Toggle 操作
   const toggleSetting = useCallback((key: keyof SettingsToggles) => {
-    setState((prev) => {
-      const next = {
-        ...prev,
-        toggles: { ...prev.toggles, [key]: !prev.toggles[key] },
-      };
-      broadcast(next);
-      return next;
-    });
+    const next = {
+      ...getSettingsSnapshot(),
+      toggles: { ...getSettingsSnapshot().toggles, [key]: !getSettingsSnapshot().toggles[key] },
+    };
+    commitState(next);
+    broadcast(next);
   }, [broadcast]);
 
   // Value 更新
   const updateValue = useCallback((key: keyof SettingsValues, val: string) => {
-    setState((prev) => {
-      const next = {
-        ...prev,
-        values: { ...prev.values, [key]: val },
-      };
-      broadcast(next);
-      return next;
-    });
+    const prev = getSettingsSnapshot();
+    const next = { ...prev, values: { ...prev.values, [key]: val } };
+    commitState(next);
+    broadcast(next);
   }, [broadcast]);
 
   // 批量更新
   const updateValues = useCallback((updates: Partial<SettingsValues>) => {
-    setState((prev) => {
-      const next = {
-        ...prev,
-        values: { ...prev.values, ...updates },
-      };
-      broadcast(next);
-      return next;
-    });
+    const prev = getSettingsSnapshot();
+    const next = { ...prev, values: { ...prev.values, ...updates } };
+    commitState(next);
+    broadcast(next);
   }, [broadcast]);
 
   // 重置
@@ -261,8 +290,7 @@ export function useSettingsStore() {
       toggles: { ...DEFAULT_TOGGLES },
       values: { ...DEFAULT_VALUES },
     };
-    setState(defaultState);
-    saveState(defaultState);
+    commitState(defaultState);
     broadcast(defaultState);
   }, [broadcast]);
 
@@ -271,9 +299,9 @@ export function useSettingsStore() {
     return JSON.stringify({
       version: 1,
       exportedAt: Date.now(),
-      ...state,
+      ...getSettingsSnapshot(),
     }, null, 2);
-  }, [state]);
+  }, []);
 
   // 导入
   const importSettings = useCallback((jsonStr: string) => {
@@ -283,8 +311,7 @@ export function useSettingsStore() {
         toggles: { ...DEFAULT_TOGGLES, ...(data.toggles || {}) },
         values: { ...DEFAULT_VALUES, ...(data.values || {}) },
       };
-      setState(imported);
-      saveState(imported);
+      commitState(imported);
       broadcast(imported);
       return true;
     } catch {

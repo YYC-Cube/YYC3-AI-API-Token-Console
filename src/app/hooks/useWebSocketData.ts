@@ -35,7 +35,7 @@ import type {
   WebSocketDataState,
 } from "../types";
 
-import { getAPIConfig } from "../lib/api-config";
+import { getAPIConfig, onAPIConfigChange } from "../lib/api-config";
 import { nodeStore } from "../lib/nodes";
 
 // ============================================================
@@ -102,6 +102,15 @@ export function useWebSocketData(): WebSocketDataState {
   const simulateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ----- P2 编辑即生效: 订阅 api-config 端点变更 → 热重建连接 -----
+  // 原实现 connectWS 无 endpoint 依赖, 设置页改 wsEndpoint 后连接不重建 (断点③)。
+  const [wsEndpoint, setWsEndpoint] = useState(getAPIConfig().wsEndpoint);
+  useEffect(() => {
+    return onAPIConfigChange((config) => {
+      setWsEndpoint(config.wsEndpoint);
+    });
+  }, []);
+
   // ----- simulated data updater -----
   const runSimulation = useCallback(() => {
     const newNodes = generateSimulatedNodes();
@@ -134,8 +143,10 @@ export function useWebSocketData(): WebSocketDataState {
   }, []);
 
   // ----- WebSocket connection -----
+  // deps 含 wsEndpoint: 设置页编辑端点 → 本回调重建 → 生命周期 effect
+  // cleanup 关旧连接后以新端点重连 (编辑即热重建, 治断点③)
   const connectWS = useCallback(() => {
-    const wsUrl = getAPIConfig().wsEndpoint;
+    const wsUrl = wsEndpoint;
     setConnectionState("connecting");
 
     try {
@@ -215,7 +226,7 @@ export function useWebSocketData(): WebSocketDataState {
         simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
       }
     }
-  }, [runSimulation]);
+  }, [runSimulation, wsEndpoint]);
 
   // ----- lifecycle -----
   useEffect(() => {

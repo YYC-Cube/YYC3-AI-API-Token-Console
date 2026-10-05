@@ -14,7 +14,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useSettingsStore } from "../hooks/useSettingsStore";
+import { useSettingsStore, __resetSettingsStoreForTests, subscribeSettings as subscribeSettingsForTest } from "../hooks/useSettingsStore";
 import type { SettingsState } from "../hooks/useSettingsStore";
 
 // ============================================================
@@ -48,6 +48,8 @@ describe("useSettingsStore", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // P1 单例上提: 存储清理后必须同步复位模块级真值, 防跨用例状态残留
+    __resetSettingsStoreForTests();
     mockGetSharedChannel.mockImplementation(() => mockChannel as unknown as BroadcastChannel);
   });
 
@@ -69,6 +71,8 @@ describe("useSettingsStore", () => {
         STORAGE_KEY,
         JSON.stringify({ toggles: { darkMode: false }, values: { refreshInterval: "10" } }),
       );
+      // 单例架构: 磁盘预置数据在「模块加载/显式复位」边界合并 — 模拟冷启动重读
+      __resetSettingsStoreForTests();
       const { result } = renderHook(() => useSettingsStore());
       expect(result.current.settings.darkMode).toBe(false);
       expect(result.current.settings.autoScale).toBe(true); // 默认值兜底
@@ -227,5 +231,54 @@ describe("useSettingsStore", () => {
       });
       expect(result.current.settings.debugMode).toBe(true);
     });
+  });
+});
+
+// ============================================================
+// P1 编辑即生效: 同标签页多实例同步 (2026-10-05)
+// 治断点① — 原多实例 Hook 经共享 channel 单例不回声, 实例互盲
+// ============================================================
+
+describe("useSettingsStore 同页多实例同步", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    __resetSettingsStoreForTests();
+    mockGetSharedChannel.mockImplementation(() => mockChannel as unknown as BroadcastChannel);
+  });
+
+  it("实例 A 编辑 → 实例 B 即时感知 (useSyncExternalStore 同源)", () => {
+    const a = renderHook(() => useSettingsStore());
+    const b = renderHook(() => useSettingsStore());
+    expect(a.result.current.settings.darkMode).toBe(true);
+    expect(b.result.current.settings.darkMode).toBe(true);
+
+    act(() => {
+      a.result.current.toggleSetting("darkMode");
+    });
+    expect(a.result.current.settings.darkMode).toBe(false);
+    expect(b.result.current.settings.darkMode).toBe(false); // B 无需任何操作即同步
+  });
+
+  it("实例 B updateValue → 实例 A 即时感知", () => {
+    const a = renderHook(() => useSettingsStore());
+    const b = renderHook(() => useSettingsStore());
+
+    act(() => {
+      b.result.current.updateValue("systemName", "Synced-Name");
+    });
+    expect(a.result.current.values.systemName).toBe("Synced-Name");
+  });
+
+  it("subscribeSettings 直订 (非 React 消费方同样生效)", () => {
+    const seen: boolean[] = [];
+    const unsub = subscribeSettingsForTest((s) => seen.push(s.toggles.debugMode));
+    const { result } = renderHook(() => useSettingsStore());
+
+    act(() => {
+      result.current.toggleSetting("debugMode");
+    });
+    expect(seen).toEqual([true]);
+    unsub();
   });
 });
