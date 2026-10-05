@@ -13,7 +13,48 @@ import {
   Sparkles, Search,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { FAMILY_MEMBERS, AI_RESPONSES, hexToRgb, getMember } from "./shared";
+import { getGatewayConfig } from "../../lib/api-config";
+import { FAMILY_MEMBERS, AI_RESPONSES, buildMemberSystemPrompt, memberModelId, hexToRgb, getMember } from "./shared";
+
+// ═══ P2 真实 LLM 对话 (2026-10-05) ═══
+// 优先走网关 (/console/gw · 成员人格 system prompt + DEFAULT_MODEL_ASSIGNMENTS 模型);
+// 失败/未配置降级 AI_RESPONSES 模拟 — 零后端环境行为与既有完全一致。
+async function fetchMemberReply(
+  responderId: string,
+  recentMessages: ChatMessage[]
+): Promise<string | null> {
+  const gw = getGatewayConfig();
+  if (!gw.gatewayBase) return null;
+  try {
+    const history = recentMessages.slice(-6).map((m) => ({
+      role: m.sender === "user" ? "user" : "assistant",
+      content: m.text,
+    }));
+    const r = await fetch(`${gw.gatewayBase}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(gw.gatewayApiKey ? { Authorization: `Bearer ${gw.gatewayApiKey}` } : {}),
+      },
+      body: JSON.stringify({
+        model: memberModelId(responderId),
+        messages: [
+          { role: "system", content: buildMemberSystemPrompt(responderId) },
+          ...history,
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!r.ok) return null;
+    const data = (await r.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const text = data.choices?.[0]?.message?.content?.trim();
+    return text || null;
+  } catch {
+    return null;
+  }
+}
 
 // ═══ Types ═══
 interface ChatMessage {
@@ -64,27 +105,29 @@ export function FamilyChat() {
       time: timeStr,
       type: "text",
     };
-    setMessages(prev => [...prev, userMsg]);
-    setInput("");
-
-    // AI 回复
-    setTimeout(() => {
+    setMessages(prev => {
+      const withUser = [...prev, userMsg];
+      // P2: 异步真实回复在 setState 外发起 (闭包捕获 withUser 作对话上下文)
       const responderId = activeChannel === "family-group"
         ? FAMILY_MEMBERS[Math.floor(Math.random() * FAMILY_MEMBERS.length)].id
         : activeChannel;
-      const responses = AI_RESPONSES[responderId] || AI_RESPONSES["meta-oracle"];
-      const responseText = responses[Math.floor(Math.random() * responses.length)];
-      const replyTime = new Date();
-      const replyTimeStr = `${replyTime.getHours().toString().padStart(2, "0")}:${replyTime.getMinutes().toString().padStart(2, "0")}`;
-
-      setMessages(prev => [...prev, {
-        id: `ai-${Date.now()}`,
-        sender: responderId,
-        text: responseText,
-        time: replyTimeStr,
-        type: "text",
-      }]);
-    }, 800 + Math.random() * 1200);
+      void (async () => {
+        const real = await fetchMemberReply(responderId, withUser);
+        const responses = AI_RESPONSES[responderId] || AI_RESPONSES["meta-oracle"];
+        const responseText = real ?? responses[Math.floor(Math.random() * responses.length)];
+        const replyTime = new Date();
+        const replyTimeStr = `${replyTime.getHours().toString().padStart(2, "0")}:${replyTime.getMinutes().toString().padStart(2, "0")}`;
+        setMessages(cur => [...cur, {
+          id: `ai-${Date.now()}`,
+          sender: responderId,
+          text: responseText,
+          time: replyTimeStr,
+          type: "text",
+        }]);
+      })();
+      return withUser;
+    });
+    setInput("");
   }, [input, activeChannel]);
 
   const channels = [

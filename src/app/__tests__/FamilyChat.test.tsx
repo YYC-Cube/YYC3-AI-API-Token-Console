@@ -14,6 +14,12 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter, Routes, Route, useLocation } from "react-router";
+
+// P2 零网络红线: 网关配置置空 → fetchMemberReply 直降级模拟语料 (不发外网请求)
+vi.mock("../lib/api-config", () => ({
+  getGatewayConfig: () => ({ gatewayBase: "", gatewayAdminKey: "proxy", gatewayApiKey: "" }),
+}));
+
 import { FamilyChat } from "../components/ai-family/FamilyChat";
 
 function LocationProbe() {
@@ -61,8 +67,9 @@ describe("ai-family/FamilyChat", () => {
     expect(sendBtn).toBeDisabled();
   });
 
-  it("Enter 发送消息后 AI 延时回复 (群聊随机家人)", () => {
-    vi.useFakeTimers();
+  it("Enter 发送消息后 AI 回复 (网关不可达降级模拟语料)", async () => {
+    // P2 真实化: 回复链 = fetchMemberReply(网关) → 失败降级 AI_RESPONSES。
+    // 单测零网络红线: gatewayBase 置空 → 直降级 (微任务即回复, 无 setTimeout)
     vi.spyOn(Math, "random").mockReturnValue(0.5); // responder=meta-oracle, 回复 index=2
     renderChat();
     const input = screen.getByPlaceholderText("和家人说点什么...");
@@ -72,7 +79,7 @@ describe("ai-family/FamilyChat", () => {
     expect(input).toHaveValue("");
     expect(screen.getByText("你")).toBeInTheDocument(); // 用户头像标识
 
-    act(() => { vi.advanceTimersByTime(1_500); });
+    await act(async () => { await Promise.resolve(); });
     expect(screen.getByText("好的，我来编排一个方案，兼顾性能和安全两个维度。")).toBeInTheDocument();
     expect(screen.getAllByText("天枢").length).toBeGreaterThanOrEqual(2); // 频道入口 + 回复者标注
   });
@@ -99,5 +106,39 @@ describe("ai-family/FamilyChat", () => {
     renderChat();
     fireEvent.click(screen.getByText("返回家园"));
     expect(screen.getByTestId("probe")).toHaveTextContent("/ai-family-home");
+  });
+});
+
+// ============================================================
+// P2 真实 LLM 回复 (2026-10-05): 网关命中 → 人格回复替代语料
+// ============================================================
+
+describe("FamilyChat 真实 LLM 回复", () => {
+  it("网关返回 choices → 使用真实回复文本", async () => {
+    vi.doMock("../lib/api-config", () => ({
+      getGatewayConfig: () => ({ gatewayBase: "https://gw.test/v1", gatewayAdminKey: "proxy", gatewayApiKey: "sk-test" }),
+    }));
+    vi.resetModules();
+    // 重新 import 后组件与本用例的 fetch mock 才共享新 api-config
+    const fetchMock = vi.fn(async () => new Response(
+      JSON.stringify({ choices: [{ message: { content: "这是天枢的真实调度回复。" } }] }), { status: 200 }
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+    const { FamilyChat: Chat } = await import("../components/ai-family/FamilyChat");
+    render(
+      <MemoryRouter><Routes><Route path="*" element={<Chat />} /></Routes></MemoryRouter>
+    );
+    const input = screen.getByPlaceholderText("和家人说点什么...");
+    fireEvent.change(input, { target: { value: "编排一个扩容方案" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await act(async () => { await Promise.resolve(); });
+    expect(await screen.findByText("这是天枢的真实调度回复。")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    expect(body.messages[0].role).toBe("system"); // 人格 prompt 首位
+    expect(body.messages[0].content).toContain("YYC³ AI Family");
+    vi.unstubAllGlobals();
+    vi.doUnmock("../lib/api-config");
+    vi.resetModules();
   });
 });

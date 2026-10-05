@@ -229,4 +229,6 @@ export interface WebSocketDataState {
   // 操作方法
   manualReconnect: () => void;
   clearAlerts: () => void;
+  /** 本地链路向全局告警流投递 (巡查阈值判定等, 与 WS alert 同队列) */
+  pushLocalAlert: (alert: AlertData) => void;
 }

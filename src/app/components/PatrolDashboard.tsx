@@ -18,12 +18,14 @@ import { PatrolReport } from "./PatrolReport";
 import { PatrolHistory } from "./PatrolHistory";
 import { usePatrol } from "../hooks/usePatrol";
 import { useI18n } from "../hooks/useI18n";
-import { ViewContext } from "../lib/view-context";
+import { ViewContext, WebSocketContext } from "../lib/view-context";
 
 export function PatrolDashboard() {
   const view = useContext(ViewContext);
   const isMobile = view?.isMobile ?? false;
   const { t } = useI18n();
+  // P1 告警真实化: 巡查 critical 判定 → 全局告警流 (顶栏/告警页同源)
+  const wsData = useContext(WebSocketContext);
 
   const {
     patrolStatus,
@@ -37,7 +39,7 @@ export function PatrolDashboard() {
     updateInterval,
     viewReport,
     closeReport,
-  } = usePatrol();
+  } = usePatrol({ onCritical: wsData?.pushLocalAlert });
 
   const [showScheduler, setShowScheduler] = React.useState(false);
 

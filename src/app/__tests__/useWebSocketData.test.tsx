@@ -432,3 +432,22 @@ describe("P2 端点热重建", () => {
     resetAPIConfig();
   });
 });
+
+// ============================================================
+// P1 pushLocalAlert: 本地链路 → 全局告警流 (2026-10-05)
+// ============================================================
+
+describe("pushLocalAlert", () => {
+  it("投递告警入队且与 WS alert 同上限语义", () => {
+    const { result } = renderHook(() => useWebSocketData());
+    expect(result.current.alerts).toEqual([]);
+    act(() => {
+      result.current.pushLocalAlert({ id: "a-1", level: "critical", message: "巡查严重异常", source: "patrol", timestamp: 1 });
+      result.current.pushLocalAlert({ id: "a-2", level: "warning", message: "存储接近阈值", source: "patrol", timestamp: 2 });
+    });
+    expect(result.current.alerts).toHaveLength(2);
+    expect(result.current.alerts[0].id).toBe("a-2"); // 最新在前
+    act(() => { result.current.clearAlerts(); });
+    expect(result.current.alerts).toEqual([]);
+  });
+});

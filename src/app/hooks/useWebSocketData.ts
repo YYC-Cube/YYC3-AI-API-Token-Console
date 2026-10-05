@@ -337,6 +337,12 @@ export function useWebSocketData(): WebSocketDataState {
     setAlerts([]);
   }, []);
 
+  // P1 真实告警入口 (2026-10-05): 本地链路 (巡查阈值判定等) 向全局告警流投递,
+  // 与 WS alert 消息同队列同上限 — 消费方经 WebSocketContext.pushLocalAlert 调用
+  const pushLocalAlert = useCallback((alert: AlertData) => {
+    setAlerts((prev) => [alert, ...prev].slice(0, 100));
+  }, []);
+
   return {
     connectionState,
     reconnectCount,
@@ -354,5 +360,6 @@ export function useWebSocketData(): WebSocketDataState {
     alerts,
     manualReconnect,
     clearAlerts,
+    pushLocalAlert,
   };
 }

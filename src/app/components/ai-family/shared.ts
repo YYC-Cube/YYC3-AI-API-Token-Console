@@ -502,6 +502,32 @@ export const DEFAULT_MODEL_ASSIGNMENTS: MemberModelAssignment[] = [
   { memberId: "creative",    providerId: "qwen",     modelId: "qwen-vl-max", purpose: "多模态创意生成" },
 ];
 
+// ═══ P2 对话真实化 (2026-10-05): 人格 prompt 构造 ═══
+
+/** 成员档案 → LLM system prompt (人格/专长/职责, 供 /console/gw 真实对话) */
+export function buildMemberSystemPrompt(memberId: string): string {
+  const m = getMember(memberId);
+  if (!m) return "你是 YYC³ AI Family 的家庭成员，请以温暖简洁的方式回复。";
+  return [
+    `你是 YYC³ AI Family 的成员「${m.name}」(${m.shortName} · ${m.enTitle})。`,
+    `座右铭: ${m.quote}`,
+    `角色定位: ${m.role}`,
+    `性格特质: ${m.personality}`,
+    `专业技能: ${m.expertise.join("、")}`,
+    `职责范围: ${m.responsibilities.join("、")}`,
+    `核心能力: ${m.coreAbility}`,
+    "要求: 保持本成员的语气与人设，回复简洁温暖（2-4 句），使用中文。",
+  ].join("\n");
+}
+
+/** 成员 → 分配模型 (未分配时回退 thinker 的 deepseek-chat) */
+export function memberModelId(memberId: string): string {
+  return (
+    DEFAULT_MODEL_ASSIGNMENTS.find((a) => a.memberId === memberId)?.modelId
+    ?? DEFAULT_MODEL_ASSIGNMENTS[1].modelId
+  );
+}
+
 // ═══ 内部通信消息 ═══
 export interface FamilyMessage {
   id: string;

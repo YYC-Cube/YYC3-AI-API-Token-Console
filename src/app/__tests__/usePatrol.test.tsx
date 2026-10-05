@@ -206,3 +206,43 @@ describe("usePatrol", () => {
     });
   });
 });
+
+// ============================================================
+// P1 巡查真实化 (2026-10-05): metrics 实况探测 + 告警投递
+// ============================================================
+
+describe("usePatrol 巡查真实化", () => {
+  const LIVE = {
+    ts: 1,
+    activeCount: "1/2",
+    nodes: [
+      { id: "n1", status: "active", latencyMs: 30, models: ["llama3:8b"] },
+      { id: "n2", status: "inactive", latencyMs: -1, models: [] },
+    ],
+  };
+
+  it("metrics 可达 → 实况检查项 + dataSource=live + critical 投递告警", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(LIVE), { status: 200 })));
+    const onCritical = vi.fn();
+    const { result } = renderHook(() => usePatrol({ onCritical }));
+    await act(async () => { await result.current.runPatrol("manual"); });
+    const r = result.current.currentResult;
+    expect(r?.dataSource).toBe("live");
+    expect(r?.checks.some((c) => c.label.includes("实况"))).toBe(true);
+    expect(r?.checks.some((c) => c.label === "节点在线率")).toBe(false); // 模板同类被剔除
+    // 1/2 在线 = 50% → critical → 告警投递
+    expect(onCritical).toHaveBeenCalledTimes(1);
+    expect(onCritical.mock.calls[0][0]).toMatchObject({ level: "critical", source: "patrol" });
+    vi.unstubAllGlobals();
+  });
+
+  it("metrics 不可达 → 纯模板降级 dataSource=template 且不投递告警", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("ECONNREFUSED"); }));
+    const onCritical = vi.fn();
+    const { result } = renderHook(() => usePatrol({ onCritical }));
+    await act(async () => { await result.current.runPatrol("manual"); });
+    expect(result.current.currentResult?.dataSource).toBe("template");
+    expect(onCritical).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+});

@@ -7,8 +7,10 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { getAPIConfig } from "../lib/api-config";
 import { usePersistedList } from "./usePersistedState";
 import type {
+  AlertData,
   PatrolStatus,
   CheckStatus,
   PatrolInterval,
@@ -189,10 +191,71 @@ function generateInitialHistory(): PatrolResult[] {
 }
 
 // ============================================================
+//  真实探测 (P1 巡查真实化 / 2026-10-05)
+// ============================================================
+
+/** metrics 端点返回的最小契约 (console-server collectNodeMetrics) */
+interface MetricsPayload {
+  activeCount?: string;
+  nodes?: Array<{ id: string; status: string; latencyMs: number; models?: string[] }>;
+}
+
+/**
+ * 拉取真实节点指标并映射为巡查检查项 (节点健康/延迟/模型负载)。
+ * 失败返回 null → 调用方回退模板评估 (本地降级语义)。
+ */
+async function fetchRealChecks(): Promise<PatrolCheckItem[] | null> {
+  try {
+    const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return null;
+    const data = (await r.json()) as MetricsPayload;
+    if (!Array.isArray(data.nodes) || data.nodes.length === 0) return null;
+
+    const total = data.nodes.length;
+    const active = data.nodes.filter((n) => n.status === "active");
+    const onlinePct = Math.round((active.length / total) * 100);
+    const latencies = active.map((n) => n.latencyMs).filter((v) => v >= 0);
+    const avgLatency = latencies.length
+      ? Math.round(latencies.reduce((s, v) => s + v, 0) / latencies.length)
+      : -1;
+    const loadedModels = new Set(active.flatMap((n) => n.models ?? [])).size;
+    const down = data.nodes.filter((n) => n.status !== "active").map((n) => n.id);
+
+    const checks: PatrolCheckItem[] = [
+      {
+        id: "chk-real-001", category: "节点健康", label: "节点在线率 (实况)",
+        status: onlinePct >= 95 ? "pass" : onlinePct >= 80 ? "warning" : "critical",
+        value: `${onlinePct}%`, threshold: "≥95%",
+        detail: `${active.length}/${total} 节点在线${down.length ? ` · 离线: ${down.join(", ")}` : ""}`,
+      },
+      {
+        id: "chk-real-002", category: "网络", label: "节点平均延迟 (实况)",
+        status: avgLatency < 0 ? "warning" : avgLatency < 50 ? "pass" : avgLatency < 100 ? "warning" : "critical",
+        value: avgLatency < 0 ? "N/A" : `${avgLatency}ms`, threshold: "<50ms",
+        detail: `来源: console-server 指标聚合 (${active.length} 在线节点)`,
+      },
+      {
+        id: "chk-real-003", category: "模型", label: "运行中模型 (实况)",
+        status: loadedModels > 0 ? "pass" : "warning",
+        value: `${loadedModels} 个`, threshold: ">0",
+        detail: active.map((n) => `${n.id}: ${n.models?.length ?? 0}`).join(" · ") || "无负载",
+      },
+    ];
+    return checks;
+  } catch {
+    return null;
+  }
+}
+
+/** 模板检查项中与实况重复的类别 → 实况优先时剔除 */
+const TEMPLATE_SKIP_WHEN_REAL = new Set(["节点健康", "网络"]);
+
+// ============================================================
 //  Hook
 // ============================================================
 
-export function usePatrol() {
+export function usePatrol(options: { onCritical?: (alert: AlertData) => void } = {}) {
+  const { onCritical } = options;
   const [patrolStatus, setPatrolStatus] = useState<PatrolStatus>("idle");
   const [currentResult, setCurrentResult] = useState<PatrolResult | null>(null);
   const [progress, setProgress] = useState(0);
@@ -221,6 +284,7 @@ export function usePatrol() {
     async (triggeredBy: "manual" | "auto" | "scheduled" = "manual") => {
       setPatrolStatus("running");
       setProgress(0);
+      const startedAt = Date.now();
 
       // 模拟渐进进度
       const steps = 5;
@@ -229,13 +293,32 @@ export function usePatrol() {
         setProgress(Math.round((i / steps) * 100));
       }
 
-      const checks = generateChecks();
+      // P1 真实化: 优先消费 console-server 指标聚合 (实况检查项替换同类模板),
+      // 端点不可达回退纯模板评估 — 零后端环境行为与既有完全一致
+      const realChecks = await fetchRealChecks();
+      const templateChecks = generateChecks().filter(
+        (c) => !(realChecks && TEMPLATE_SKIP_WHEN_REAL.has(c.category))
+      );
+      const checks = realChecks ? [...realChecks, ...templateChecks] : templateChecks;
       const result = buildResult(checks, triggeredBy);
+      result.duration = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+      result.dataSource = realChecks ? "live" : "template";
 
       setCurrentResult(result);
       setPatrolStatus("completed");
       setProgress(100);
       prependHistory(result);
+
+      // P1 告警真实化: 巡查阈值判定 → 全局告警流 (WebSocketContext.pushLocalAlert 消费)
+      if (realChecks && result.criticalCount > 0) {
+        onCritical?.({
+          id: `patrol-${result.timestamp}`,
+          level: "critical",
+          message: `巡查发现 ${result.criticalCount} 项严重异常 (健康度 ${result.healthScore}%)`,
+          source: "patrol",
+          timestamp: result.timestamp,
+        });
+      }
 
       setSchedule((s) => ({
         ...s,
@@ -244,10 +327,10 @@ export function usePatrol() {
       }));
 
       if (triggeredBy === "manual") {
-        toast.success(`巡查完成 — 健康度 ${result.healthScore}%`);
+        toast.success(`巡查完成 — 健康度 ${result.healthScore}%${realChecks ? " · 实况数据" : ""}`);
       }
     },
-    [prependHistory]
+    [prependHistory, onCritical]
   );
 
   // ── toggleAutoPatrol ───────────────────────────────────────

@@ -46,6 +46,8 @@ export interface PatrolResult {
   skippedCount: number;
   checks: PatrolCheckItem[];
   triggeredBy: "manual" | "auto" | "scheduled";
+  /** P1 巡查真实化: live=console-server 指标聚合实况 / template=本地模板评估 */
+  dataSource?: "live" | "template";
 }
 
 /** 巡查计划 */

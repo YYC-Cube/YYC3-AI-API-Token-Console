@@ -82,8 +82,11 @@ vi.mock("../hooks/usePatrol", () => ({
 }));
 
 // Mock Layout context
+// WebSocketContext (P1 告警真实化引入消费): 真 createContext null 默认值 —
+// 无 Provider 时 useContext 返回 null → 组件可选链安全降级
 vi.mock("../lib/view-context", () => ({
   ViewContext: React.createContext({ isMobile: false, isTablet: false, isDesktop: true, width: 1200, breakpoint: "lg", isTouch: false }),
+  WebSocketContext: React.createContext(null),
 }));
 
 import { PatrolDashboard } from "../components/PatrolDashboard";
