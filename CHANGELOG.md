@@ -7,7 +7,17 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-05
+
+### Security 安全
+
+- **Actions node24 对齐 + Runner 钉版（Node 20 已于 2026-09-23 从 runner 移除）**: 三 workflow 官方 actions 升 node24 首版——checkout v5 / setup-node v5 / upload-artifact **v6（v5 仍 node20 陷阱）** / download-artifact v5 / cache v5 / pnpm-setup v6 / configure-pages v6 / upload-pages-artifact v4 / deploy-pages v5；runner 钉 ubuntu-24.04（ubuntu-latest 2026-10-19 迁 Ubuntu 26，Playwright --with-deps apt 链未验证前不随迁，判例注 ci.yml 头部）；CI 实跑全绿 + 官方 actions Node20 告警清零；剩余 2 条第三方内部 runtime 告警（gitleaks-action v2.3.9 / codecov v5 内嵌 github-script）node24 强制跑通不阻断，留上游跟进
+  actions upgraded to node24-first versions across 3 workflows; runner pinned to ubuntu-24.04 ahead of the 2026-10-19 Ubuntu 26 migration
+
 ### Added 新增
+
+- **智能化脚本补全闭环（全维度协同）**: 新增 `lib/terminal-completions.ts` 引擎——上下文感知分派（命令→子命令→参数）+ 历史/频率持久化（yyc3_terminal_history/cmd_stats，LOCALSTORAGE_KEYS 注册）+ 频率加权排序（执行→统计→排序回流进化）+ 大小写不敏感匹配；五维协同补全源——`cpim node <TAB>` 补 nodeStore 真实节点 · `cpim model deploy <TAB>` 补 builtin-providers 69 模型 + 用户 configured models（零副作用 localStorage 读，与内置种子合并去重）· 新增 `family` 命令（8 位 AI Family 成员档案/详情，components 层注入分层桥接）· `goto <TAB>` 补对齐路由 · `env <TAB>` 补真实变量名；IntegratedTerminal chips 升级（来源徽标 历/节/模/家/路/环/AI + 中文描述 + tooltip）；跨会话历史导航 + `history` 命令真实化；浏览器实测 9/9 场景全过
+  intelligent terminal completion loop: context-aware engine + 5-dimension data sources + frequency-ranked feedback; 9/9 verified in browser
 
 - **覆盖率 80% 长期目标达成（收官冲刺批 6-7，全局 lines 65.18 → 91.77）**: 双代理四域并行补测——settings 六 sibling + 0% 小组件 9 件（A 域）/ ide 目录 11 文件 IntegratedTerminal 4.5→93.7 · GitPanel 4.5→97.7 等（B 域）/ ai-family 家族 14 文件全 0%→76-100（C1）/ pages+hooks+theme 10 文件 useOfflineMode·useYYC3Head·useInstallPrompt·useNetworkConfig·useReportExporter 全 0→100（C2）；全局四指标 lines **91.77** / branches 81.64 / functions 86.83 / statements 89.68；单测 2450→**2946**（+496，169 文件）；**thresholds 基线锁定提升** 38/31/36/36 → 90/85/80/88（vitest.config.ts + `__tests__/AGENTS.md` 同步），退化即 CI 阻断
   coverage 80% goal achieved: global lines 65.18→91.77 across 4 parallel domains; tests 2450→2946; thresholds locked at 90/85/80/88
@@ -36,6 +46,15 @@ All notable changes are documented here. Based on [Keep a Changelog](https://kee
   lint warnings cleared 84→0 across 48 files (imports/destructure/args + 9 cascaded); triple-verified green
 
 ### Fixed 修复
+
+- **gitleaks 8.24.3 假阳性拦截判例（CI 与本地工具版本必须对齐）**: action 内置 8.24.3 的 generic-api-key 对 `yyc3-family-*` localStorage 键名跨行拼接误报（FamilyVoiceSystem.test.tsx CONV_KEY），误拦 CI 且 Pages 部署被正确 skipped；本地 8.30.1 同款命令范围复现零命中确认假阳性，双 workflow `GITLEAKS_VERSION: "8.30.1"` 版本对齐治本（豁免只减不增纪律）
+  gitleaks 8.24.3 false-positive on yyc3-family-* keys fixed by pinning GITLEAKS_VERSION=8.30.1
+
+- **终端 goto 路由表死路径缺陷（7 条已重定向路径误导导航）**: 原表含 /terminal /ide /theme /refactoring /performance /host-files /data-editor（routes.ts v5 已全部改为重定向）且缺 /ai-family 系列 /connection-test /gateway-keys 活跃路由——补全表 v2 与 routes.ts 对齐 + `?raw` 静态提取守卫测试防漂移
+  terminal goto route table realigned with routes.ts (7 dead redirect paths removed, ai-family series added) + guard test
+
+- **IDETerminal 补全收敛（消除双份维护漂移源）**: 删除手工 COMPLETIONS 静态数组，改为 COMMAND_REGISTRY 程序化派生 + 特殊前缀分支补录，「能补全必可执行」语义自洽，测试零改动全绿（行为等价）
+  IDETerminal completions now derived from command registry (single source of truth)
 
 - **verifyDepsBeforeRun 复原 install（doctor 唯一 warning 清零，12/12 + 0 warning）**: 溯源发现 2026-09-24 `1dc16c7`（第四轮 boundaries 修复）将其无说明改为 `false`（commit message 与 diff 均无解释，疑似依赖调试临时关闭未复原）——与 Phase 1 Task 1.1 验收口径、doctor 8 项供应链策略清单、workspace 注释三方矛盾；本次复原为 `install` 并附溯源注释（防再次误改），`pnpm run` 系列实测无副作用（lockfile 一致时仅快速校验），doctor 供应链检查「8 项齐备」
   verifyDepsBeforeRun restored to install (silent drift in 1dc16c7); doctor now 12/12 with zero warnings

@@ -1,7 +1,7 @@
 {
   "name": "yyc3-ai-api-token-console",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "YYC³ AI Family Token Console — 本地闭环多端推理矩阵数据看盘系统",
   "keywords": [
     "api-token-console",
