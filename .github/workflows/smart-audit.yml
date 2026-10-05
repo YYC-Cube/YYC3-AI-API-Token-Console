@@ -1,0 +1,67 @@
+# ============================================================================
+#  YYC³ Smart Audit — 周期性质量快照 (2026-10-05)
+#  pnpm smart:audit 十维度一键审计 → smart-audit-report.json artifact 归档
+#
+#  定位: 趋势追踪快照 (每周一 01:00 UTC 定时 + 手动触发), 与常规 ci.yml
+#  六阶段互不替代 — CI 是每次 push 的门禁, 本工作流是周期性质量基线存档,
+#  artifact 保留 90 天供覆盖率/测试规模趋势回溯。
+#  本地随时可跑: pnpm smart:audit (84s 全链路)
+# ============================================================================
+name: YYC³ Smart Audit
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"  # 每周一 01:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smart-audit
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "11"
+
+jobs:
+  audit:
+    name: "🧠 十维度审计快照"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run smart audit (十维度)
+        run: pnpm smart:audit
+
+      - name: Upload audit report (90 天趋势归档)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: smart-audit-${{ github.run_id }}
+          path: smart-audit-report.json
+          retention-days: 90
+
+      - name: Upload coverage detail (辅助趋势)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: smart-audit-coverage-${{ github.run_id }}
+          path: coverage/coverage-summary.json
+          retention-days: 90
