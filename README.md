@@ -95,6 +95,7 @@ pnpm test:coverage  # 覆盖率 ≥ 门槛 (90/85/80/88 已锁定, 退化即阻�
 
 # 4'. 架构守护工具链 Architecture guards
 pnpm doctor         # 12 项环境/策略一键自诊断
+pnpm smart:audit    # 十维度全链路智能审计 (84s 快照 + JSON 报告, CI 周期归档)
 pnpm astgrep        # ast-grep 反模式扫描 (7 条规则 × ts/tsx 双语言)
 pnpm guardrail-probe # 门禁有效性探针 (植入违规样本断言真实拦截)
 pnpm size:check     # 文件体量门禁 (基线只减不增)
