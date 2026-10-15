@@ -25,11 +25,19 @@
 - **架构核对**: 分层契约（前端 boundaries / 后端 importlinter）全绿; 冻结文档 52→55 与生产实测一致; knip exports 基线 11→7 可下调（本批执行）。
 - **文档陈旧修复**: 全局导航文档（R3 归档 /loop /users 后未更新）、设置指南 WS 默认值等——见提交清单。
 
-### 留账（操作员/ECS）
+### ECS 最后一公里（同批完成 · SSH yyc3-33 接入后） ✅
 
-1. **ECS console 更新**（WS 101 + 新前端最后一公里）: 取 console-build.yml artifact（或本地 `pnpm build:console` 的 dist-console）替换 ECS console 静态目录并重启; 更新后 `curl -i -N --http1.1 -H "Connection: Upgrade" …/console/ws/monitor` 应得 101/401。
-2. **ECS console-server 补鉴权环境变量**（上述安全发现）。
-3. 冒烟脚本 SMOKE_FAIL 根因（独立于网关健康）。
+- **console 产物更新**: /opt/yyc3/console（PM2 `yyc3-console` 守护, Node 18）; dist 替换（备份 backup-<ts>/）+ 四 mjs 服务件全量升级; PM2 restart + save。
+- **鉴权加固（安全发现闭环）**: console.env（600 权限）注入 CONSOLE_AUTH_SECRET/ADMIN_PASSWORD（openssl 随机生成; 密码存 ECS `/root/.yyc3-console-cred`, 600）+ 保留原 GW_ADMIN_KEY; PM2 环境继承。实测: 未认证 `/console/gw/*` → **401**（修复前任意访客 200）; 登录 → HttpOnly Cookie → 带 cookie 200。
+- **WS 101 全链路实测达成**: 带 cookie Upgrade → **HTTP/1.1 101 Switching Protocols + Sec-Websocket-Accept=s3pPLMBiTxaQ9kYGzzhZRbK+xOo=（RFC 6455 官方向量回环）**; 未认证 → 401 JSON。Traefik v3 Upgrade 透传生产实证。
+- **新判例: ECS Node 18 无全局 WebSocket** → console-server 增 `resolveUpstreamWsClient()` 双通道（Node≥21 全局 / Node 18 回退 `ws` 库动态 import + 事件适配器; 仓库保持零依赖声明, ECS 侧 npm i ws@8.18.0）; 集成测试复验 2/2。
+- **SMOKE_FAIL 根因**: 重建窗口期竞态（smoke-test.sh 在容器 healthcheck 转绿前跑 /health; 现跑 1 通过/0 失败）——脚本可加 healthy 等待, 非阻断留档。
+
+### 留账
+
+1. ECS console 密码托管于 `/root/.yyc3-console-cred`（owner 查看方式: `ssh yyc3-33 "cat /root/.yyc3-console-cred"`）。
+2. smoke-test.sh 可加 compose healthy 等待（低优先）。
+3. GitHub 远端 403（backend origin 指向 GitHub 但无凭据）——代码分发目前依赖 gitbucket + bundle, 可选补 GitHub deploy key。
 
 ---
 

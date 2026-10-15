@@ -300,7 +300,32 @@ const server = http.createServer(async (req, res) => {
 // 零 npm 依赖: Node 全局 WebSocket 仅作客户端连网关; 浏览器侧服务端帧由 console-ws-relay.mjs
 // 手写最小 RFC 6455（握手/文本帧/ping-pong/close, 不支持分片压缩——本中继浏览器侧不发业务分片）。
 // 透传方向: 网关 {event:"metrics"} 帧 → 浏览器（前端 gateway-adapter 翻译, 见 P0-2）。
-server.on("upgrade", (req, socket, head) => {
+// 网关侧 WS 客户端解析: Node≥21 用全局; Node 18 回退 ws 库（事件模型适配为 onmessage 风格）
+async function resolveUpstreamWsClient() {
+  if (typeof globalThis.WebSocket === "function") return globalThis.WebSocket;
+  try {
+    const mod = await import("ws");
+    const WsLib = mod.default ?? mod.WebSocket;
+    if (typeof WsLib !== "function") return null;
+    /** ws 库 → WHATWG onmessage 风格适配器 */
+    return class WsAdapter {
+      constructor(url) {
+        this._ws = new WsLib(url);
+        this._ws.on("message", (data) => {
+          this.onmessage?.({ data: typeof data === "string" ? data : Buffer.from(data) });
+        });
+        this._ws.on("close", () => this.onclose?.());
+        this._ws.on("error", () => this.onerror?.());
+      }
+      send(data) { this._ws.send(data); }
+      close() { try { this._ws.close(); } catch { /* 已关闭 */ } }
+    };
+  } catch {
+    return null;
+  }
+}
+
+server.on("upgrade", async (req, socket, head) => {
   const url = new URL(req.url || "/", "http://x");
   if (decodeURIComponent(url.pathname) !== WS_MONITOR_PATH) {
     socket.write(rawRejectResponse(404, `非中继端点（仅 ${WS_MONITOR_PATH}）`));
@@ -316,9 +341,15 @@ server.on("upgrade", (req, socket, head) => {
     return socket.destroy();
   }
   const derived = deriveGatewayWsUrl(GW_ORIGIN, GW_ADMIN_KEY);
-  const NodeWS = globalThis.WebSocket;
-  if (!derived.ok || typeof NodeWS !== "function") {
-    socket.write(rawRejectResponse(503, derived.ok ? "当前 Node 运行时无全局 WebSocket（需 Node≥21）" : derived.error));
+  if (!derived.ok) {
+    socket.write(rawRejectResponse(503, derived.error));
+    return socket.destroy();
+  }
+  // 网关侧 WS 客户端解析: 优先全局 WebSocket（Node≥21）; Node 18 回退 `ws` 库
+  // （ECS 侧 npm i ws --omit=dev; 仓库保持零依赖声明, 动态可选加载, 缺失时如实 503）
+  const NodeWS = await resolveUpstreamWsClient();
+  if (!NodeWS) {
+    socket.write(rawRejectResponse(503, "当前 Node 运行时无全局 WebSocket 且未安装 ws 库（Node≥21 或 npm i ws）"));
     return socket.destroy();
   }
 
