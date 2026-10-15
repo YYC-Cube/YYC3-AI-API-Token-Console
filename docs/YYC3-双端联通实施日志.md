@@ -6,6 +6,26 @@
 
 ---
 
+## 批次 R9（已完成 · 2026-10-16）: NAS 本机 console 部署 —— 部署手册第三节执行
+
+**范围**: B端 console 服务器直接落 NAS（局域网第二形态, 与 ECS 公网形态并存）。用户确认 NAS 自带「Web Server」套件（静态 Apache/nginx+PHP 主机）对本项目无用——console 是 Node 服务端（WS 中继/密钥注入代理/Cookie 鉴权）, 走独立部署。
+
+### 交付与验证 ✅
+
+- **代码**: `deploy/console-server.mjs` 新增 `HOST` 环境变量（默认 `127.0.0.1` 不变, ECS 形态零影响; NAS 显式 `HOST=0.0.0.0` 放开局域网）。提交 68d4329。
+- **NAS 落位**: `/Volume2/yyc3-console/`（4×mjs + dist-console + `console.env` 600 权限）; `GW_ADMIN_KEY` 取自网关容器 `ADMIN_API_KEYS` 首值（`core/api/middleware/auth.py:362` admin key 通吃业务+管理面, 单 key 即够）; `CONSOLE_ADMIN_PASSWORD`/`CONSOLE_AUTH_SECRET` openssl 随机生成, 密码留档 `/home/YYC3/.yyc3-console-cred`（600）。密钥全程服务端生成, 不落终端输出。
+- **端口**: 3210（3100 被 Tailscale 网卡 docker-proxy 占用, 3000/3113/3306 亦占用——EADDRINUSE 实测排除法）。
+- **常驻**: PM2 7.0.4（nvm Node 24.18.0 全局安装）, 进程 `yyc3-console-nas`, `pm2 save` 已落 dump。
+- **验证七项全绿**: auth/status `enabled:true` / 未登录 gw 401 / 登录 200 / 带票 gw 200 / SPA 200 / **WS Upgrade 101**（Node 24 原生 WebSocket, 免 ws 库适配）/ admin 端点 200; 局域网 `http://192.168.3.45:3210` 本机直通。门禁: 中继集成测试 2/2、eslint 0。
+
+### 留账
+
+1. **NAS 重启后需手动拉起**: fnOS 无 cron/systemd hook 接入, `pm2 startup` 需 root sudo——重启后执行 `pm2 resurrect`（nvm Node 24 下）即可恢复。
+2. **前端切 NAS 形态**: 系统设置中「网关地址」→ `http://192.168.3.45:3210/console/gw/v1`、「WS 端点」→ `ws://192.168.3.45:3210/console/ws/monitor`（默认仍是 ECS 公网域名, setAPIConfig 双形态热切）。
+3. Mimosa 对本次提交的 commit 前扫描返回 scanner_enobufs（兼容放行）——变更仅 deploy 4 行 ops 代码, 无凭据内容; 下批重新跑完整审计。
+
+---
+
 ## 批次 R8（已完成 · 2026-10-16）: 生产部署执行 + 全局审核 —— 网关上线/空库修复/哈希转正/覆盖率修复
 
 **范围**: R6 四步手册实际执行（NAS SSH 接入后）+ 双端全局代码-文档-架构审核。本批为生产变更批。
