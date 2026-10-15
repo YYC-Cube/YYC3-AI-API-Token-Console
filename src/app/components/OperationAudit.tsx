@@ -98,7 +98,7 @@ export function OperationAudit() {
     const report = {
       ...log,
       exportedAt: new Date().toISOString(),
-      fullTimestamp: `2026-02-22 ${log.time}`,
+      fullTimestamp: log.time,
     };
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -380,7 +380,7 @@ export function OperationAudit() {
             <div className="space-y-3">
               {[
                 { k: t("audit.fieldAuditId"), v: detailLog.id },
-                { k: t("audit.fieldTime"), v: `2026-02-22 ${detailLog.time}` },
+                { k: t("audit.fieldTime"), v: detailLog.time },
                 { k: t("audit.fieldUser"), v: detailLog.user },
                 { k: t("audit.fieldRole"), v: detailLog.role },
                 { k: t("audit.fieldAction"), v: detailLog.action },
@@ -395,6 +395,22 @@ export function OperationAudit() {
                 </div>
               ))}
             </div>
+            {detailLog.requestId && (
+              <button
+                onClick={() => {
+                  void audit.traceRequestId(detailLog.requestId!).then(({ count }) => {
+                    toast.success(
+                      count > 0 ? `链路命中 ${count} 条（request_id: ${detailLog.requestId}）` : `链路无命中（request_id: ${detailLog.requestId}）`,
+                      { style: toastStyle },
+                    );
+                  });
+                }}
+                className="w-full mt-3 px-3 py-2 rounded-lg bg-[rgba(191,0,255,0.1)] border border-[rgba(191,0,255,0.3)] text-[#d9a8ff] hover:bg-[rgba(191,0,255,0.18)] transition-all"
+                style={{ fontSize: "0.72rem" }}
+              >
+                链路检索 · request_id: {detailLog.requestId}
+              </button>
+            )}
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => handleTraceLink(detailLog)}

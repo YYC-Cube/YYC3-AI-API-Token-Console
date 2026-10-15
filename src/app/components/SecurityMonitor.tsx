@@ -27,10 +27,12 @@ import {
   Wifi,
   XCircle,
   Zap,
+  ServerCog,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useI18n } from "../hooks/useI18n";
 import { useSecurityMonitor } from "../hooks/useSecurityMonitor";
+import { getAPIConfig } from "../lib/api-config";
 import type { RiskLevel, SecurityTab, VitalRating } from "../types";
 import { GlassCard } from "./GlassCard";
 
@@ -640,8 +642,77 @@ export function SecurityMonitor() {
   const state = useSecurityMonitor();
   const { activeTab, setActiveTab, scanStatus, startScan, lastScanTime, overallScore, overallRisk } = state;
 
+  // ── R7 网关视角卡（真实源: /console/metrics 聚合的网关 /health 快照, 30s 轮询）──
+  const [gatewayHealth, setGatewayHealth] = useState<{
+    status?: string; version?: string; uptime_seconds?: number;
+    services?: Record<string, { status?: string }>;
+    system?: { cpu_percent?: number; memory_percent?: number; disk_percent?: number };
+  } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (typeof fetch !== "function") return;
+      try {
+        const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(6000) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = (await r.json()) as { gateway?: { health?: typeof gatewayHealth } | null };
+        if (alive && d.gateway?.health) setGatewayHealth(d.gateway.health);
+      } catch { /* 网关卡降级为空态, 不影响浏览器自检主卡 */ }
+    };
+    void load();
+    const timer = setInterval(() => { void load(); }, 30_000);
+    return () => { alive = false; clearInterval(timer); };
+  }, []);
+
   return (
     <div className="space-y-4 max-w-[1400px] mx-auto">
+      {/* R7 网关视角卡（真实 /health 快照; 不可达空态） */}
+      <GlassCard className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <ServerCog className="w-4 h-4 text-[#00ff88]" />
+            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>网关视角（NAS · 30s 轮询）</span>
+          </div>
+          <span
+            className="px-2 py-0.5 rounded-full"
+            style={{
+              fontSize: "0.6rem",
+              color: gatewayHealth?.status === "healthy" ? "#00ff88" : gatewayHealth ? "#ff3366" : "rgba(0,212,255,0.35)",
+              border: `1px solid ${gatewayHealth?.status === "healthy" ? "rgba(0,255,136,0.3)" : "rgba(255,51,102,0.3)"}`,
+            }}
+          >
+            {gatewayHealth ? (gatewayHealth.status === "healthy" ? "healthy" : gatewayHealth.status) : "不可达（空态）"}
+          </span>
+        </div>
+        {gatewayHealth ? (
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(gatewayHealth.services ?? {}).map(([name, sv]) => (
+                <span key={name} className="px-2 py-1 rounded-md" style={{ fontSize: "0.62rem", background: "rgba(0,20,40,0.35)", border: "1px solid rgba(0,180,255,0.08)", color: sv.status === "healthy" || sv.status === "configured" ? "#00ff88" : "#ff6464" }}>
+                  {name}: {sv.status ?? "?"}
+                </span>
+              ))}
+            </div>
+            {(gatewayHealth.system?.cpu_percent !== undefined || gatewayHealth.system?.disk_percent !== undefined) && (
+              <div className="grid grid-cols-3 gap-2">
+                {([["CPU", gatewayHealth.system?.cpu_percent], ["内存", gatewayHealth.system?.memory_percent], ["磁盘", gatewayHealth.system?.disk_percent]] as const).map(([label, v]) => (
+                  <div key={label} className="px-2 py-1.5 rounded-md bg-[rgba(0,20,40,0.35)] border border-[rgba(0,180,255,0.06)]">
+                    <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>{label}</div>
+                    <div style={{ fontSize: "0.78rem", color: (v ?? 0) > 80 ? "#ff6464" : "#e0f0ff" }}>{typeof v === "number" ? `${v.toFixed(1)}%` : "—"}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+              v{gatewayHealth.version ?? "?"} · 运行 {Math.floor((gatewayHealth.uptime_seconds ?? 0) / 3600)}h（真实 /health）
+            </div>
+          </div>
+        ) : (
+          <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.72rem" }}>
+            网关快照不可达（/console/metrics）— 部署 console-server 后此卡呈现真实网关健康。
+          </div>
+        )}
+      </GlassCard>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

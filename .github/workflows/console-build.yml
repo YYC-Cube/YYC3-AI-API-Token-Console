@@ -1,0 +1,55 @@
+name: console-build
+
+# R7 双产物流水线（双端联通）: console 同源形态构建产物
+# Pages 演示形态由 pages.yml 负责（dist）; 本流产出 dist-console
+# （VITE_BASE=/console/ 子路径构建 + SW 预缓存注入）, 打 zip 供 NAS 部署
+# （api.0379.world/console/ —— Cookie 会话 + 网关代理的完整联通形态）。
+# 触发: 手动 workflow_dispatch（发版节奏与 release.yml 解耦, 部署侧拉取 artifact）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "构建备注（写入 artifact 名, 便于追溯）"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "10.13.1"
+  NODE_VERSION: "24"
+
+jobs:
+  build-console:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck + lint（门禁前置）
+        run: pnpm typecheck && pnpm lint
+
+      - name: Build console artifact（VITE_BASE=/console/ → dist-console）
+        run: pnpm build:console
+
+      - name: Zip
+        run: cd dist-console && zip -r ../yyc3-console-${{ github.ref_name }}${{ inputs.note != '' && format('-{0}', inputs.note) || '' }}.zip . && cd ..
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: yyc3-console-${{ github.ref_name }}${{ inputs.note != '' && format('-{0}', inputs.note) || '' }}
+          path: yyc3-console-*.zip
+          retention-days: 30

@@ -29,6 +29,7 @@
     "dev": "vite --port 3030",
     "dev:host": "vite --port 3030 --host",
     "build": "vite build && node scripts/inject-precache.mjs",
+    "build:console": "VITE_BASE=/console/ vite build --outDir dist-console && node scripts/inject-precache.mjs dist-console",
     "preview": "vite preview --port 3030",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 500",

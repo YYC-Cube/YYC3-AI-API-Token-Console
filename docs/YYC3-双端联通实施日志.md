@@ -6,6 +6,32 @@
 
 ---
 
+## 批次 R7（已完成 · 2026-10-16）: 增值三项 — request_id 链路检索 + /security 网关卡 + console 双产物流水线
+
+**范围**: R7 可选增值项全部落地, 双端联通工程收口。门禁: 后端快层 **292/292** + flake8/importlinter 绿; 前端 typecheck/lint 0 · 单测全过 · size/knip/build + build:console 全绿。
+
+### request_id 链路检索（A+B） ✅
+
+- 后端: `/v1/logs` 增 `request_id` 精确过滤（NULL 守卫绑定参数, 查询+计数双 SQL 同步）; 测试 +1（种子行带 chatcmpl-trace-001, 命中/未命中双断言）。
+- 前端: useGatewayAudit 增 `traceRequestId`（精确检索近 24h 流水）; GatewayAuditLog 增 requestId 字段; /audit 详情抽屉——request_id 存在时渲染「链路检索」按钮（toast 命中数）; 顺带清除 `2026-02-22` 假日期前缀两处（导出报告/详情字段, mock 残留）。测试 +1。
+
+### /security 网关视角卡（C） ✅
+
+- SecurityMonitor 顶部新增「网关视角（NAS · 30s 轮询）」卡: /console/metrics 聚合的网关 /health 快照——healthy 徽标 · services 依赖徽标组（ollama/redis/postgresql/zhipu）· CPU/内存/磁盘三格（>80% 红）· 版本+运行时长; 不可达空态提示（不影响浏览器自检主卡）。
+
+### console 双产物流水线（D） ✅
+
+- `pnpm build:console`: VITE_BASE=/console/ → **dist-console**（+ SW 预缓存注入）; inject-precache.mjs 参数化产物目录（默认 dist 不变, 幂等/成功日志同步去硬编码）。
+- `.github/workflows/console-build.yml`: workflow_dispatch 手动触发 → 门禁前置（typecheck+lint）→ build:console → zip → 30 天 artifact（NAS 部署侧拉取; Pages 演示形态仍由 pages.yml 的 dist 负责）。
+- 实测: 双产物各自注入成功（dist 90 项 / dist-console 90 项 hash 独立）; 判例: **构建产物目录必须同步进 eslint ignores**（dist-console 未忽略时 lint 扫产物 200+ error）。
+
+### 工程总账（R1~R7）
+
+双端联通方案全部落地: 硬约束①（监控面板多端真实·四源设备清单·设备可编辑增减）②（钟盘 A2A 真实心跳）③（后端操作项 13 技能全封装）; P0 八项 + P1 数据面四端点与消费页 + P2 治理（契约守卫/E2E/生产实测运行手册）+ R7 增值三项。生产部署四步手册见 R6 批。
+
+---
+---
+
 ## 批次 R6（已完成 · 2026-10-15）: P2 治理 — 契约 E2E + OCR/ASR/MCP 技能 + 生产实测与哈希流程
 
 **范围**: 契约守卫（双仓）/ 中继链真实进程 E2E / §11 技能补全 / 生产可达性实测。门禁: 后端快层全过 + flake8/importlinter 绿 + 契约守卫 4/4; 前端 typecheck/lint 0 · 单测全过 · size/knip/astgrep/build 全绿 · integration E2E 2/2。

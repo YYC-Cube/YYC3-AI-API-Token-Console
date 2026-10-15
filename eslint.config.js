@@ -10,6 +10,7 @@ export default tseslint.config(
   {
     ignores: [
       "dist/**",
+      "dist-console/**", // R7 双产物: console 同源形态构建产物（build:console 输出）
       "coverage/**",
       "node_modules/**",
       "src/app/ci/**", // CI 配置历史归档

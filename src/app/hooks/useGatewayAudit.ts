@@ -20,6 +20,8 @@ export interface GatewayAuditLog {
   ip: string;
   status: "success" | "failed";
   risk: "low" | "medium" | "high";
+  /** 网关响应链路 id（R7 链路检索锚点; 直连/未提供为 null） */
+  requestId?: string | null;
 }
 
 export interface GatewayAuditState {
@@ -31,6 +33,8 @@ export interface GatewayAuditState {
   total: number;
   fetchedAt: string | null;
   refresh: () => void;
+  /** R7 链路跳转: 按 request_id 精确检索网关流水 */
+  traceRequestId: (requestId: string) => Promise<{ count: number; logs: GatewayAuditLog[] }>;
 }
 
 const POLL_MS = 60_000;
@@ -68,6 +72,7 @@ function mapLog(l: RawLog): GatewayAuditLog {
     ip: l.upstream ?? "—", // 无真实来源 IP 源 — 用上游名, 不伪造 IP
     status: isErr ? "failed" : "success",
     risk: isErr ? "high" : (l.latency_ms ?? 0) > 3000 ? "medium" : "low",
+    requestId: l.request_id ?? null,
   };
 }
 
@@ -131,5 +136,18 @@ export function useGatewayAudit(): GatewayAuditState {
     return () => clearInterval(timer);
   }, [load]);
 
-  return { logs, trend, riskDistribution, sourceOk, total, fetchedAt, refresh: () => { void load(); } };
+  const traceRequestId = useCallback(async (requestId: string) => {
+    try {
+      const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
+      const r = await fetch(`${base}/v1/logs?minutes=1440&limit=10&request_id=${encodeURIComponent(requestId)}`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = (await r.json()) as { total?: number; logs?: RawLog[] };
+      const raws = d.logs ?? [];
+      return { count: d.total ?? raws.length, logs: raws.map(mapLog) };
+    } catch {
+      return { count: 0, logs: [] };
+    }
+  }, []);
+
+  return { logs, trend, riskDistribution, sourceOk, total, fetchedAt, refresh: () => { void load(); }, traceRequestId };
 }

@@ -21,7 +21,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DIST = join(ROOT, "dist");
+// R7 双产物: 可选第一参数指定产物目录（默认 dist; build:console 传 dist-console）
+const DIST = join(ROOT, process.argv[2] || "dist");
 const SW_PATH = join(DIST, "sw.js");
 const PLACEHOLDER = "const PRECACHE_MANIFEST = [];";
 
@@ -41,8 +42,9 @@ async function listAssets(dir, prefix = "") {
 
 const sw = await readFile(SW_PATH, "utf8");
 if (!sw.includes(PLACEHOLDER)) {
+  const distLabel = DIST.slice(ROOT.length + 1);
   console.error(
-    "[inject-precache] 占位符未找到 — dist/sw.js 可能已被注入或 sw.js 源文件被改动, 拒绝盲写"
+    `[inject-precache] 占位符未找到 — ${distLabel}/sw.js 可能已被注入或 sw.js 源文件被改动, 拒绝盲写`
   );
   process.exit(1);
 }
@@ -65,8 +67,9 @@ const injected = sw.replace(
 await writeFile(SW_PATH, injected, "utf8");
 
 const totalKB = (assets.reduce((s, a) => s + a.size, 0) / 1024).toFixed(1);
+const distLabel = DIST.slice(ROOT.length + 1); // 相对仓根目录名（dist / dist-console）
 console.log(
-  `[inject-precache] ✓ 已注入 ${assets.length} 项产物清单 (${totalKB} KB) → dist/sw.js`
+  `[inject-precache] ✓ 已注入 ${assets.length} 项产物清单 (${totalKB} KB) → ${distLabel}/sw.js`
 );
 
 // ---- 预热体积观测 (批13) ----------------------------------------------------

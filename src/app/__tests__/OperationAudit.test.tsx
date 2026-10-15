@@ -52,7 +52,7 @@ vi.mock("sonner", () => ({
 // ── R5: 数据源 hook mock（真实形状: /v1/logs 映射产物）──
 const AUDIT_FIXTURE = {
   logs: [
-    { id: "LOG-1006", time: "14:32:08", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "glm-4-flash ← zhipu · 900 tok · 800ms", ip: "zhipu", status: "success" as const, risk: "low" as const },
+    { id: "LOG-1006", time: "14:32:08", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "glm-4-flash ← zhipu · 900 tok · 800ms", ip: "zhipu", status: "success" as const, risk: "low" as const, requestId: "chatcmpl-e2e-006" },
     { id: "LOG-1005", time: "14:28:45", user: "网关直连", role: "chat", action: "chat 请求（upstream_error）", target: "deepseek-v4 ← deepseek · 0 tok · 5200ms", ip: "deepseek", status: "failed" as const, risk: "high" as const },
     { id: "LOG-1004", time: "14:25:10", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "qwen3 ← vllm · 400 tok · 3500ms", ip: "vllm", status: "success" as const, risk: "medium" as const },
     { id: "LOG-1003", time: "14:20:55", user: "vk-efef9090", role: "chat", action: "chat 请求", target: "glm-4-flash ← zhipu · 700 tok · 600ms", ip: "zhipu", status: "success" as const, risk: "low" as const },
@@ -74,6 +74,7 @@ const AUDIT_FIXTURE = {
   total: 42,
   fetchedAt: "14:32:10",
   refresh: vi.fn(),
+  traceRequestId: vi.fn(async () => ({ count: 1, logs: [] })),
 };
 
 vi.mock("../hooks/useGatewayAudit", () => ({
@@ -156,6 +157,14 @@ describe("OperationAudit 扩展覆盖（R5 真实数据源）", () => {
     fireEvent.click(screen.getByText("audit.exportReport"));
     expect(toast.success).toHaveBeenCalledWith("报告已导出", expect.anything());
     expect(screen.queryByText("audit.detailTitle")).not.toBeInTheDocument();
+  });
+
+  it("R7 链路检索: 详情抽屉 request_id 按钮 → traceRequestId → toast 命中数", () => {
+    render(<OperationAudit />);
+    fireEvent.click(screen.getByText("LOG-1006").closest("tr")!);
+    const btn = screen.getByText(/链路检索 · request_id: chatcmpl-e2e-006/);
+    fireEvent.click(btn);
+    expect(AUDIT_FIXTURE.traceRequestId).toHaveBeenCalledWith("chatcmpl-e2e-006");
   });
 
   it("导出全量按钮触发下载与 toast（计数=当前筛选集）", () => {

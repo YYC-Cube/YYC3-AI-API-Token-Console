@@ -289,7 +289,7 @@ BL-A1~A4 落地 → `/audit` 请求级审计真实、`/alerts`+`/follow-up` 服�
 
 ### P2 — 治理与增值
 
-契约 E2E（后端 `tests/e2e/` Playwright 已有基建，补 Console 关键路径）；`/security` 增网关视角卡片；Pages 演示形态发布流水线（`VITE_ENABLE_MOCK=true` 构建）。~~AI Family 钟盘接 A2A 心跳~~ 已按硬约束②前置至 P0-8。
+契约 E2E（后端 `tests/e2e/` Playwright 已有基建，补 Console 关键路径）；`/security` 增网关视角卡片 ✅R7；Pages 演示形态发布流水线（pages.yml 既有; console 双产物 ✅R7 build:console+console-build.yml）。~~AI Family 钟盘接 A2A 心跳~~ 已按硬约束②前置至 P0-8。
 
 ---
 
