@@ -63,7 +63,7 @@ describe("useSettingsStore", () => {
       expect(result.current.settings.darkMode).toBe(true);
       expect(result.current.settings.alertSlack).toBe(false);
       expect(result.current.values.systemName).toBe("YYC³ CloudPivot Intelli-Matrix v3.2");
-      expect(result.current.values.wsEndpoint).toBe("ws://localhost:3113/ws");
+      expect(result.current.values.wsEndpoint).toBe("wss://api.0379.world/console/ws/monitor");
     });
 
     it("持久化的部分字段应与默认值合并", () => {

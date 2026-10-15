@@ -390,7 +390,7 @@ export function AddModelModal({
               <label className="flex items-center gap-1 mb-2">
                 <span className="text-[#ff3366]" style={{ fontSize: "0.75rem" }}>*</span>
                 <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>
-                  {t("modelProvider.apiKey")}
+                  {t("modelProvider.apiKeyLabel")}
                 </span>
               </label>
               <div className="relative">
@@ -399,7 +399,7 @@ export function AddModelModal({
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={t("modelProvider.enterApiKey")}
+                  placeholder={t("modelProvider.enterApiKeyPlaceholder")}
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.2)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.3)] focus:outline-none focus:border-[rgba(0,212,255,0.5)] transition-all"
                   style={{ fontSize: "0.85rem" }}
                   data-testid="api-key-input"

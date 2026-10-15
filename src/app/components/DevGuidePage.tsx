@@ -56,7 +56,7 @@ const TECH_CHOICES: TechChoice[] = [
   },
   {
     feature: "实时数据",
-    technology: "WebSocket (ws://localhost:3113/ws)",
+    technology: "WebSocket (wss://api.0379.world/console/ws/monitor 网关中继)",
     reason: "本地低延迟、双向通信、100ms 节流",
     icon: Cpu,
     status: "active",

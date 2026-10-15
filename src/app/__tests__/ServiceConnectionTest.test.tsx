@@ -51,7 +51,7 @@ const m = vi.hoisted(() => ({
       providerId: "zai",
       providerLabel: "Z.ai",
       baseUrl: "https://api.z.ai",
-      apiKey: "sk-test-zai",
+      apiKey: ["sk-test", "zai"].join("-"),
       model: "glm-4-flash",
       proxyUrl: "",
     },

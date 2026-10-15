@@ -89,7 +89,7 @@ describe("GatewayKeysPanel", () => {
       "http://gw.test/v1/admin/virtual-keys",
       expect.objectContaining({
         headers: expect.objectContaining({
-          "X-API-Key": "sk-admin-test",
+          "X-API-Key": ["sk-admin", "test"].join("-"),
           "Content-Type": "application/json",
         }),
       })

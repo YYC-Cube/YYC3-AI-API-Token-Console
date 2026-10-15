@@ -17,6 +17,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
+import { matchAgentToMember, useA2AAgents } from "../hooks/useA2AAgents";
 
 // ======== AI Family 成员数据 ========
 
@@ -202,6 +203,15 @@ export function AIFamilyPage() {
   const [activeSpeaker, setActiveSpeaker] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const { width: cW, height: cH } = useContainerSize(containerRef);
+
+  // A2A 真实心跳（双端联通 P0-8 / 硬约束②）: 30s 轮询网关注册表,
+  // 家人在线态=匹配 Agent 容器心跳（≤90s）, 不再用静态 status 字段冒充
+  const { agents: liveAgents, fetchedAt: agentsFetchedAt } = useA2AAgents();
+  const liveByMember = new Map(
+    AI_FAMILY_MEMBERS.map((m) => [m.id, matchAgentToMember(m.name, liveAgents)] as const),
+  );
+  const onlineMembers = AI_FAMILY_MEMBERS.filter((m) => liveByMember.get(m.id)?.online).length;
+  const onlineContainers = liveAgents.filter((a) => a.online).length;
 
   // Simulated speaking rotation
   useEffect(() => {
@@ -417,7 +427,9 @@ export function AIFamilyPage() {
         const angleRad = (member.angle - 90) * (Math.PI / 180);
         const x = Math.cos(angleRad) * RING_RADIUS;
         const y = Math.sin(angleRad) * RING_RADIUS;
-        const isSpeaking = idx === activeSpeaker;
+        const live = liveByMember.get(member.id);
+        // 发言轮换仅在真实在线时呈现（离线成员不冒充发言）
+        const isSpeaking = idx === activeSpeaker && (live?.online ?? false);
         const isHovered = hoveredMember === member.id;
         const isSelected = selectedMember?.id === member.id;
         const Icon = member.icon;
@@ -453,6 +465,7 @@ export function AIFamilyPage() {
                     ? `0 0 15px ${member.color}20`
                     : "none",
                 transform: isHovered ? "scale(1.1)" : "scale(1)",
+                opacity: live?.online || isSpeaking ? 1 : 0.6,
               }}
             >
               <Icon
@@ -474,8 +487,8 @@ export function AIFamilyPage() {
                   height: LED_SIZE,
                   left: MEMBER_SIZE / 2 + ledOffsetX - LED_SIZE / 2,
                   top: MEMBER_SIZE / 2 + ledOffsetY - LED_SIZE / 2,
-                  background: isSpeaking ? "#FF006E" : member.status === "online" ? "rgba(0,255,136,0.4)" : "rgba(128,128,128,0.3)",
-                  boxShadow: isSpeaking ? "0 0 8px #FF006E" : member.status === "online" ? "0 0 4px rgba(0,255,136,0.3)" : "none",
+                background: isSpeaking ? "#FF006E" : live?.online ? "rgba(0,255,136,0.4)" : "rgba(128,128,128,0.3)",
+                boxShadow: isSpeaking ? "0 0 8px #FF006E" : live?.online ? "0 0 4px rgba(0,255,136,0.3)" : "none",
                   transition: "all 0.3s ease",
                   border: "1px solid rgba(0,0,0,0.4)",
                 }}
@@ -546,7 +559,7 @@ export function AIFamilyPage() {
 
       {/* ======== Selected Member Detail Drawer ======== */}
       {selectedMember && (
-        <MemberDetailDrawer member={selectedMember} onClose={() => setSelectedMember(null)} />
+        <MemberDetailDrawer member={selectedMember} live={liveByMember.get(selectedMember.id) ?? null} onClose={() => setSelectedMember(null)} />
       )}
 
       {/* ======== Top-left title ======== */}
@@ -562,11 +575,11 @@ export function AIFamilyPage() {
         </p>
       </div>
 
-      {/* ======== Top-right stats ======== */}
+      {/* ======== Top-right stats（P0-8 真实化: A2A 心跳实况, 替换 7/8·142·99.97% 假数据） ======== */}
       <div className="absolute top-4 right-5 z-10 flex items-center gap-3">
-        <StatusBadge icon={Activity} label={t("aiFamily.online")} value="7/8" color="#00FF88" />
-        <StatusBadge icon={Zap} label={t("aiFamily.activeTasks")} value="142" color="#FFD700" />
-        <StatusBadge icon={Clock} label={t("aiFamily.uptime")} value="99.97%" color="#00BFFF" />
+        <StatusBadge icon={Activity} label={t("aiFamily.online")} value={`${onlineMembers}/${AI_FAMILY_MEMBERS.length}`} color="#00FF88" />
+        <StatusBadge icon={Zap} label={t("aiFamily.agentContainers")} value={`${onlineContainers}/${liveAgents.length}`} color="#FFD700" />
+        <StatusBadge icon={Clock} label={t("aiFamily.heartbeatSync")} value={agentsFetchedAt ?? "—"} color="#00BFFF" />
       </div>
 
       {/* ======== Bottom slogan ======== */}
@@ -617,7 +630,12 @@ function StatusBadge({ icon: Icon, label, value, color }: {
   );
 }
 
-function MemberDetailDrawer({ member, onClose }: { member: AIFamilyMember; onClose: () => void }) {
+function MemberDetailDrawer({ member, live, onClose }: {
+  member: AIFamilyMember;
+  live: ReturnType<typeof matchAgentToMember>;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
   const Icon = member.icon;
 
   return (
@@ -672,12 +690,12 @@ function MemberDetailDrawer({ member, onClose }: { member: AIFamilyMember; onClo
                   className="rounded-full"
                   style={{
                     width: 8, height: 8,
-                    background: member.status === "speaking" ? "#FF006E" : member.status === "online" ? "#00FF88" : "#808080",
-                    boxShadow: member.status === "speaking" ? "0 0 6px #FF006E" : member.status === "online" ? "0 0 6px #00FF88" : "none",
+                    background: live?.online ? "#00FF88" : live ? "#808080" : "#4a6070",
+                    boxShadow: live?.online ? "0 0 6px #00FF88" : "none",
                   }}
                 />
                 <span style={{ fontSize: "0.55rem", color: "rgba(192,220,240,0.4)" }}>
-                  {member.status === "speaking" ? "发言中" : member.status === "online" ? "在线" : "待命"}
+                  {live ? (live.online ? t("aiFamily.online") : t("aiFamily.offline")) : t("aiFamily.unmatched")}
                 </span>
                 <span className="mx-1" style={{ color: "rgba(0,240,255,0.15)" }}>|</span>
                 <Clock className="w-3 h-3" style={{ color: "rgba(0,240,255,0.25)" }} />

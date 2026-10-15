@@ -41,7 +41,7 @@ describe("api-config", () => {
       expect(config.maxRetries).toBe(2);
       expect(config.dbBase).toBe("/api/db");
       expect(config.fsBase).toBe("/api/fs");
-      expect(config.wsEndpoint).toBe("ws://localhost:3113/ws");
+      expect(config.wsEndpoint).toBe("wss://api.0379.world/console/ws/monitor");
       expect(config.aiBase).toBe("https://api.openai.com/v1");
       expect(config.clusterBase).toBe("/api/cluster");
     });

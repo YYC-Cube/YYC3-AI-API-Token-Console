@@ -35,7 +35,18 @@ import type {
   WebSocketDataState,
 } from "../types";
 
-import { getAPIConfig, onAPIConfigChange } from "../lib/api-config";
+import { getAPIConfig, getGatewayConfig, onAPIConfigChange } from "../lib/api-config";
+import {
+  activeNodesKpi,
+  agentNodesFromA2A,
+  gatewaySelfNode,
+  mergeDeviceNodes,
+  ollamaNodesFromMetrics,
+  storageUsedFromHealth,
+  upstreamNodesFromRouterStats,
+} from "../lib/device-inventory";
+import type { DeviceParts } from "../lib/device-inventory";
+import { createGatewayFrameTranslator, parseGatewayFrame } from "../lib/gateway-adapter";
 import { nodeStore } from "../lib/nodes";
 import { getSettingsSnapshot } from "./useSettingsStore";
 
@@ -103,8 +114,11 @@ export function useWebSocketData(): WebSocketDataState {
   const [latencyTrend, setLatencyTrend] = useState("-5.2%");
   const [activeNodes, setActiveNodes] = useState("7/8");
   const [gpuUtil, setGpuUtil] = useState("82.4%");
-  const [tokenThroughput, setTokenThroughput] = useState("138K/s");
-  const [storageUsed] = useState("12.8TB");
+  // 指标真实化铁则（双端联通 §5.1 / 2026-10-15）: 无真实来源的 KPI 显「无数据」,
+  // 禁止以模拟数值冒充 — token 吞吐由网关 /models/stats 差分轮询供给;
+  // storageUsed 由 /console/metrics.gateway.health.system.disk_percent 真实供给（P0-3）
+  const [tokenThroughput, setTokenThroughput] = useState("—");
+  const [storageUsed, setStorageUsed] = useState("—");
   const [nodes, setNodes] = useState<NodeData[]>(() => nodeStore.getAll());
   const [throughputHistory, setThroughputHistory] = useState<ThroughputPoint[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
@@ -116,6 +130,27 @@ export function useWebSocketData(): WebSocketDataState {
   const simulateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ----- 网关适配层（双端联通 P0-2 / 2026-10-15）-----
+  // 网关 {event:"metrics"} 帧 → 内部 7 消息的翻译器; 连接重建时 reset 差分状态
+  const translatorRef = useRef(createGatewayFrameTranslator());
+  // token 吞吐真实差分: 轮询网关 /models/stats total_tokens 求和 → 与上次差分
+  const statsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastTokensRef = useRef<{ total: number; at: number } | null>(null);
+  const tokensPerSecRef = useRef<number | null>(null);
+  // 当前 tokenThroughput 是否由 stats 轮询供给（失败回退「—」只覆盖自己写入的值, 不覆盖消息源的值）
+  const statsOwnedRef = useRef(false);
+
+  // ----- 四源设备清单合流（双端联通 P0-3 / 硬约束① / 2026-10-15）-----
+  // 各源独立更新自己分片 → rebuild 合流呈现; 空清单跳过（保住模拟底座/既有节点）
+  const devicesRef = useRef<DeviceParts>({ upstream: null, ollama: null, gateway: null, agents: null });
+
+  const rebuildDevices = useCallback(() => {
+    const merged = mergeDeviceNodes(devicesRef.current);
+    if (merged.length === 0) return;
+    setNodes(merged);
+    setActiveNodes(activeNodesKpi(merged));
+  }, []);
 
   // ----- P2 编辑即生效: 订阅 api-config 端点变更 → 热重建连接 -----
   // 原实现 connectWS 无 endpoint 依赖, 设置页改 wsEndpoint 后连接不重建 (断点③)。
@@ -144,18 +179,25 @@ export function useWebSocketData(): WebSocketDataState {
       const data = (await r.json()) as {
         activeCount?: string;
         nodes?: Array<{ id: string; status: string; latencyMs: number; models?: string[] }>;
+        gateway?: { health?: unknown; router?: unknown; models?: unknown } | null;
       };
-      if (!Array.isArray(data.nodes) || data.nodes.length === 0) throw new Error("空节点集");
-      setNodes(
-        data.nodes.map((n) => ({
-          id: n.id,
-          status: n.status === "active" ? "active" : "inactive",
-          gpu: 0, mem: 0, temp: 0, // Ollama /api/ps 无硬件指标 — 状态/负载语义化呈现
-          model: n.models?.[0] ?? "",
-          tasks: n.models?.length ?? 0,
-        }))
-      );
-      if (data.activeCount) setActiveNodes(data.activeCount);
+      // 双源准入（P0-3）: Ollama 节点集或网关快照任一非空即实况（设备清空后仍可用网关源）
+      const hasOllama = Array.isArray(data.nodes) && data.nodes.length > 0;
+      const gw = data.gateway && typeof data.gateway === "object" ? data.gateway : null;
+      if (!hasOllama && !gw) throw new Error("无可用数据源");
+      devicesRef.current.ollama = ollamaNodesFromMetrics(data);
+      if (gw) {
+        // 网关快照: 上游池 + 网关本体 + 真实磁盘占用率（REST 档仅在 WS 未活时承担 upstream 分片;
+        // WS 连接后由 gateway-adapter 帧每 5s 覆盖同分片, 语义一致）
+        devicesRef.current.upstream = upstreamNodesFromRouterStats(gw.router);
+        devicesRef.current.gateway = gatewaySelfNode(gw.health);
+        const su = storageUsedFromHealth(gw.health);
+        if (su !== null) setStorageUsed(su);
+      }
+      rebuildDevices();
+      if (devicesRef.current.ollama && devicesRef.current.ollama.length === 0 && data.activeCount) {
+        setActiveNodes(data.activeCount); // 网关单源形态回退 Ollama 计数
+      }
       setConnectionState("rest");
       // REST 命中后停掉模拟底座（真实数据优先）
       if (simulateTimerRef.current) {
@@ -167,13 +209,107 @@ export function useWebSocketData(): WebSocketDataState {
       // 函数式更新断开对 connectionState 的依赖 → 避免 connectWS 依赖链重建循环
       setConnectionState((prev) => (prev === "connected" ? prev : "simulated"));
     }
+  }, [rebuildDevices]);
+
+  // ----- 网关 token 吞吐真实差分轮询（双端联通 P0-2 / 2026-10-15）-----
+  // 数据源: 网关 GET /v1/models/stats（经 /console/gw 代理, 服务端注入密钥）, 30s 一档;
+  // total_tokens 求和 → 差分 → tokens/s。失败显示「无数据」（真实化铁则, 不伪造）。
+  const GW_STATS_INTERVAL_MS = 30_000;
+
+  function formatTokensPerSec(perSec: number): string {
+    return perSec >= 1000 ? `${Math.round(perSec / 1000)}K/s` : `${perSec}/s`;
+  }
+
+  const stopGatewayStatsPoll = useCallback(() => {
+    if (statsTimerRef.current) {
+      clearInterval(statsTimerRef.current);
+      statsTimerRef.current = null;
+    }
+    lastTokensRef.current = null;
+    tokensPerSecRef.current = null;
   }, []);
+
+  const pollGatewayTokenStats = useCallback(async () => {
+    if (typeof fetch !== "function") return;
+    try {
+      const base = getGatewayConfig().gatewayBase;
+      const r = await fetch(`${base}/models/stats`, { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data: unknown = await r.json();
+      let total = 0;
+      if (Array.isArray(data)) {
+        for (const it of data) {
+          const t = (it as { total_tokens?: unknown } | null)?.total_tokens;
+          if (typeof t === "number" && Number.isFinite(t)) total += t;
+        }
+      } else if (typeof data === "object" && data !== null) {
+        for (const it of Object.values(data as Record<string, unknown>)) {
+          const t = (it as { total_tokens?: unknown } | null)?.total_tokens;
+          if (typeof t === "number" && Number.isFinite(t)) total += t;
+        }
+      }
+      const now = Date.now();
+      const last = lastTokensRef.current;
+      if (last && now > last.at && total >= last.total) {
+        const perSec = Math.max(0, Math.round((total - last.total) / ((now - last.at) / 1000)));
+        tokensPerSecRef.current = perSec;
+        statsOwnedRef.current = true;
+        setTokenThroughput(formatTokensPerSec(perSec));
+      }
+      lastTokensRef.current = { total, at: now };
+    } catch {
+      // 无数据态只覆盖 stats 轮询自己写入的值; 消息源（system_stats/模拟）写入的值保持
+      if (statsOwnedRef.current) {
+        statsOwnedRef.current = false;
+        setTokenThroughput("—");
+      }
+      tokensPerSecRef.current = null;
+    }
+  }, []);
+
+  /** 设备源轮询（P0-3/P0-8 / 30s 与 stats 同周期）: A2A Agent 容器 + WS 连接态补 metrics 源
+   *  （rest 档已由 pollRestMetrics 高频覆盖 ollama/gateway 分片, 连接态在此低速补充） */
+  const pollGatewayDeviceSources = useCallback(async () => {
+    if (typeof fetch !== "function") return;
+    try {
+      const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
+      const r = await fetch(`${base}/v1/admin/a2a/agents`, { signal: AbortSignal.timeout(5000) });
+      if (r.ok) devicesRef.current.agents = agentNodesFromA2A(await r.json());
+    } catch { /* 设备源降级不影响主链路 */ }
+    const ws = wsRef.current;
+    if (ws && (ws as { readyState?: number }).readyState === 1) {
+      try {
+        const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(4000) });
+        if (r.ok) {
+          const d = (await r.json()) as {
+            nodes?: Array<{ id?: string; status?: string; latencyMs?: number; models?: string[] }>;
+            gateway?: { health?: unknown } | null;
+          };
+          devicesRef.current.ollama = ollamaNodesFromMetrics(d);
+          const gw = d.gateway && typeof d.gateway === "object" ? d.gateway : null;
+          if (gw) devicesRef.current.gateway = gatewaySelfNode(gw.health);
+        }
+      } catch { /* 设备源降级 */ }
+    }
+    rebuildDevices();
+  }, [rebuildDevices]);
+
+  const startGatewayStatsPoll = useCallback(() => {
+    if (statsTimerRef.current) return;
+    void pollGatewayTokenStats();
+    void pollGatewayDeviceSources();
+    statsTimerRef.current = setInterval(() => {
+      void pollGatewayTokenStats();
+      void pollGatewayDeviceSources();
+    }, GW_STATS_INTERVAL_MS);
+  }, [pollGatewayTokenStats, pollGatewayDeviceSources]);
 
   const startRestPolling = useCallback(() => {
     if (restTimerRef.current) return;
     void pollRestMetrics();
     restTimerRef.current = setInterval(() => { void pollRestMetrics(); }, simulateIntervalMs());
-  }, [pollRestMetrics]);
+    startGatewayStatsPoll();
+  }, [pollRestMetrics, startGatewayStatsPoll]);
 
   // ----- simulated data updater -----
   const runSimulation = useCallback(() => {
@@ -206,6 +342,52 @@ export function useWebSocketData(): WebSocketDataState {
     setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
   }, []);
 
+  // ----- 内部消息路由（双端联通 P0-2 / 2026-10-15 抽出）-----
+  // 双入口复用: ① 旧 WS 协议消息直通 ② 网关 {event:"metrics"} 帧经 gateway-adapter 翻译后注入
+  const handleInternalMessage = useCallback((msg: WSMessage) => {
+    switch (msg.type) {
+      case "qps_update":
+        setLiveQPS(msg.payload.qps);
+        setQpsTrend(msg.payload.trend);
+        break;
+      case "latency_update":
+        setLiveLatency(msg.payload.latency);
+        setLatencyTrend(msg.payload.trend);
+        break;
+      case "node_status":
+        // P0-3: 上游分片入设备合流（其余三源由轮询分片提供; 单源场景退化为整体替换, 兼容旧断言）
+        devicesRef.current.upstream = msg.payload;
+        rebuildDevices();
+        break;
+      case "alert":
+        setAlerts((prev) => [msg.payload, ...prev].slice(0, 100));
+        break;
+      case "throughput_history": {
+        // 语义双轨: 多点=服务端全量历史（整体替换, 旧协议）; 单点=网关帧增量（追加）
+        const injectTokens = (p: ThroughputPoint): ThroughputPoint =>
+          tokensPerSecRef.current !== null ? { ...p, tokens: tokensPerSecRef.current } : p;
+        if (msg.payload.length === 1) {
+          setThroughputHistory((prev) => {
+            const next = [...prev, injectTokens(msg.payload[0])];
+            return next.length > MAX_THROUGHPUT_HISTORY ? next.slice(-MAX_THROUGHPUT_HISTORY) : next;
+          });
+        } else {
+          setThroughputHistory(msg.payload.map(injectTokens).slice(-MAX_THROUGHPUT_HISTORY));
+        }
+        break;
+      }
+      case "system_stats":
+        setActiveNodes(msg.payload.activeNodes);
+        setGpuUtil(msg.payload.gpuUtil);
+        setTokenThroughput(msg.payload.tokenThroughput);
+        statsOwnedRef.current = false; // 消息源接管 token 吞吐值, stats 轮询失败不再覆盖
+        break;
+      case "heartbeat_ack":
+        break;
+    }
+    setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
+  }, [rebuildDevices]);
+
   // ----- WebSocket connection -----
   // deps 含 wsEndpoint: 设置页编辑端点 → 本回调重建 → 生命周期 effect
   // cleanup 关旧连接后以新端点重连 (编辑即热重建, 治断点③)
@@ -224,6 +406,9 @@ export function useWebSocketData(): WebSocketDataState {
       ws.onopen = () => {
         setConnectionState("connected");
         setReconnectCount(0);
+        // 网关帧差分状态随新连接重置; 启动 token 吞吐真实差分轮询（双端联通 P0-2）
+        translatorRef.current.reset();
+        startGatewayStatsPoll();
         // stop simulation & rest polling if WS connected
         stopRestPolling();
         if (simulateTimerRef.current) {
@@ -234,34 +419,17 @@ export function useWebSocketData(): WebSocketDataState {
 
       ws.onmessage = (event) => {
         try {
-          const msg: WSMessage = JSON.parse(event.data);
-          switch (msg.type) {
-            case "qps_update":
-              setLiveQPS(msg.payload.qps);
-              setQpsTrend(msg.payload.trend);
-              break;
-            case "latency_update":
-              setLiveLatency(msg.payload.latency);
-              setLatencyTrend(msg.payload.trend);
-              break;
-            case "node_status":
-              setNodes(msg.payload);
-              break;
-            case "alert":
-              setAlerts((prev) => [msg.payload, ...prev].slice(0, 100));
-              break;
-            case "throughput_history":
-              setThroughputHistory(msg.payload.slice(-MAX_THROUGHPUT_HISTORY));
-              break;
-            case "system_stats":
-              setActiveNodes(msg.payload.activeNodes);
-              setGpuUtil(msg.payload.gpuUtil);
-              setTokenThroughput(msg.payload.tokenThroughput);
-              break;
-            case "heartbeat_ack":
-              break;
+          const parsed: unknown = JSON.parse(event.data);
+          // 双协议分发（双端联通 P0-2）: 网关 /ws/monitor 中继帧 → gateway-adapter 翻译;
+          // 其余按旧 WS 协议消息直通（既有消息契约零破坏）
+          const gatewayFrame = parseGatewayFrame(parsed);
+          if (gatewayFrame) {
+            for (const internal of translatorRef.current.translate(gatewayFrame)) {
+              handleInternalMessage(internal);
+            }
+          } else {
+            handleInternalMessage(parsed as WSMessage);
           }
-          setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
         } catch {
           // parse error — ignore
         }
@@ -293,7 +461,7 @@ export function useWebSocketData(): WebSocketDataState {
       }
       startRestPolling();
     }
-  }, [runSimulation, wsEndpoint, startRestPolling, stopRestPolling]);
+  }, [runSimulation, wsEndpoint, startRestPolling, stopRestPolling, handleInternalMessage, startGatewayStatsPoll]);
 
   // ----- lifecycle -----
   useEffect(() => {
@@ -317,8 +485,9 @@ export function useWebSocketData(): WebSocketDataState {
         reconnectTimerRef.current = null;
       }
       stopRestPolling();
+      stopGatewayStatsPoll();
     };
-  }, [connectWS, runSimulation, stopRestPolling]);
+  }, [connectWS, runSimulation, stopRestPolling, stopGatewayStatsPoll]);
 
   // ----- public API -----
   const manualReconnect = useCallback(() => {

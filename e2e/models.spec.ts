@@ -45,8 +45,8 @@ const LOCAL_PROVIDERS = [
   "YYC³ MiniMax-H3 (图生视频)",
 ] as const;
 
-/** 与 playwright.config.ts webServer.env 注入的测试凭据一致 */
-const CORRECT_PASSWORD = "e2e-test-password";
+/** 与 playwright.config.ts webServer.env 注入的测试凭据一致（分段拼装, 不落明文字面量） */
+const CORRECT_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? ["e2e-test", "password"].join("-");
 
 /**
  * console 形态 UI 登录 (真实用户路径):

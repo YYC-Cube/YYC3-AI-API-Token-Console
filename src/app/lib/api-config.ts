@@ -23,7 +23,9 @@ export type { APIEndpoints };
 const DEFAULTS: APIEndpoints = {
   fsBase: "/api/fs",
   dbBase: "/api/db",
-  wsEndpoint: "ws://localhost:3113/ws",
+  // 双端联通 P0-1/P0-2: 默认指向 console-server 网关 WS 中继（Cookie 会话鉴权,
+  // 网关 /ws/monitor 的 token 由服务端注入; 帧经 gateway-adapter 翻译）
+  wsEndpoint: "wss://api.0379.world/console/ws/monitor",
   aiBase: "https://api.openai.com/v1",
   clusterBase: "/api/cluster",
   metricsBase: "/console/metrics",
@@ -166,7 +168,7 @@ export const ENDPOINT_META: Array<{
   { key: "maxRetries", label: "Max Retries", labelCn: "最大重试次数", description: "请求失败后指数退避重试次数 (0=不重试)", type: "number", placeholder: "2", group: "通用" },
   { key: "fsBase", label: "File System API", labelCn: "文件系统 API", description: "POST /api/fs/{list|read|write|delete|rename|upload|search}", type: "url", placeholder: "/api/fs", group: "文件系统" },
   { key: "dbBase", label: "Database API", labelCn: "数据库管理 API", description: "POST /api/db/{detect|connect|query|tables|backup|restore|test}", type: "url", placeholder: "/api/db", group: "数据库" },
-  { key: "wsEndpoint", label: "WebSocket", labelCn: "WebSocket 地址", description: "实时数据推送", type: "url", placeholder: "ws://localhost:3113/ws", group: "实时通信" },
+  { key: "wsEndpoint", label: "WebSocket", labelCn: "WebSocket 地址", description: "实时数据推送（默认=console-server 网关中继）", type: "url", placeholder: "wss://api.0379.world/console/ws/monitor", group: "实时通信" },
   { key: "aiBase", label: "AI Inference API", labelCn: "AI 推理 API", description: "OpenAI 兼容接口", type: "url", placeholder: "https://api.openai.com/v1", group: "AI 推理" },
   { key: "clusterBase", label: "Cluster API", labelCn: "集群管理 API", description: "节点管理、模型部署", type: "url", placeholder: "/api/cluster", group: "集群" },
   { key: "metricsBase", label: "Metrics API", labelCn: "节点指标 API", description: "GET /console/metrics 聚合各节点运行指标（WS 不可达时轮询档）", type: "url", placeholder: "/console/metrics", group: "集群" },

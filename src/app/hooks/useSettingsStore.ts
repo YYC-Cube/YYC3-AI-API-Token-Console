@@ -126,7 +126,7 @@ const DEFAULT_VALUES: SettingsValues = {
   healthCheckInterval: "30",
   scaleUpThreshold: "85",
   scaleDownThreshold: "30",
-  wsEndpoint: "ws://localhost:3113/ws",
+  wsEndpoint: "wss://api.0379.world/console/ws/monitor",
   wsReconnectInterval: "5000",
   wsMaxReconnect: "10",
   wsHeartbeatInterval: "30000",

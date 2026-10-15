@@ -58,7 +58,8 @@ describe("env-config", () => {
 
     it("should return default WS_ENDPOINT", async () => {
       const { env } = await freshImport();
-      expect(env("WS_ENDPOINT")).toBe("ws://localhost:3113/ws");
+      // 双端联通 P0-1: 默认指向 console-server 网关 WS 中继（与 api-config 权威源一致）
+      expect(env("WS_ENDPOINT")).toBe("wss://api.0379.world/console/ws/monitor");
     });
 
     it("should return default STORAGE_PREFIX", async () => {

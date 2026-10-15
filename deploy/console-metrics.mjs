@@ -23,6 +23,7 @@ export const CONSOLE_SETTINGS_KEYS = [
   "ipWhitelist",        // IP 白名单（换行分隔 CIDR）
   "alertEmailAddr",     // 告警通知邮箱
   "webhookUrl",         // 告警 Webhook
+  "ollamaNodes",        // Ollama 节点表 { id: origin }（双端联通 R2: B端设备管理可编辑增减）
 ];
 
 /** 白名单键类型契约（校验+收敛，未知键丢弃，类型不符置默认并标记） */
@@ -32,12 +33,25 @@ const KEY_TYPES = {
   ipWhitelist: "string",
   alertEmailAddr: "string",
   webhookUrl: "string",
+  ollamaNodes: "nodes",
 };
+
+/** 校验单个节点表项: id 非空短字符串, origin 为 http/https URL（scheme 白名单, 无 SSRF 面——目标仍是内网白名单语义由运维把关） */
+function validNodeEntry(id, origin) {
+  if (typeof id !== "string" || !id || id.length > 64 || !/^[\w.-]+$/.test(id)) return false;
+  if (typeof origin !== "string" || origin.length > 512) return false;
+  try {
+    const u = new URL(origin);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 /**
  * 过滤并校验设置载荷 — 仅白名单键通过，其余丢弃。
  * @param {unknown} obj 任意输入（请求体 JSON）
- * @returns {{ ok: boolean, settings: Record<string, string|number>, rejected: string[] }}
+ * @returns {{ ok: boolean, settings: Record<string, string|number|Record<string,string>>, rejected: string[] }}
  */
 export function filterSettingsPayload(obj) {
   const rejected = [];
@@ -52,12 +66,41 @@ export function filterSettingsPayload(obj) {
       const n = typeof raw === "number" ? raw : Number.parseInt(String(raw), 10);
       if (Number.isFinite(n) && n >= 1 && n <= 1440) settings[key] = Math.round(n);
       else rejected.push(key);
+    } else if (want === "nodes") {
+      // 节点表: 非数组对象, 全量校验每项; 任一非法 → 整键拒绝（desired-state 语义, 不做部分合并）
+      if (raw !== null && typeof raw === "object" && !Array.isArray(raw)
+        && Object.keys(raw).length <= 32
+        && Object.entries(raw).every(([id, origin]) => validNodeEntry(id, origin))) {
+        settings[key] = raw;
+      } else {
+        rejected.push(key);
+      }
     } else {
       if (typeof raw === "string" && raw.length <= 2048) settings[key] = raw;
       else rejected.push(key);
     }
   }
   return { ok: true, settings, rejected };
+}
+
+/**
+ * 生效 Ollama 节点表（双端联通 R2）: 设置含 ollamaNodes 时完全接管（desired-state）,
+ * 否则回退内置白名单常量。
+ * @param {Record<string, string>} baseMap 内置节点表
+ * @param {Record<string, string|number|Record<string,string>>} settings 已过滤设置
+ * @returns {Record<string, string>}
+ */
+export function effectiveOllamaNodes(baseMap, settings) {
+  const custom = settings && typeof settings === "object" ? settings.ollamaNodes : null;
+  if (custom && typeof custom === "object" && !Array.isArray(custom) && Object.keys(custom).length > 0) {
+    /** @type {Record<string, string>} */
+    const map = {};
+    for (const [id, origin] of Object.entries(custom)) {
+      if (typeof origin === "string") map[id] = origin;
+    }
+    return map;
+  }
+  return { ...baseMap };
 }
 
 /** 服务端设置落盘路径（deploy/ 运行时旁，不入 git） */
@@ -130,5 +173,50 @@ export async function collectNodeMetrics(nodesMap, fetchImpl = fetch, timeoutMs 
     ts: Date.now(),
     activeCount: `${active}/${nodes.length}`,
     nodes,
+  };
+}
+
+/**
+ * 网关快照聚合（双端联通 P0-3 / 硬约束①）— 并发拉取网关三端点:
+ *   GET /health（免认证: services 探测 + system 磁盘/内存 + 网关指标）
+ *   GET /v1/router/stats（X-API-Key: 上游池快照 + 熔断态）
+ *   GET /v1/models/stats（X-API-Key: 模型用量/tokens, 供前端差分）
+ * 各部分独立降级（任一失败不拖垮其余）; GW_ADMIN_KEY 未配置时跳过鉴权端点。
+ *
+ * 目标 origin 仅来自服务端常量（GW_ORIGIN, http/https）, 密钥仅服务端环境变量 — 无 SSRF/泄露面。
+ *
+ * @param {string} gwOrigin
+ * @param {string} adminKey
+ * @param {typeof fetch} [fetchImpl]
+ * @param {number} [timeoutMs=4000]
+ * @returns {Promise<{ ok: boolean, health?: unknown, router?: unknown, models?: unknown, error?: string }>}
+ */
+export async function collectGatewaySnapshot(gwOrigin, adminKey, fetchImpl = fetch, timeoutMs = 4000) {
+  if (typeof gwOrigin !== "string" || !/^https?:\/\//.test(gwOrigin)) {
+    return { ok: false, error: "gwOrigin 非法（须 http/https）" };
+  }
+  const headers = adminKey ? { "X-API-Key": adminKey } : {};
+  const grab = async (path, needKey) => {
+    if (needKey && !adminKey) throw new Error("GW_ADMIN_KEY 未配置");
+    const r = await fetchImpl(`${gwOrigin}${path}`, {
+      headers,
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  };
+  const [health, router, models] = await Promise.allSettled([
+    grab("/health", false),
+    grab("/v1/router/stats", true),
+    grab("/v1/models/stats", true),
+  ]);
+  const val = (p) => (p.status === "fulfilled" ? p.value : null);
+  const gotAny = health.status === "fulfilled" || router.status === "fulfilled" || models.status === "fulfilled";
+  return {
+    ok: gotAny,
+    health: val(health),
+    router: val(router),
+    models: val(models),
+    error: gotAny ? undefined : "网关三端点全部不可达",
   };
 }

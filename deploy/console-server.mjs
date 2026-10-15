@@ -27,9 +27,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "./console-auth.mjs";
 import {
-  collectNodeMetrics, consoleSettingsFile,
-  filterSettingsPayload, loadConsoleSettings, saveConsoleSettings,
+  collectGatewaySnapshot, collectNodeMetrics, consoleSettingsFile,
+  effectiveOllamaNodes, filterSettingsPayload, loadConsoleSettings, saveConsoleSettings,
 } from "./console-metrics.mjs";
+import {
+  WS_MONITOR_PATH, deriveGatewayWsUrl, encodeCloseFrame, encodePongFrame,
+  encodeTextFrame, handshakeResponse, parseClientFrames, rawRejectResponse,
+} from "./console-ws-relay.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 静态目录: 与 LAN 版 server.mjs 语义对齐 — 默认仓库根 dist/, 可经 DIST_DIR 覆盖
@@ -39,6 +43,7 @@ const PORT = Number(process.env.PORT || 3100);
 
 // 上游：家族 API 网关（frp 隧道 ECS 本机端点；固定常量，非用户可控，无 SSRF 面）
 const GW_ORIGIN = "http://127.0.0.1:8800";
+const GW_ORIGIN_OK = /^https?:\/\//.test(GW_ORIGIN);
 // ADMIN 密钥：仅服务端环境变量（部署时由密钥文件注入，不落代码/仓库）
 const GW_ADMIN_KEY = process.env.GW_ADMIN_KEY || "";
 
@@ -50,12 +55,20 @@ const SESSION_COOKIE = "console_session";
 /** @type {LoginRateLimiter} */
 const loginLimiter = new LoginRateLimiter();
 
-// Ollama 多节点反代（白名单常量，无 SSRF 面）：/console/ollama/<node>/* → 节点 /api/*
+// Ollama 多节点反代（无 SSRF 面）: 内置白名单常量 + /console/settings.ollamaNodes 可编辑覆盖
+// （双端联通 R2 / 设备可视化可编辑增减: B端设备管理 PUT 全量 desired-state 清单）
 /** @type {Record<string, string>} */
 const OLLAMA_NODES = {
   n1: "http://100.65.64.49:11434",
   n2: "http://100.76.167.103:11434",
 };
+
+/** 生效节点表 = 设置接管（desired-state）或内置回退; 每请求读取（低频, 文件极小） */
+const SETTINGS_FILE = consoleSettingsFile(__dirname);
+async function currentOllamaNodes() {
+  const settings = await loadConsoleSettings(SETTINGS_FILE);
+  return effectiveOllamaNodes(OLLAMA_NODES, settings);
+}
 
 /** @type {Record<string, string>} */
 const MIME = {
@@ -129,12 +142,13 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ error: "未认证 — 请先登录 Console（Cookie 会话）" }));
   };
 
-  // ── Ollama 多节点反代：/console/ollama/<node>/api/* ──
+  // ── Ollama 多节点反代：/console/ollama/<node>/api/*（节点表=设置可编辑） ──
   if (pathname.startsWith("/console/ollama/")) {
     if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
     const rest = pathname.replace("/console/ollama/", "");
     const node = rest.split("/")[0];
-    const origin = OLLAMA_NODES[node];
+    const nodesMap = await currentOllamaNodes();
+    const origin = nodesMap[node];
     if (!origin) { res.writeHead(404); return res.end(JSON.stringify({ error: `未知节点: ${node}` })); }
     const sub = rest.slice(node.length); // "/api/tags" 等
     try {
@@ -160,18 +174,22 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ── 指标聚合（真实数据接入 P0 / 2026-10-05）：GET /console/metrics ──
-  // 聚合 OLLAMA_NODES 各节点 Ollama /api/ps（运行中模型 + 延迟）→ 前端轮询档消费
+  // ── 指标聚合（真实数据接入 P0 / 2026-10-05; 双端联通 P0-3 增强 / 2026-10-15）──
+  // 双源并行: ① 生效节点表 Ollama /api/ps 聚合 ② 网关快照（/health + /v1/router/stats
+  // + /v1/models/stats, 密钥服务端注入）→ 前端四源设备清单与真实 KPI（磁盘占用率等）
   if (pathname === "/console/metrics" && req.method === "GET") {
     if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
     try {
-      const metrics = await collectNodeMetrics(OLLAMA_NODES);
+      const [ollama, gateway] = await Promise.all([
+        currentOllamaNodes().then((m) => collectNodeMetrics(m)),
+        GW_ORIGIN_OK ? collectGatewaySnapshot(GW_ORIGIN, GW_ADMIN_KEY) : Promise.resolve({ ok: false, error: "GW_ORIGIN 未配置" }),
+      ]);
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "https://api.0379.world",
       });
-      return res.end(JSON.stringify(metrics));
+      return res.end(JSON.stringify({ ...ollama, gateway: gateway.ok ? gateway : null }));
     } catch (e) {
       res.writeHead(502, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ error: "指标聚合失败", detail: String(e instanceof Error ? e.message : e) }));
@@ -186,8 +204,10 @@ const server = http.createServer(async (req, res) => {
     const file = consoleSettingsFile(__dirname);
     if (req.method === "GET") {
       const settings = await loadConsoleSettings(file);
+      // 双端联通 R2: 附带生效 Ollama 节点表（设备管理 desired-state 初始化源）
+      const ollamaNodes = await currentOllamaNodes();
       res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
-      return res.end(JSON.stringify({ settings }));
+      return res.end(JSON.stringify({ settings, ollamaNodes }));
     }
     /** @type {Buffer[]} */
     const chunks = [];
@@ -272,6 +292,82 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(404); res.end("dist 未构建或路径不存在");
     }
   }
+});
+
+// ── WS 中继（双端联通 P0-1 / 硬约束① / 2026-10-15）：/console/ws/monitor ──
+// 浏览器（Cookie 会话鉴权）←中继→ 网关 /ws/monitor?token=<GW_ADMIN_KEY 服务端注入>。
+// 零 npm 依赖: Node 全局 WebSocket 仅作客户端连网关; 浏览器侧服务端帧由 console-ws-relay.mjs
+// 手写最小 RFC 6455（握手/文本帧/ping-pong/close, 不支持分片压缩——本中继浏览器侧不发业务分片）。
+// 透传方向: 网关 {event:"metrics"} 帧 → 浏览器（前端 gateway-adapter 翻译, 见 P0-2）。
+server.on("upgrade", (req, socket, head) => {
+  const url = new URL(req.url || "/", "http://x");
+  if (decodeURIComponent(url.pathname) !== WS_MONITOR_PATH) {
+    socket.write(rawRejectResponse(404, `非中继端点（仅 ${WS_MONITOR_PATH}）`));
+    return socket.destroy();
+  }
+  if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) {
+    socket.write(rawRejectResponse(401, "未认证 — 请先登录 Console（Cookie 会话）"));
+    return socket.destroy();
+  }
+  const key = req.headers["sec-websocket-key"];
+  if (typeof key !== "string" || !key) {
+    socket.write(rawRejectResponse(400, "缺少 Sec-WebSocket-Key"));
+    return socket.destroy();
+  }
+  const derived = deriveGatewayWsUrl(GW_ORIGIN, GW_ADMIN_KEY);
+  const NodeWS = globalThis.WebSocket;
+  if (!derived.ok || typeof NodeWS !== "function") {
+    socket.write(rawRejectResponse(503, derived.ok ? "当前 Node 运行时无全局 WebSocket（需 Node≥21）" : derived.error));
+    return socket.destroy();
+  }
+
+  let upstream;
+  try {
+    upstream = new NodeWS(derived.url);
+  } catch (e) {
+    socket.write(rawRejectResponse(502, `网关 WS 连接建立失败: ${e instanceof Error ? e.message : String(e)}`));
+    return socket.destroy();
+  }
+
+  // 握手应答先行（浏览器侧 101), head 为握手后首个残包 → 并入帧缓冲
+  socket.write(handshakeResponse(key));
+  let frameBuf = Buffer.isBuffer(head) && head.length ? Buffer.from(head) : Buffer.alloc(0);
+
+  let closed = false;
+  const cleanup = () => {
+    if (closed) return;
+    closed = true;
+    try { upstream.close(); } catch { /* 已关闭 */ }
+    try { socket.destroy(); } catch { /* 已关闭 */ }
+  };
+
+  upstream.onmessage = (ev) => {
+    if (closed) return;
+    try {
+      const data = typeof ev.data === "string" ? ev.data : Buffer.from(ev.data);
+      socket.write(encodeTextFrame(data));
+    } catch { cleanup(); }
+  };
+  upstream.onclose = () => { try { socket.write(encodeCloseFrame(1000)); } catch { /* 同步关闭 */ } cleanup(); };
+  upstream.onerror = () => { try { socket.write(encodeCloseFrame(1011)); } catch { /* 同步关闭 */ } cleanup(); };
+
+  socket.on("data", (chunk) => {
+    if (closed) return;
+    frameBuf = Buffer.concat([frameBuf, chunk]);
+    const parsed = parseClientFrames(frameBuf);
+    if (!parsed) return; // 帧未完整, 等待更多字节
+    frameBuf = parsed.rest;
+    for (const f of parsed.frames) {
+      if (f.opcode === 0x8) { try { socket.write(encodeCloseFrame(1000)); } catch { /* 同步关闭 */ } return cleanup(); }
+      if (f.opcode === 0x9) { try { socket.write(encodePongFrame(f.payload)); } catch { /* 忽略 */ } continue; }
+      if (f.opcode === 0x1 || f.opcode === 0x2) {
+        try { upstream.send(f.payload); } catch { return cleanup(); }
+      }
+      // 0x0 延续帧: 浏览器侧无业务分片语义, 忽略
+    }
+  });
+  socket.on("close", cleanup);
+  socket.on("error", cleanup);
 });
 
 server.listen(PORT, "127.0.0.1", () => {

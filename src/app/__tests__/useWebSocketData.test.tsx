@@ -62,6 +62,8 @@ describe("useWebSocketData", () => {
     localStorage.setItem("yyc3_system_settings", JSON.stringify({ values: { refreshInterval: "2" } }));
     __resetSettingsStoreForTests();
     instances.length = 0;
+    // P0-2: token 吞吐差分轮询触达网关 /models/stats — 单测零网络红线, 统一 stub 拒绝
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("test: network disabled"))));
     vi.stubGlobal("WebSocket", MockWebSocket);
   });
 
@@ -85,8 +87,9 @@ describe("useWebSocketData", () => {
       expect(result.current.latencyTrend).toBe("-5.2%");
       expect(result.current.activeNodes).toBe("7/8");
       expect(result.current.gpuUtil).toBe("82.4%");
-      expect(result.current.tokenThroughput).toBe("138K/s");
-      expect(result.current.storageUsed).toBe("12.8TB");
+      // 指标真实化铁则 (P0-2): 无真实来源的 KPI 初始即「无数据」, 不再以模拟值冒充
+      expect(result.current.tokenThroughput).toBe("—");
+      expect(result.current.storageUsed).toBe("—");
       expect(result.current.throughputHistory).toEqual([]);
       expect(result.current.alerts).toEqual([]);
       expect(result.current.lastSyncTime).toBeTruthy();
@@ -103,7 +106,7 @@ describe("useWebSocketData", () => {
     it("应以 api-config 的 wsEndpoint 建立连接", () => {
       renderHook(() => useWebSocketData());
       expect(instances.length).toBe(1);
-      expect(instances[0].url).toBe("ws://localhost:3113/ws");
+      expect(instances[0].url).toBe("wss://api.0379.world/console/ws/monitor");
     });
   });
 
@@ -126,6 +129,116 @@ describe("useWebSocketData", () => {
       });
       expect(result.current.throughputHistory).toEqual([]);
       expect(result.current.activeNodes).toBe("7/8");
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 网关 /ws/monitor 帧翻译（双端联通 P0-2 / 硬约束①）
+  // ----------------------------------------------------------
+
+  describe("网关 metrics 帧翻译", () => {
+    const gwFrame = (ts: number, total: number, models: Record<string, unknown>) => ({
+      event: "metrics",
+      data: { timestamp: ts, active_requests: 3, total_requests: total, cache_hit_rate: 0.5, models },
+    });
+    const UPSTREAMS = {
+      "vllm-flagship": { status: "closed", latency_ms: 120, error_rate: 0.01, load: 40 },
+      "bge-embed-nim": { status: "open", latency_ms: 300, error_rate: 0.9, load: 0 },
+    };
+
+    it("首帧: 节点归一化(kind upstream)+熔断映射+延迟加权, 无差分 QPS", () => {
+      const { result } = renderHook(() => useWebSocketData());
+      act(() => {
+        sendMessage(instances[0], gwFrame(1000, 100, UPSTREAMS));
+      });
+      expect(result.current.nodes).toHaveLength(2);
+      expect(result.current.nodes[0]).toMatchObject({ id: "vllm-flagship", status: "active", kind: "upstream", tasks: 40 });
+      expect(result.current.nodes[1]).toMatchObject({ id: "bge-embed-nim", status: "error" });
+      expect(result.current.activeNodes).toBe("1/2");
+      // 负载加权延迟: (120*40 + 300*1) / 41 = 124
+      expect(result.current.liveLatency).toBe(124);
+      // 首帧无差分 — QPS 保持初值, 不伪造
+      expect(result.current.liveQPS).toBe(3842);
+      expect(result.current.throughputHistory).toEqual([]);
+    });
+
+    it("次帧: QPS=total_requests 差分/时间差, 趋势图追加 1 点 (tokens 无源=0)", () => {
+      const { result } = renderHook(() => useWebSocketData());
+      act(() => { sendMessage(instances[0], gwFrame(1000, 100, UPSTREAMS)); });
+      act(() => { sendMessage(instances[0], gwFrame(6000, 350, UPSTREAMS)); });
+      expect(result.current.liveQPS).toBe(50); // (350-100)/5s
+      expect(result.current.throughputHistory).toHaveLength(1);
+      expect(result.current.throughputHistory[0]).toMatchObject({ qps: 50, latency: 124, tokens: 0 });
+    });
+
+    it("真实化铁则: 网关帧的 system_stats 无源指标显「—」", () => {
+      const { result } = renderHook(() => useWebSocketData());
+      act(() => { sendMessage(instances[0], gwFrame(1000, 100, UPSTREAMS)); });
+      expect(result.current.gpuUtil).toBe("—");
+      expect(result.current.tokenThroughput).toBe("—");
+      expect(result.current.storageUsed).toBe("—");
+    });
+
+    it("非 metrics 帧（旧协议心跳）不进翻译器直通消息路由", () => {
+      const { result } = renderHook(() => useWebSocketData());
+      act(() => {
+        sendMessage(instances[0], { type: "qps_update", payload: { qps: 777, trend: "+1%" } });
+        sendMessage(instances[0], { event: "pong" });
+      });
+      expect(result.current.liveQPS).toBe(777);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // REST 档四源合流（双端联通 P0-3 / 硬约束①）
+  // ----------------------------------------------------------
+
+  describe("REST 档四源设备合流", () => {
+    const metricsPayload = {
+      ts: Date.now(),
+      activeCount: "1/1",
+      nodes: [{ id: "n1", status: "active", latencyMs: 12, models: ["qwen3:14b"] }],
+      gateway: {
+        health: {
+          status: "healthy", version: "2.0.0", uptime_seconds: 7200,
+          services: { ollama: { status: "healthy" }, redis: { status: "healthy" }, postgresql: { status: "healthy" } },
+          system: { cpu_percent: 20, memory_percent: 61, disk_percent: 62.42 },
+          metrics: { active_requests: 3 },
+        },
+        router: { upstream_pool: [{ name: "vllm-flagship", breaker_state: "closed", load: 40 }] },
+        models: [{ model_id: "vllm-flagship", total_tokens: 500 }],
+      },
+    };
+
+    it("metrics 带 gateway 快照 → 四源节点合流 + 磁盘占用率真实 KPI + rest 态", async () => {
+      vi.stubGlobal("fetch", vi.fn(async (url: string | URL | Request) => {
+        const u = String(url);
+        if (u.includes("/console/metrics")) return { ok: true, json: async () => metricsPayload } as unknown as Response;
+        throw new Error("offline: " + u);
+      }));
+      const { result } = renderHook(() => useWebSocketData());
+      // 触发降级链进入 REST 轮询
+      act(() => { instances[0].onclose?.(); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(10); });
+      expect(result.current.connectionState).toBe("rest");
+      const ids = result.current.nodes.map((n) => n.id);
+      expect(ids).toEqual(["vllm-flagship", "n1", "nas-gateway"]); // upstream→ollama→gateway 顺序（agents 轮询不可达为空）
+      expect(result.current.nodes.find((n) => n.id === "nas-gateway")).toMatchObject({ kind: "gateway", status: "active", mem: 61 });
+      expect(result.current.storageUsed).toBe("62.4%"); // 真实磁盘占用率（替换写死 12.8TB）
+      expect(result.current.activeNodes).toBe("3/3"); // 合流 KPI
+    });
+
+    it("无 gateway 字段（旧版 console-server）→ 仅 Ollama 源, 行为回退兼容", async () => {
+      vi.stubGlobal("fetch", vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ ts: Date.now(), activeCount: "1/1", nodes: metricsPayload.nodes }),
+      } as unknown as Response)));
+      const { result } = renderHook(() => useWebSocketData());
+      act(() => { instances[0].onclose?.(); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(10); });
+      expect(result.current.connectionState).toBe("rest");
+      expect(result.current.nodes.map((n) => n.id)).toEqual(["n1"]);
+      expect(result.current.storageUsed).toBe("—"); // 无源显「无数据」
     });
   });
 
@@ -399,6 +512,8 @@ describe("P2 端点热重建", () => {
     localStorage.setItem("yyc3_system_settings", JSON.stringify({ values: { refreshInterval: "2" } }));
     __resetSettingsStoreForTests();
     instances.length = 0;
+    // P0-2: token 吞吐差分轮询触达网关 /models/stats — 单测零网络红线, 统一 stub 拒绝
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("test: network disabled"))));
     vi.stubGlobal("WebSocket", MockWebSocket);
   });
   afterEach(() => {
@@ -414,7 +529,7 @@ describe("P2 端点热重建", () => {
     // 初始连接: 默认端点
     expect(instances.length).toBeGreaterThanOrEqual(1);
     const oldWs = instances[0];
-    expect(oldWs.url).toBe("ws://localhost:3113/ws");
+    expect(oldWs.url).toBe("wss://api.0379.world/console/ws/monitor");
 
     // 模拟设置页编辑端点 (双写 api-config)
     act(() => {

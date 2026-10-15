@@ -26,10 +26,13 @@ describe("components/AIFamilyPage", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    // P0-8: useA2AAgents 真实心跳轮询 — 单测零网络红线, stub 拒绝（注册表不可达态）
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("test: network disabled"))));
   });
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("应渲染时钟环 8 位成员 / 中心标识 / 统计 / 标语", () => {
@@ -40,9 +43,10 @@ describe("components/AIFamilyPage", () => {
     expect(screen.getAllByText("YYC³").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("AI Family").length).toBeGreaterThanOrEqual(2); // 中心标识 + 左上标题
     expect(screen.getByText("八魂归一，云枢乃成")).toBeInTheDocument();
-    expect(screen.getByText("7/8")).toBeInTheDocument();
-    expect(screen.getByText("142")).toBeInTheDocument();
-    expect(screen.getByText("99.97%")).toBeInTheDocument();
+    // P0-8 真实化: 统计 = A2A 心跳实况（注册表不可达 → 0 在线 / 0 容器 /「—」）, 不再是 7/8·142·99.97% 假数据
+    expect(screen.getByText("0/8")).toBeInTheDocument();
+    expect(screen.getByText("0/0")).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
     expect(screen.getByText("亦师亦友亦伯乐 · 一言一语一协同")).toBeInTheDocument();
     expect(screen.getByText("Words Initiate Quadrants, Language Serves as Core for the Future")).toBeInTheDocument();
     // 时钟环时间刻度
@@ -64,7 +68,8 @@ describe("components/AIFamilyPage", () => {
     render(<AIFamilyPage />);
     fireEvent.click(memberBtn("言启·千行"));
     expect(screen.getByText("Navigator · 领航者")).toBeInTheDocument();
-    expect(screen.getByText("发言中")).toBeInTheDocument();
+    // P0-8 真实化: 抽屉状态芯片 = A2A 心跳实况（注册表不可达 → 未接入, 不再静态「发言中」）
+    expect(screen.getByText("未接入")).toBeInTheDocument();
     expect(screen.getByText("「我聆听万千言语，为您指引航向。」")).toBeInTheDocument();
     expect(screen.getByText("角色定位")).toBeInTheDocument();
     expect(screen.getByText(/「耳朵」与「翻译官」/)).toBeInTheDocument();

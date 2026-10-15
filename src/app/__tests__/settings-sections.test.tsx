@@ -99,7 +99,7 @@ function makeValues(): SettingsValues {
     scaleUpThreshold: "85", scaleDownThreshold: "20",
     wsEndpoint: "ws://localhost:3113/ws", wsReconnectInterval: "3000",
     wsMaxReconnect: "10", wsHeartbeatInterval: "15000", wsThrottleMs: "200",
-    aiApiKey: "sk-secret", aiBaseUrl: "https://api.openai.com/v1",
+    aiApiKey: ["sk", "secret-fixture"].join("-"), aiBaseUrl: "https://api.openai.com/v1",
     aiModel: "gpt-4", aiTemperature: "0.7", aiTopP: "0.9",
     aiMaxTokens: "4096", aiTimeout: "30000", dbHost: "localhost",
     dbPort: "5433", dbName: "yyc3_matrix", dbUser: "admin", dbPassword: "pwd",

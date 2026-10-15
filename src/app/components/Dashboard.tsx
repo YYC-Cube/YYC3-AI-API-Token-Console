@@ -13,6 +13,7 @@ import {
 import { GlassCard } from "./GlassCard";
 import { NodeDetailModal } from "./NodeDetailModal";
 import { AlertBanner } from "./AlertBanner";
+import { DeviceInventoryManager } from "./DeviceInventoryManager";
 import { WebSocketContext, ViewContext } from "../lib/view-context";
 import { useI18n } from "../hooks/useI18n";
 import type { NodeData } from "../types";
@@ -360,6 +361,8 @@ export function Dashboard() {
               <NodeCard key={node.id} node={node} onClick={() => setSelectedNode(node)} />
             ))}
           </div>
+          {/* 双端联通 R2 / 硬约束①: 设备可视化可编辑增减（四源概览 + Ollama 节点 desired-state 管理） */}
+          <DeviceInventoryManager nodes={nodes} />
         </GlassCard>
 
         {/* Recent Operations */}

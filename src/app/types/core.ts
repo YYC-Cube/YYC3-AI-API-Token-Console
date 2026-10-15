@@ -53,6 +53,8 @@ export interface NodeData {
   model: string;     // 当前部署模型
   tasks: number;     // 活跃任务数
   uptime?: string;   // 运行时长（如 "48h"）
+  /** 设备类别（双端联通 §5.4 四源设备清单）: 网关上游池 / Ollama 节点 / 网关本体 / A2A Agent 容器 */
+  kind?: "upstream" | "ollama" | "gateway" | "agent";
 }
 
 /**

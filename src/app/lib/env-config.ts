@@ -83,7 +83,7 @@ const DEFAULTS: EnvConfig = {
   SYSTEM_BUILD: "2026.03.07",
 
   API_BASE_URL: "http://192.168.3.1:3118/api",
-  WS_ENDPOINT: "ws://localhost:3113/ws",
+  WS_ENDPOINT: "wss://api.0379.world/console/ws/monitor",
   OLLAMA_BASE_URL: "http://localhost:11434",
   OLLAMA_PROXY_PATH: "/api/v1/llm/ollama",
 

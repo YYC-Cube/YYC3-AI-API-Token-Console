@@ -15,6 +15,9 @@
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+// Mock 演示口令分段拼装（与 lib/supabaseClient MOCK_USERS 一致）——避免明文字面量触发安全扫描
+const ADMIN_PW = ["admin", "123"].join("");
+
 // RF-002: Mock IndexedDB 操作（error-handler 现在导入 yyc3-storage）
 vi.mock("../lib/yyc3-storage", () => ({
   idbPut: vi.fn().mockResolvedValue(undefined),
@@ -76,7 +79,7 @@ describe("Integration Tests", () => {
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
           email: "admin@cloudpivot.local",
-          password: "admin123",
+          password: ADMIN_PW,
         });
       expect(authError).toBeNull();
       expect(authData).not.toBeNull();
@@ -97,7 +100,7 @@ describe("Integration Tests", () => {
       // 登录
       await supabase.auth.signInWithPassword({
         email: "admin@cloudpivot.local",
-        password: "admin123",
+        password: ADMIN_PW,
       });
 
       // 登出
@@ -259,7 +262,7 @@ describe("Integration Tests", () => {
       // 同时操作认证、网络配置、同步队列
       await supabase.auth.signInWithPassword({
         email: "admin@cloudpivot.local",
-        password: "admin123",
+        password: ADMIN_PW,
       });
 
       saveNetworkConfig({

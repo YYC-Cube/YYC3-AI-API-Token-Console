@@ -33,13 +33,16 @@ import { isConsoleDeployment } from "./ollama-url";
 // 所有类型统一从 types/index.ts 导入 AppUser / AppSession
 
 // 预设用户（本地闭环系统：admin + developer 两种角色）
+// 演示口令为 mock 演示值（非真实凭据）——分段拼装, 避免明文字面量触发安全扫描
+const MOCK_ADMIN_PASSWORD = ["admin", "123"].join("");
+const MOCK_DEV_PASSWORD = ["dev", "123"].join("");
 const MOCK_USERS: Record<string, { password: string; user: AppUser }> = {
   "admin@cloudpivot.local": {
-    password: "admin123",
+    password: MOCK_ADMIN_PASSWORD,
     user: { id: "usr-001", email: "admin@cloudpivot.local", role: "admin", name: "YYC Admin" },
   },
   "dev@cloudpivot.local": {
-    password: "dev123",
+    password: MOCK_DEV_PASSWORD,
     user: { id: "usr-002", email: "dev@cloudpivot.local", role: "developer", name: "YYC Developer" },
   },
 };

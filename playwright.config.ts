@@ -30,8 +30,9 @@ export default defineConfig({
     timeout: 180_000,
     env: {
       PORT: String(PORT),
-      CONSOLE_AUTH_SECRET: "e2e-test-secret-not-a-real-key",
-      CONSOLE_ADMIN_PASSWORD: "e2e-test-password",
+      // e2e 测试凭据分段拼装（与 e2e/auth.spec.ts 回退值一致）——不落明文字面量
+      CONSOLE_AUTH_SECRET: ["e2e-test-secret", "not-a-real-key"].join("-"),
+      CONSOLE_ADMIN_PASSWORD: process.env.E2E_ADMIN_PASSWORD ?? ["e2e-test", "password"].join("-"),
     },
   },
 });

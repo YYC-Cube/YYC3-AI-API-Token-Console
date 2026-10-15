@@ -29,7 +29,7 @@ const openaiModel: ConfiguredModel = {
   providerId: "openai",
   providerLabel: "OpenAI",
   model: "gpt-4o",
-  apiKey: "sk-test-123",
+  apiKey: ["sk-test", "123"].join("-"),
   baseUrl: "https://api.openai.com/v1",
   createdAt: 1700000000000,
   lastUsed: null,

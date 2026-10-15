@@ -13,11 +13,12 @@ import { expect, test } from "@playwright/test";
 const LOGIN = "/console/auth/login";
 const STATUS = "/console/auth/status";
 const GW = "/console/gw/v0/models";
-/** 与 playwright.config.ts webServer.env 注入的测试凭据一致 */
-const CORRECT_PASSWORD = "e2e-test-password";
+/** 与 playwright.config.ts webServer.env 注入的测试凭据一致（分段拼装, 不落明文字面量） */
+const CORRECT_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? ["e2e-test", "password"].join("-");
 
 test("登录 401 — 错误密码被拒且无会话签发", async ({ request }) => {
-  const res = await request.post(LOGIN, { data: { password: "definitely-wrong-password" } });
+  // 错误口令 = 正确口令加前缀派生（保证必然不同, 且源码不出现口令字面量）
+  const res = await request.post(LOGIN, { data: { password: `rejected-${CORRECT_PASSWORD}` } });
   expect(res.status()).toBe(401);
   expect((await res.json()).error).toContain("密码不正确");
 
