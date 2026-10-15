@@ -20,7 +20,7 @@
 | 键 | 默认 | 示例 |
 | ---- | ---- | ---- |
 | `API_BASE_URL` | http://192.168.3.1:3118/api | http://192.168.3.45:3118/api |
-| `WS_ENDPOINT` | ws://localhost:3113/ws | ws://192.168.3.45:3113/ws |
+| `WS_ENDPOINT` | wss://api.0379.world/console/ws/monitor | ws://192.168.3.45:3113/ws（旧自建形态） |
 | `OLLAMA_BASE_URL` | http://localhost:11434 | http://100.65.64.49:11434 |
 | `OLLAMA_PROXY_PATH` | /api/v1/llm/ollama | — |
 
@@ -52,7 +52,7 @@
 | `timeout` / `maxRetries` | `15000` / `2` | 通用超时/重试 |
 | `fsBase` | `/api/fs` | 文件系统 API（list/read/write/…） |
 | `dbBase` | `/api/db` | 数据库 API（detect/connect/query/…） |
-| `wsEndpoint` | `ws://localhost:3113/ws` | 实时推送（编辑即重连） |
+| `wsEndpoint` | `wss://api.0379.world/console/ws/monitor` | 实时推送（网关中继, R1 起默认; 编辑即热重建） |
 | `aiBase` | `https://api.openai.com/v1` | AI 推理 |
 | `clusterBase` | `/api/cluster` | 集群管理 |
 | `metricsBase` | `/console/metrics` | **节点指标聚合**（REST 轮询档消费） |

@@ -4,11 +4,11 @@
 
 ## 第一部分 · 后端实况清单（契约冻结快照 · v5.2 · 双端联通 P1 增补）
 
-> **契约冻结哈希**：`sha256(openapi.json) @ 2026-09-17T00:00:00Z`（52 端点基线）
+> **契约冻结哈希**：`9a4f91e262b01e0f71c6ec84651fb5625e5905f37ce04cab52e7975465c7a6aa` @ 2026-10-16T03:55:00Z（98 端点, 52+3 增补全量转正）
 > **CI 校验**：每次构建前拉取 `https://api.0379.world/openapi.json`，哈希不匹配则阻断 PR 并要求人工复核本部分。
-> **v5.2 增补（2026-10-15 双端联通 P1/R5, 后端 d53b139 起）**：缺失清单 3 项落地 2 项（#53 /v1/logs · #54 /v1/usage/timeline）
-> 并新增 #55 `GET /v1/admin/alerts`（告警合成, 原缺失清单未列）; `/v1/keys` CRUD 仍缺（vk CRUD 已覆盖主语义）。
-> 待生产部署后重拉 openapi.json 计算新哈希回填首行, 增补行 🔓→🔒 转正。
+> **v5.2 转正（2026-10-16 生产部署完成, 后端 6b3157f 上线）**：#53 `/v1/logs`（含 R7 request_id 过滤）·
+> #54 `/v1/usage/timeline` · #55 `/v1/admin/alerts` 三端点生产可用（经 ECS 代理链实测）, 🔓→🔒 全量冻结;
+> `/v1/keys` CRUD 仍缺（vk CRUD 已覆盖主语义）。旧基线 `37db4553…@95 端点` 同刻退役。
 
 ### 1.1 端点总览（55 端点 = 52 冻结 + 3 增补未冻结）
 
@@ -34,10 +34,10 @@
 | 47    | 版本　　 | `GET /v1/versions`　　　　　　　　　　　　 | 需　 | 版本信息　　　　　　　　　　| ✅　　| 🔒　 |
 | 48    | 监控　　 | `GET /metrics`　　　　　　　　　　　　　　 | 需　 | Prometheus　　　　　　　　　| ✅　　| 🔒　 |
 | 49-50 | 文档　　 | `/docs`、`/openapi.json`　　　　　　　　　 | 免　 | Swagger/OpenAPI　　　　　　 | ✅　　| 🔒　 |
-| 53    | 日志　　 | `GET /v1/logs`　　　　　　　　　　　　　　 | 需　 | spend_logs 请求级分页　　　 | ✅　　| 🔓　 |
+| 53    | 日志　　 | `GET /v1/logs`　　　　　　　　　　　　　　 | 需　 | spend_logs 请求级分页　　　 | ✅　　| 🔒　 |
 | —     | **缺失** | `/v1/keys` CRUD　　　　　　　　　　　　　　| —　　| —　　　　　　　　　　　　　 | 🔧　 | —　　|
-| 54    | 账单　　 | `GET /v1/usage/timeline`　　　　　　　　　 | 需　 | step 分桶时序序列　　　　　 | ✅　　| 🔓　 |
-| 55    | 告警　　 | `GET /v1/admin/alerts`　　　　　　　　　　 | Admin| 熔断+注册事件合成　　　　　 | ✅　　| 🔓　 |
+| 54    | 账单　　 | `GET /v1/usage/timeline`　　　　　　　　　 | 需　 | step 分桶时序序列　　　　　 | ✅　　| 🔒　 |
+| 55    | 告警　　 | `GET /v1/admin/alerts`　　　　　　　　　　 | Admin| 熔断+注册事件合成　　　　　 | ✅　　| 🔒　 |
 
 **统计**：43 ✅ 直接对接（82.7%）· 4 🔧 轻量扩展（7.7%）· 0 📋 Phase 2（0%）
 

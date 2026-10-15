@@ -136,6 +136,58 @@ describe("gateway-skills: 执行器", () => {
     expect(r.summary).toContain("本地 2");
   });
 
+  it("R8 全技能 summarize 分支矩阵: 满载荷/空对象/缺字段三态不抛错且产出摘要", () => {
+    const full: Record<string, unknown> = {
+      hit_rate: 0.5, total_entries: 9, size: 3, invalidated: 2,
+      results: [1, 2], probed: 2,
+      entries: [1], audit: [1], total: 3,
+      total_calls: 10, total_cost_usd: 1.5, groups: [{}, {}],
+      totals: { calls: 4, tokens: 90, cost_usd: 0.5 }, series: { a: [1], b: [2] },
+      logs: [{ status: "ok" }, { status: "error" }, {}],
+      alerts: [{ level: "critical" }, { level: "info" }], level: "critical",
+      total_requests: 7, total_tokens: 700,
+      choices: [{ message: { content: "识别文本ABC" } }], text: "转写文本XYZ",
+      success: true, error: "boom", tool_name: "t", tools: [1], local_tools: [1, 2], total_count: 3,
+    };
+    for (const skill of GATEWAY_SKILLS) {
+      const a = skill.summarize(full);
+      const b = skill.summarize({});
+      expect(typeof a).toBe("string");
+      expect(typeof b).toBe("string");
+    }
+    // 关键派生抽查
+    const ocr = getSkill("ocr")!;
+    expect(ocr.summarize(full)).toContain("识别文本ABC");
+    expect(getSkill("asr-transcribe")!.summarize(full)).toContain("转写文本XYZ");
+    expect(getSkill("mcp-execute")!.summarize({ success: false, error: "boom" })).toContain("boom");
+    expect(getSkill("alerts-critical")!.summarize(full)).toContain("critical 1");
+    expect(getSkill("logs-recent")!.summarize(full)).toContain("错误 1");
+  });
+
+  it("R8 全技能 path 构造矩阵: 参数编码与查询串形态", () => {
+    const p = { model: "m x", days: "3", minutes: "30", step: "15", limit: "9", level: "critical", tool_name: "t", parameters: "{}", file: "" };
+    for (const skill of GATEWAY_SKILLS) {
+      const out = skill.path(p);
+      expect(out.startsWith("/")).toBe(true);
+      expect(out).not.toContain(" ");
+    }
+    expect(getSkill("cache-invalidate")!.path(p)).toBe("/v1/cache/invalidate/m%20x");
+    expect(getSkill("usage-summary")!.path(p)).toContain("days=3&group_by=model");
+    expect(getSkill("usage-timeline")!.path(p)).toContain("minutes=30&step_minutes=15");
+    expect(getSkill("logs-recent")!.path(p)).toContain("minutes=30&limit=9");
+    expect(getSkill("alerts-critical")!.path({ ...p, level: "" })).toBe("/v1/admin/alerts");
+  });
+
+  it("R8 无 body 的 POST: 仅设 JSON 头无请求体（upstream-probe 形态）", async () => {
+    const spy = stubFetch((url) => (url.includes("/v1/admin/upstreams/probe") ? { status: 200, body: { probed: 3 } } : null));
+    vi.stubGlobal("fetch", spy);
+    const r = await runGatewaySkill("upstream-probe");
+    expect(r.summary).toContain("3");
+    const [, init] = spy.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.body).toBeUndefined();
+    expect((init.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
+  });
+
   it("网络失败 → 如实报错（不伪造成功）; 未知技能防御", async () => {
     vi.stubGlobal("fetch", stubFetch(() => null));
     const r = await runGatewaySkill("cache-stats");

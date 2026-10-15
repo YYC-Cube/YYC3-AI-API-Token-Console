@@ -48,6 +48,7 @@ function startStubGateway(): Promise<{ server: http.Server; port: number; seenAu
         socket.destroy();
         return;
       }
+      socket.on("error", () => { /* 测试收尾 destroy 竞态的 ECONNRESET 吞噬 — 防 unhandled 拖垮退出码 */ });
       const key = String(req.headers["sec-websocket-key"] ?? "");
       // 服务端握手: accept 头 + 101（与 console-server 中继对客户端行为对称）
       socket.write(
@@ -159,6 +160,7 @@ describe("console-relay 契约 E2E（integration · 真实进程）", { timeout:
   it("②③④ WS 中继: 101 握手(官方向量 accept) + 下行帧透传 + close 回环", async () => {
     const KEY = "dGhlIHNhbXBsZSBub25jZQ=="; // RFC 6455 官方向量
     const socket = net.connect(svc.port, "127.0.0.1");
+    socket.on("error", () => { /* 同上: close 回环后对端 destroy 的竞态吞噬 */ });
     await new Promise<void>((r) => socket.once("connect", r));
 
     // 握手

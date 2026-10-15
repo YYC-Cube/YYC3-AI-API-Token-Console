@@ -7,7 +7,7 @@
 
 | 变量 | 类型 | 默认 | 示例 | 说明 / 生效机制 |
 | ---- | ---- | ---- | ---- | ---- |
-| `values.wsEndpoint` | string | `"ws://localhost:3113/ws"` | `ws://192.168.3.45:3113/ws` | **双写**：settingsStore 展示副本 + api-config 真实消费源；编辑确认即 teardown+重连（Network 面板可观测） |
+| `values.wsEndpoint` | string | `"wss://api.0379.world/console/ws/monitor"` | `ws://192.168.3.45:3113/ws`（旧自建形态） | **双写**：settingsStore 展示副本 + api-config 真实消费源；编辑确认即 teardown+重连（Network 面板可观测） |
 | `toggles.wsAutoReconnect` | boolean | `true` | 开/关 | 断线自动重连开关 |
 | `values.wsReconnectInterval` | string | `"5000"` | `3000`（ms） | 重连间隔 |
 | `values.wsMaxReconnect` | string | `"10"` | `5` | 最大重连次数（超限切模拟/轮询） |

@@ -180,3 +180,49 @@ describe("SecurityMonitor", () => {
     expect(screen.getByText("数据管理")).toBeInTheDocument();
   });
 });
+
+// ============================================================
+// R8 网关视角卡（/console/metrics → gateway.health 实况态）
+// ============================================================
+
+describe("SecurityMonitor 网关视角卡（R8）", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const HEALTH = {
+    status: "healthy", version: "2.0.0", uptime_seconds: 86400,
+    services: { ollama: { status: "healthy" }, redis: { status: "healthy" }, postgresql: { status: "healthy" }, zhipu: { status: "configured" } },
+    system: { cpu_percent: 12.5, memory_percent: 55.5, disk_percent: 91.2 },
+  };
+
+  it("健康快照: 徽标 healthy + 依赖四徽标 + 三资源格（磁盘>80 红）+ 版本时长", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ gateway: { health: HEALTH } }),
+    } as unknown as Response)));
+    renderWithProviders(<SecurityMonitor />);
+    expect(await screen.findByText("healthy")).toBeInTheDocument();
+    expect(screen.getByText("ollama: healthy")).toBeInTheDocument();
+    expect(screen.getByText("zhipu: configured")).toBeInTheDocument();
+    expect(screen.getByText("12.5%")).toBeInTheDocument();
+    expect(screen.getByText("91.2%")).toBeInTheDocument(); // >80 → 红（渲染路径）
+    expect(screen.getByText(/v2.0.0 · 运行 24h/)).toBeInTheDocument();
+  });
+
+  it("非 healthy: 徽标呈原始状态字串; 无 system 时资源格缺省 —", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ gateway: { health: { status: "degraded", services: {}, uptime_seconds: 0, version: "1" } } }),
+    } as unknown as Response)));
+    renderWithProviders(<SecurityMonitor />);
+    expect(await screen.findByText("degraded")).toBeInTheDocument();
+  });
+
+  it("metrics 无 gateway 字段: 卡片保持空态提示（不伪造）", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ activeCount: "0/0", nodes: [] }),
+    } as unknown as Response)));
+    renderWithProviders(<SecurityMonitor />);
+    expect(await screen.findByText(/网关快照不可达/)).toBeInTheDocument();
+  });
+});

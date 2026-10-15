@@ -19,7 +19,7 @@ const BASELINE_COUNTS = {
   files: 0, // 未引用文件 (批12 死代码批量归档后归零)
   dependencies: 0, // 未使用 dependencies (批13 白名单留证后归零)
   devDependencies: 4,
-  exports: 11,
+  exports: 7,
   types: 3,
   duplicates: 1,
   binaries: 1,

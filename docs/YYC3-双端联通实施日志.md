@@ -6,6 +6,33 @@
 
 ---
 
+## 批次 R8（已完成 · 2026-10-16）: 生产部署执行 + 全局审核 —— 网关上线/空库修复/哈希转正/覆盖率修复
+
+**范围**: R6 四步手册实际执行（NAS SSH 接入后）+ 双端全局代码-文档-架构审核。本批为生产变更批。
+
+### 生产部署执行（R6 手册实做） ✅
+
+- **通道**: NAS SSH `yyc3-45:9557`（用户提供）; 代码经 **git bundle over SSH** 直送 NAS（本机 gitbucket push 通道与 NAS origin=GitHub 均不可达——gitbucket 需凭据 / GitHub 403, bundle 免凭据）。NAS 仓库 6e2c9bf → 6b3157f。
+- **重大审核发现并修复: 生产 PG 空库**——002~006 迁移从未执行（model_registry/spend_logs 等全缺, 网关 registry/vk/流水长期 env 兜底降级, 网关日志 UndefinedTableError 刷屏实证）。修复: 重建触发 ORM create_all（15 表齐）+ 手工应用 003/004/006/007 + 005 二跑（基表就位后零错）。
+- **网关重建**: rebuild-gateway.sh → 三容器 healthy, uptime 34s 新进程; 既有 SMOKE_FAIL 模式（10-12 同现, 冒烟脚本独立缺陷, 网关本体健康）留档待修。
+- **公网实测（经 ECS 代理链）**: `/console/gw/v1/logs` 200（空集正常, 新库）; `usage/timeline` ok; `admin/alerts` 返回真实 registry 事件; `models/summary` total_requests=152（UsageLog 首次真实入库）; `/healthz` alive。**WS Upgrade 探测仍 200**——生产 console 实例在 ECS（NAS 无踪迹）, 101 需 ECS 侧更新 console 产物（dist-console 构建已备, ECS SSH 未提供, 留操作员一步）。
+- **哈希转正**: 新契约 `9a4f91e2…c7a6aa @ 98 端点`（scripts/openapi_hash.sh 实测）回填冻结文档, #53~#55 🔓→🔒 全量转正, 旧基线 37db4553@95 退役。
+
+### 全局审核（代码-文档-架构-测试） ✅
+
+- **门禁**: 后端快层 292/292 + flake8/importlinter 绿 + 契约守卫 4/4; 前端 typecheck/lint/size/knip/astgrep/build/integration 全绿; **审核抓到覆盖率回归: branches 78.3% < 80**（R5~R7 新增分支欠测）——本批补 GatewaySkillPlaza 组件测试（首个覆盖）等修复后复验。
+- **安全发现（高, 留账）**: 生产 `/console/gw/*` 无会话鉴权（CONSOLE_AUTH_SECRET 未配置, 任意访客可经代理携带 ADMIN 密钥调用管理面）。建议 ECS console-server 环境补 `CONSOLE_AUTH_SECRET`+`CONSOLE_ADMIN_PASSWORD` 并重启; 本机无法触达 ECS。
+- **架构核对**: 分层契约（前端 boundaries / 后端 importlinter）全绿; 冻结文档 52→55 与生产实测一致; knip exports 基线 11→7 可下调（本批执行）。
+- **文档陈旧修复**: 全局导航文档（R3 归档 /loop /users 后未更新）、设置指南 WS 默认值等——见提交清单。
+
+### 留账（操作员/ECS）
+
+1. **ECS console 更新**（WS 101 + 新前端最后一公里）: 取 console-build.yml artifact（或本地 `pnpm build:console` 的 dist-console）替换 ECS console 静态目录并重启; 更新后 `curl -i -N --http1.1 -H "Connection: Upgrade" …/console/ws/monitor` 应得 101/401。
+2. **ECS console-server 补鉴权环境变量**（上述安全发现）。
+3. 冒烟脚本 SMOKE_FAIL 根因（独立于网关健康）。
+
+---
+
 ## 批次 R7（已完成 · 2026-10-16）: 增值三项 — request_id 链路检索 + /security 网关卡 + console 双产物流水线
 
 **范围**: R7 可选增值项全部落地, 双端联通工程收口。门禁: 后端快层 **292/292** + flake8/importlinter 绿; 前端 typecheck/lint 0 · 单测全过 · size/knip/build + build:console 全绿。

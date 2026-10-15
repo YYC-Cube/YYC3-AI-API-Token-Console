@@ -1,6 +1,6 @@
 # YYC³ AI API Token Console · 全局导航功能架构可视化
 
-> 版本: v1.0 · 生成日期: 2026-09-27
+> 版本: v1.1 · 生成日期: 2026-09-27 · **R3 修订（2026-10-15）**: /loop /users 已归档（重定向 /follow-up /settings）, 活跃路由 25→23 + 网关密钥 /gateway-keys 增补; 下方 v1.0 矩阵保留为历史快照, 现行以 routes.ts 为准
 > 事实源对齐: `src/app/routes.ts`（路由表唯一事实源）· `src/app/components/Sidebar.tsx`（桌面导航）· `src/app/components/BottomNav.tsx`（移动导航）· `src/app/i18n/zh-CN.ts`（导航文案）
 > 截图示例对齐: `public/一级导航-*/`（六组设计稿截图，CP-IM v9.x 原型 → 现行实现对照）
 
