@@ -6,6 +6,33 @@
 
 ---
 
+## 批次 R5（已完成 · 2026-10-15）: P1 端点前端消费（/audit /alerts）+ chat 记账可观测性 + 冻结快照 52→55
+
+**范围**: R4 落地的数据端点接入页面; 后端错误请求入流水; 契约文档升版。门禁: 后端 flake8/importlinter 绿 + 快层 **287/287**; 前端 typecheck/lint 0 · 单测全过 · size/knip/build 全绿。
+
+### 后端: chat 记账管道可观测性（R5/BL-A1 补全） ✅
+
+- `_record_spend` 成功路径透传 `status="ok"` + `request_id`（网关响应 id 作链路标识）。
+- 新增 `_record_spend_error`: 错误请求也入 spend_logs（零 token 零成本只记事实, vk=None 网关直连同留痕 key_id NULL）; **7 处错误点接线**——vk 三闸门（403 模型白名单/402 预算/429 TPM）· sync 上游失败 + zhipu 回退链耗尽 · guardrail 输出拦截 400 · 流式错误 chunk。
+- 测试 `tests/test_chat_spend_error.py` 3 用例（载荷契约/直连留痕/成功透传; 判例: chat.pricing 是实例须方法级 monkeypatch）。
+
+### 前端: /audit 与 /alerts 页消费 P1 端点 ✅
+
+- **/audit 真实化**: 新增 `hooks/useGatewayAudit`（GET /v1/logs 近 24h 上限 200 条, 60s 轮询+手动刷新）; OperationAudit 硬编码 12 条假日志+假趋势+假风险分布三删, 概览四卡/趋势图/风险图/明细表全部实况派生; 源状态条（可达计数/更新时间 vs 不可达空态提示）+ 刷新按钮; 异常筛选语义修正为 failed（网关流水 ok/error 二值, 无 warning 态不伪造）。
+- **/alerts 服务端告警源**: AlertRulesPanel events 视图顶部新增「服务端告警（网关）」区块——GET /v1/admin/alerts 30s 轮询, critical/warning/info 级别徽标 + 来源/时间, 不可达空态提示; 与本地阈值评估事件（P1 链路）双源并列。
+- 测试: OperationAudit.test 重写（hook mock 真实形状夹具, 8 用例含源状态条/筛选/搜索/Modal/分页）+ useGatewayAudit.test 新增 4 用例（映射/分桶分布/不可达空态/refresh）+ AlertRulesPanel 增 fetch 桩与服务端告警块用例。
+
+### 冻结快照 52→55 升版 ✅
+
+- `模型网关/开发推进/01` 第一部分升 v5.2: 缺失清单 2 项转正（#53 /v1/logs · #54 /v1/usage/timeline 🔓）+ 新增 #55 /v1/admin/alerts; `/v1/keys` CRUD 仍缺（vk CRUD 已覆盖主语义）; 生产部署后重拉 openapi.json 回填新哈希, 增补行转正 🔒。
+
+### 队列（批次 R6+）
+
+P2: 契约 E2E（后端 tests/e2e + Console 关键路径）; /security 网关视角卡; OCR/ASR 技能封装 + MCP 动态发现入广场; 生产部署（Traefik WS 实测 + 哈希回填）。
+
+---
+---
+
 ## 批次 R4（已完成 · 2026-10-15）: 后端 P1 四数据端点（BL-A1~A4）+ §11 技能封装落地
 
 **范围**: 跨入 0379-World 后端仓库补齐数据面, 前端技能广场/⌘K 同源消费。门禁: 后端 flake8/importlinter 绿 + 快层 **284/284** + P1 新测试 **10/10**; 前端 typecheck/lint 0 · 单测全过 · size/knip/astgrep/build 全绿。

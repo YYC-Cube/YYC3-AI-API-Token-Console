@@ -142,7 +142,7 @@ flowchart TB
 | `/` 数据监控 | WS 默认不可达→模拟；REST 档 `/console/metrics`（仅 Ollama 维度）；节点档案为 9 个 GPU 假节点种子（`lib/nodes.ts`） | ① WS: `/console/ws/monitor` ← 网关 `/ws/monitor`（QPS/延迟/吞吐/节点状态）② REST 增强: `/console/metrics` 聚合 `/health`+`/v1/router/stats`+`/v1/models/stats` ③ KPI: `/health`（CPU/内存/磁盘实测，替换写死 12.8TB）④ **节点矩阵=真实多端设备清单**（§5.4 四源聚合，假节点种子退役） | CS+GW | **P0**（硬约束①） |
 | `/follow-up` 一键跟进 | mock 种子任务 | 告警事件源接真实（`/registry/v1/events` + 本地规则引擎评估 WS 实况）；任务流转保持 LOCAL | GW+LOCAL | P1 |
 | `/patrol` 巡查 | 实况档已有（fetchRealChecks） | 巡查项逐项映射：`/health`（DB/Redis/Ollama 探测）+ `/v1/router/health`（节点）+ `/v1/models/errors` | CS+GW | **P0**（增强映射） |
-| `/alerts` 告警规则 | 规则/事件 LOCAL+mock | 规则 LOCAL（评估引擎本地跑）；事件源 = WS 实况阈值评估 + `/registry/v1/events`；P2 评估后端新增 `/v1/admin/alerts` | GW+LOCAL | P1 |
+| `/alerts` 告警规则 ✅R5 | 规则 LOCAL + 服务端 /v1/admin/alerts 源 | 规则 LOCAL（评估引擎本地跑）；事件源 = WS 实况阈值评估 + `/registry/v1/events`；P2 评估后端新增 `/v1/admin/alerts` | GW+LOCAL | P1 |
 | `/operations` 操作中心 | 全 mock | 真实操作映射 MCP 工具（`/v1/mcp/docker/containers`、`/v1/mcp/docker/logs`、`POST /v1/admin/upstreams/probe`）；纯展示动作归档（见 §7） | GW | P1 |
 | `/files` 文件管理 | 虚拟文件树 LOCAL | 改造为**只读**网关文件视图：`/v1/mcp/filesystem/list|read`（经 GW 代理，服务端白名单路径） | GW | P1（或归档） |
 | `/database` 数据库管理 | `enableBackend=false` 锁 mock | 开启后端档：`dbBase` 指向 GW 适配（`/v1/mcp/database/tables`、`POST /v1/mcp/database/query` 只读）；本地 mock 保留为演示档 | GW | P1 |
@@ -157,7 +157,7 @@ flowchart TB
 | `/ai-family-sub/drama` | 五服务真实探针 | 保持 | PUB/CS | — |
 | `/ai-family-sub/*` 其余 | LOCAL 配置/静态 | 保持（Family 演示域，不属看盘主线，不接后端） | LOCAL | — |
 | `/design-system` `/dev-guide` | 静态规范 | 保持（开发者文档域） | — | — |
-| `/audit` 操作审计 | 硬编码 12 条 | 接 `/registry/v1/audit`（注册中心审计）+ `/v1/a2a` 审计流（Loki 源，后端扩展项 BL-A4）；本地操作日志继续并入 | GW | P1 |
+| `/audit` 操作审计 ✅R5 | ~~硬编码 12 条~~ /v1/logs 实况 | 接 `/registry/v1/audit`（注册中心审计）+ `/v1/a2a` 审计流（Loki 源，后端扩展项 BL-A4）；本地操作日志继续并入 | GW | P1 |
 | `/users` 用户管理 | mock 用户 CRUD | **归档**（§7）：console 形态用户=会话角色（admin），无多用户语义 | — | 清理批 |
 | `/settings` 系统设置 | LOCAL+console 下发（已通） | 保持；网络分区按 D5 收敛为 api-config 单源 | CS | **P0**（D5） |
 | `/security` 安全监控 | 浏览器自检+mock | 保持浏览器自检域 + 增「网关视角」卡片: `/health` 的认证/限流/CORS 状态摘要 | GW | P2 |

@@ -10,50 +10,8 @@ import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell
 } from "recharts";
 import { toast } from "sonner";
-
-interface AuditLog {
-  id: string;
-  time: string;
-  user: string;
-  role: string;
-  action: string;
-  target: string;
-  ip: string;
-  status: "success" | "running" | "failed" | "warning";
-  risk: "low" | "medium" | "high";
-}
-
-const ALL_AUDIT_LOGS: AuditLog[] = [
-  { id: "AUD-20260222-0001", time: "14:32:08", user: "admin", role: "超级管理员", action: "模型部署", target: "DeepSeek-V3 部署至 GPU-A100-03", ip: "192.168.1.100", status: "success", risk: "low" },
-  { id: "AUD-20260222-0002", time: "14:28:45", user: "ops_bot", role: "运维机器人", action: "节点重启", target: "GPU-H100-03 执行热重启", ip: "10.0.0.50", status: "success", risk: "medium" },
-  { id: "AUD-20260222-0003", time: "14:25:10", user: "api_svc", role: "API 服务", action: "批量推理", target: "Batch#2847 提交 → LLaMA-70B", ip: "10.0.1.20", status: "running", risk: "low" },
-  { id: "AUD-20260222-0004", time: "14:20:55", user: "dev_zhang", role: "开发者", action: "配置修改", target: "修改 Qwen-72B 推理参数", ip: "192.168.2.88", status: "success", risk: "medium" },
-  { id: "AUD-20260222-0005", time: "14:15:22", user: "admin", role: "超级管理员", action: "数据迁移", target: "向量库分片迁移 Shard-05", ip: "192.168.1.100", status: "success", risk: "high" },
-  { id: "AUD-20260222-0006", time: "14:10:08", user: "system", role: "系统", action: "自动告警", target: "GPU-A100-03 温度超过80°C", ip: "localhost", status: "warning", risk: "high" },
-  { id: "AUD-20260222-0007", time: "14:05:33", user: "dev_li", role: "开发者", action: "模型下载", target: "Mixtral-8x7B 模型权重下载", ip: "192.168.2.92", status: "success", risk: "low" },
-  { id: "AUD-20260222-0008", time: "14:00:11", user: "ops_bot", role: "运维机器人", action: "健康检查", target: "全节点巡检 → 7/8 正常", ip: "10.0.0.50", status: "success", risk: "low" },
-  { id: "AUD-20260222-0009", time: "13:55:48", user: "admin", role: "超级管理员", action: "权限变更", target: "dev_wang 升级为运维角色", ip: "192.168.1.100", status: "success", risk: "high" },
-  { id: "AUD-20260222-0010", time: "13:50:20", user: "api_svc", role: "API 服务", action: "异常请求", target: "非法Token访问 /api/v2/infer", ip: "203.0.113.45", status: "failed", risk: "high" },
-  { id: "AUD-20260222-0011", time: "13:45:15", user: "dev_wang", role: "开发者", action: "模型测试", target: "Qwen-72B A/B 测试启动", ip: "192.168.2.88", status: "success", risk: "low" },
-  { id: "AUD-20260222-0012", time: "13:40:30", user: "ops_bot", role: "运维机器人", action: "缓存清理", target: "清理 GPU-A100-01 推理缓存", ip: "10.0.0.50", status: "success", risk: "low" },
-];
-
-const auditTrend = [
-  { time: "08:00", ops: 120, errors: 2 },
-  { time: "09:00", ops: 280, errors: 5 },
-  { time: "10:00", ops: 450, errors: 3 },
-  { time: "11:00", ops: 380, errors: 8 },
-  { time: "12:00", ops: 320, errors: 4 },
-  { time: "13:00", ops: 510, errors: 6 },
-  { time: "14:00", ops: 420, errors: 3 },
-];
-
-const riskDistribution = [
-  { level: "低风险", count: 245 },
-  { level: "中风险", count: 82 },
-  { level: "高风险", count: 18 },
-  { level: "严重", count: 3 },
-];
+import { useGatewayAudit } from "../hooks/useGatewayAudit";
+import type { GatewayAuditLog } from "../hooks/useGatewayAudit";
 
 const tooltipStyle = {
   backgroundColor: "rgba(8, 25, 55, 0.95)",
@@ -76,18 +34,21 @@ export function OperationAudit() {
   const { t } = useI18n();
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [detailLog, setDetailLog] = useState<AuditLog | null>(null);
+  const [detailLog, setDetailLog] = useState<GatewayAuditLog | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // R5 真实化: /v1/logs 网关请求流水（经 /console/gw; 不可达空态, 不回退 mock）
+  const audit = useGatewayAudit();
 
   // Filter logic
   const filteredLogs = useMemo(() => {
-    let logs = ALL_AUDIT_LOGS;
+    let logs = audit.logs;
 
     // Category filter
     if (selectedFilter === "success") {
       logs = logs.filter(l => l.status === "success");
     } else if (selectedFilter === "abnormal") {
-      logs = logs.filter(l => l.status === "failed" || l.status === "warning");
+      // R5 真实化: 网关流水无 warning 态（ok/error 二值）— 异常=failed
+      logs = logs.filter(l => l.status === "failed");
     } else if (selectedFilter === "alert") {
       logs = logs.filter(l => l.risk === "high");
     }
@@ -105,7 +66,7 @@ export function OperationAudit() {
     }
 
     return logs;
-  }, [selectedFilter, searchQuery]);
+  }, [selectedFilter, searchQuery, audit.logs]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
@@ -126,14 +87,14 @@ export function OperationAudit() {
     toast.success(`已导出 ${filteredLogs.length} 条审计日志`, { style: toastStyle });
   }, [filteredLogs]);
 
-  const handleTraceLink = useCallback((log: AuditLog) => {
+  const handleTraceLink = useCallback((log: GatewayAuditLog) => {
     toast.success(`追踪链路: ${log.id}`, {
       description: `${log.user} → ${log.action} → ${log.target}`,
       style: toastStyle,
     });
   }, []);
 
-  const handleExportReport = useCallback((log: AuditLog) => {
+  const handleExportReport = useCallback((log: GatewayAuditLog) => {
     const report = {
       ...log,
       exportedAt: new Date().toISOString(),
@@ -177,13 +138,25 @@ export function OperationAudit() {
 
   return (
     <div className="space-y-3 md:space-y-4">
+      {/* R5 数据源状态条: 网关 /v1/logs 实况（不可达显空态提示） */}
+      <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-[rgba(0,180,255,0.1)] bg-[rgba(4,14,32,0.4)]">
+        <span className={audit.sourceOk === false ? "text-[#ff6464]" : "text-[rgba(0,212,255,0.55)]"} style={{ fontSize: "0.68rem" }}>
+          {audit.sourceOk === false
+            ? "网关日志不可达（/console/gw /v1/logs）— 空态展示（不回退模拟数据）"
+            : `网关请求流水 · ${audit.logs.length}/${audit.total} 条（近 24h）· 更新 ${audit.fetchedAt ?? "—"}`}
+        </span>
+        <button onClick={audit.refresh} className="flex items-center gap-1 px-2 py-1 rounded-md bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all" style={{ fontSize: "0.65rem" }}>
+          <RefreshCw className="w-3 h-3" /> 刷新
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
         {[
-          { label: t("audit.todayOps"), value: "1,284", icon: Activity, color: "#00d4ff", sub: t("audit.comparedYesterday") },
-          { label: t("audit.abnormalEvents"), value: String(ALL_AUDIT_LOGS.filter(l => l.status === "failed" || l.status === "warning").length), icon: AlertTriangle, color: "#ffdd00", sub: t("audit.needProcess") },
-          { label: t("audit.securityEvents"), value: String(ALL_AUDIT_LOGS.filter(l => l.risk === "high").length), icon: Shield, color: "#ff3366", sub: t("audit.unprocessed") },
-          { label: t("audit.activeUsers"), value: String(new Set(ALL_AUDIT_LOGS.map(l => l.user)).size), icon: User, color: "#00ff88", sub: t("audit.onlineCount") },
+          { label: t("audit.todayOps"), value: String(audit.logs.length), icon: Activity, color: "#00d4ff", sub: `总计 ${audit.total} 条（近 24h）` },
+          { label: t("audit.abnormalEvents"), value: String(audit.logs.filter(l => l.status === "failed").length), icon: AlertTriangle, color: "#ffdd00", sub: t("audit.needProcess") },
+          { label: t("audit.securityEvents"), value: String(audit.logs.filter(l => l.risk === "high").length), icon: Shield, color: "#ff3366", sub: t("audit.unprocessed") },
+          { label: t("audit.activeUsers"), value: String(new Set(audit.logs.map(l => l.user)).size), icon: User, color: "#00ff88", sub: t("audit.onlineCount") },
         ].map((card) => (
           <GlassCard key={card.label} className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -208,7 +181,7 @@ export function OperationAudit() {
             <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("audit.opsTrend")}</h3>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={auditTrend}>
+            <AreaChart data={audit.trend}>
               <defs>
                 <linearGradient id="audit-opsGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#00d4ff" stopOpacity={0.3} />
@@ -230,13 +203,13 @@ export function OperationAudit() {
             <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("audit.riskDist")}</h3>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={riskDistribution} layout="vertical">
+            <BarChart data={audit.riskDistribution} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,180,255,0.08)" />
               <XAxis type="number" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 11 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} />
               <YAxis dataKey="level" type="category" tick={{ fill: "rgba(0,212,255,0.5)", fontSize: 11 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} width={50} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" radius={[0, 6, 6, 0]} name={t("audit.eventCount")}>
-                {riskDistribution.map((_, idx) => {
+                {audit.riskDistribution.map((_, idx) => {
                   const colors = ["#00ff88", "#ffdd00", "#ff6600", "#ff3366"];
                   return <Cell key={idx} fill={colors[idx]} fillOpacity={0.7} />;
                 })}

@@ -1,21 +1,10 @@
 /**
  * OperationAudit.test.tsx
  * ========================
- * OperationAudit 组件测试
+ * OperationAudit 组件测试 — R5 真实化版（hook mock 固定实况形状数据）
  *
- * 覆盖范围:
- * - 4 个统计卡片渲染
- * - 操作趋势图表标题
- * - 风险分布图表标题
- * - 审计日志表格 (分页后首页 5 条)
- * - 表头渲染
- * - 筛选按钮交互
- * - 搜索框渲染 + 实际搜索过滤
- * - 导出按钮
- * - 分页控件
- * - 详情 Modal 打开/关闭
- * - Modal 中详情字段
- * - 追踪链路/导出报告按钮
+ * 覆盖: 源状态条 / 概览卡（真实计数）/ 表格分页 / 筛选（成功·异常）/
+ * 搜索（动作错误码/目标上游/空态）/ 详情 Modal 追踪与导出 / 导出全量 JSON
  */
 
 // @vitest-environment jsdom
@@ -60,10 +49,41 @@ vi.mock("sonner", () => ({
   },
 }));
 
+// ── R5: 数据源 hook mock（真实形状: /v1/logs 映射产物）──
+const AUDIT_FIXTURE = {
+  logs: [
+    { id: "LOG-1006", time: "14:32:08", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "glm-4-flash ← zhipu · 900 tok · 800ms", ip: "zhipu", status: "success" as const, risk: "low" as const },
+    { id: "LOG-1005", time: "14:28:45", user: "网关直连", role: "chat", action: "chat 请求（upstream_error）", target: "deepseek-v4 ← deepseek · 0 tok · 5200ms", ip: "deepseek", status: "failed" as const, risk: "high" as const },
+    { id: "LOG-1004", time: "14:25:10", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "qwen3 ← vllm · 400 tok · 3500ms", ip: "vllm", status: "success" as const, risk: "medium" as const },
+    { id: "LOG-1003", time: "14:20:55", user: "vk-efef9090", role: "chat", action: "chat 请求", target: "glm-4-flash ← zhipu · 700 tok · 600ms", ip: "zhipu", status: "success" as const, risk: "low" as const },
+    { id: "LOG-1002", time: "14:15:22", user: "网关直连", role: "chat", action: "chat 请求（vk_tpm_limited）", target: "glm-4-flash ← gateway · 0 tok · 30ms", ip: "gateway", status: "failed" as const, risk: "high" as const },
+    { id: "LOG-1001", time: "14:10:08", user: "vk-abcd1234", role: "chat", action: "chat 请求", target: "bge ← nim · 50 tok · 100ms", ip: "nim", status: "success" as const, risk: "low" as const },
+  ],
+  trend: [
+    { time: "12:00", ops: 1, errors: 0 },
+    { time: "13:00", ops: 2, errors: 1 },
+    { time: "14:00", ops: 3, errors: 1 },
+  ],
+  riskDistribution: [
+    { level: "低风险", count: 3 },
+    { level: "中风险", count: 1 },
+    { level: "高风险", count: 0 },
+    { level: "严重", count: 2 },
+  ],
+  sourceOk: true,
+  total: 42,
+  fetchedAt: "14:32:10",
+  refresh: vi.fn(),
+};
+
+vi.mock("../hooks/useGatewayAudit", () => ({
+  useGatewayAudit: () => AUDIT_FIXTURE,
+}));
+
 import { OperationAudit } from "../components/OperationAudit";
 import { toast } from "sonner";
 
-describe("OperationAudit 扩展覆盖", () => {
+describe("OperationAudit 扩展覆盖（R5 真实数据源）", () => {
   const origCreate = (URL as any).createObjectURL;
   const origRevoke = (URL as any).revokeObjectURL;
 
@@ -78,302 +98,82 @@ describe("OperationAudit 扩展覆盖", () => {
     (URL as any).revokeObjectURL = origRevoke;
   });
 
-  it("导出按钮应触发下载与成功 toast", () => {
+  it("源状态条呈现实况（条数/总数/更新时间）+ 刷新按钮", () => {
     render(<OperationAudit />);
-    fireEvent.click(screen.getByText("audit.export"));
-    expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("已导出 12 条审计日志"),
-      expect.anything()
-    );
-    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(screen.getByText(/网关请求流水 · 6\/42 条/)).toBeInTheDocument();
+    expect(screen.getByText(/更新 14:32:10/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("刷新"));
+    expect(AUDIT_FIXTURE.refresh).toHaveBeenCalled();
   });
 
-  it("按 IP 搜索应命中异常日志 (failed 状态分支)", () => {
+  it("概览卡标签与真实计数副标渲染", () => {
     render(<OperationAudit />);
-    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
-      target: { value: "203.0.113.45" },
-    });
-    expect(screen.getByText("AUD-20260222-0010")).toBeInTheDocument();
-    expect(screen.getByText("异常请求")).toBeInTheDocument();
+    expect(screen.getByText("audit.todayOps")).toBeInTheDocument();
+    expect(screen.getByText("audit.abnormalEvents")).toBeInTheDocument();
+    expect(screen.getByText("audit.securityEvents")).toBeInTheDocument();
+    expect(screen.getByText("audit.activeUsers")).toBeInTheDocument();
+    expect(screen.getByText("总计 42 条（近 24h）")).toBeInTheDocument();
   });
 
-  it("running 状态日志可被搜索到 (running 状态分支)", () => {
+  it("表格首页 5 条（LOG-1006..1002）, 第 6 条在第 2 页", () => {
     render(<OperationAudit />);
-    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
-      target: { value: "Batch#2847" },
-    });
-    expect(screen.getByText("AUD-20260222-0003")).toBeInTheDocument();
-    expect(screen.getByText("批量推理")).toBeInTheDocument();
+    expect(screen.getByText("LOG-1006")).toBeInTheDocument();
+    expect(screen.getByText("LOG-1002")).toBeInTheDocument();
+    expect(screen.queryByText("LOG-1001")).not.toBeInTheDocument();
   });
 
-  it("warning 状态日志可被搜索到 (warning 状态分支)", () => {
+  it("筛选: 成功态 / 异常态（failed）", () => {
     render(<OperationAudit />);
-    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
-      target: { value: "温度超过" },
-    });
-    expect(screen.getByText("AUD-20260222-0006")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("audit.filterSuccess"));
+    expect(screen.getByText("LOG-1006")).toBeInTheDocument();
+    expect(screen.queryByText("LOG-1005")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("audit.filterAbnormal"));
+    expect(screen.getByText("LOG-1005")).toBeInTheDocument();
+    expect(screen.queryByText("LOG-1006")).not.toBeInTheDocument();
   });
 
-  it("搜索无结果应显示空态", () => {
+  it("搜索: 动作错误码命中 / 目标上游命中 / 空态提示", () => {
     render(<OperationAudit />);
-    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
-      target: { value: "zzz-no-match" },
-    });
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), { target: { value: "upstream_error" } });
+    expect(screen.getByText("LOG-1005")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), { target: { value: "zhipu" } });
+    expect(screen.getByText("LOG-1006")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), { target: { value: "zzz-no-match" } });
     expect(screen.getByText("无匹配记录")).toBeInTheDocument();
   });
 
-  it("按用户名搜索应命中多条", () => {
+  it("详情 Modal: 追踪链路 toast + 导出报告关闭 Modal", () => {
     render(<OperationAudit />);
-    fireEvent.change(screen.getByPlaceholderText("audit.searchLog"), {
-      target: { value: "ops_bot" },
-    });
-    expect(screen.getByText("节点重启")).toBeInTheDocument();
-    expect(screen.getByText("缓存清理")).toBeInTheDocument();
-    expect(screen.queryByText("模型部署")).not.toBeInTheDocument();
-  });
-
-  it("详情 Modal 追踪链路按钮应触发 toast", () => {
-    render(<OperationAudit />);
-    fireEvent.click(screen.getByText("AUD-20260222-0001").closest("tr")!);
+    fireEvent.click(screen.getByText("LOG-1006").closest("tr")!);
     fireEvent.click(screen.getByText("audit.traceLink"));
     expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("追踪链路: AUD-20260222-0001"),
-      expect.objectContaining({
-        description: expect.stringContaining("模型部署"),
-      })
+      expect.stringContaining("追踪链路: LOG-1006"),
+      expect.anything(),
     );
-  });
-
-  it("详情 Modal 导出报告按钮应触发 toast 并关闭 Modal", () => {
-    render(<OperationAudit />);
-    fireEvent.click(screen.getByText("AUD-20260222-0001").closest("tr")!);
     fireEvent.click(screen.getByText("audit.exportReport"));
     expect(toast.success).toHaveBeenCalledWith("报告已导出", expect.anything());
     expect(screen.queryByText("audit.detailTitle")).not.toBeInTheDocument();
   });
 
-  it("分页按钮点击应切换到指定页", () => {
+  it("导出全量按钮触发下载与 toast（计数=当前筛选集）", () => {
     render(<OperationAudit />);
-    const page3Btns = screen.getAllByText("3");
-    const page3Btn = page3Btns.find((el) => el.closest("button"));
-    if (page3Btn) {
-      fireEvent.click(page3Btn);
-      expect(screen.getByText("AUD-20260222-0011")).toBeInTheDocument();
-      expect(screen.queryByText("AUD-20260222-0001")).not.toBeInTheDocument();
-    }
-  });
-});
-
-describe("OperationAudit", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  describe("统计卡片", () => {
-    it("应渲染 4 个统计卡片", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.todayOps")).toBeInTheDocument();
-      expect(screen.getByText("audit.abnormalEvents")).toBeInTheDocument();
-      expect(screen.getByText("audit.securityEvents")).toBeInTheDocument();
-      expect(screen.getByText("audit.activeUsers")).toBeInTheDocument();
-    });
-
-    it("应渲染统计数值", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("1,284")).toBeInTheDocument();
-    });
-
-    it("应渲染副标签", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.comparedYesterday")).toBeInTheDocument();
-      expect(screen.getByText("audit.needProcess")).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByText("audit.export"));
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining("已导出 6 条审计日志"),
+      expect.anything(),
+    );
+    expect(URL.createObjectURL).toHaveBeenCalled();
   });
 
-  describe("图表区域", () => {
-    it("应渲染操作趋势图表标题", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.opsTrend")).toBeInTheDocument();
-    });
-
-    it("应渲染风险分布图表标题", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.riskDist")).toBeInTheDocument();
-    });
-  });
-
-  describe("审计日志表格", () => {
-    it("应渲染审计日志标题", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.auditLog")).toBeInTheDocument();
-    });
-
-    it("应渲染表头列", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.colStatus")).toBeInTheDocument();
-      expect(screen.getByText("audit.colAuditId")).toBeInTheDocument();
-      expect(screen.getByText("audit.colTime")).toBeInTheDocument();
-      expect(screen.getByText("audit.colUser")).toBeInTheDocument();
-      expect(screen.getByText("audit.colRole")).toBeInTheDocument();
-      expect(screen.getByText("audit.colAction")).toBeInTheDocument();
-      expect(screen.getByText("audit.colTarget")).toBeInTheDocument();
-      expect(screen.getByText("audit.colIp")).toBeInTheDocument();
-      expect(screen.getByText("audit.colRisk")).toBeInTheDocument();
-    });
-
-    it("首页应渲染前 5 条审计日志 (分页)", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("AUD-20260222-0001")).toBeInTheDocument();
-      expect(screen.getByText("AUD-20260222-0005")).toBeInTheDocument();
-      // 第 6 条不在首页
-      expect(screen.queryByText("AUD-20260222-0006")).not.toBeInTheDocument();
-    });
-
-    it("应渲染操作类型", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("模型部署")).toBeInTheDocument();
-      expect(screen.getByText("节点重启")).toBeInTheDocument();
-      expect(screen.getByText("数据迁移")).toBeInTheDocument();
-    });
-
-    it("应渲染风险等级标签", () => {
-      render(<OperationAudit />);
-      expect(screen.getAllByText("audit.riskLow").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("audit.riskMedium").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("audit.riskHigh").length).toBeGreaterThan(0);
-    });
-  });
-
-  describe("筛选按钮", () => {
-    it("应渲染 4 个筛选按钮", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.filterAll")).toBeInTheDocument();
-      expect(screen.getByText("audit.filterSuccess")).toBeInTheDocument();
-      expect(screen.getByText("audit.filterAbnormal")).toBeInTheDocument();
-      expect(screen.getByText("audit.filterAlert")).toBeInTheDocument();
-    });
-
-    it("默认选中全部", () => {
-      render(<OperationAudit />);
-      const allBtn = screen.getByText("audit.filterAll").closest("button")!;
-      expect(allBtn.className).toContain("text-[#00d4ff]");
-    });
-
-    it("点击筛选按钮应切换激活状态", () => {
-      render(<OperationAudit />);
-      fireEvent.click(screen.getByText("audit.filterSuccess"));
-      const successBtn = screen.getByText("audit.filterSuccess").closest("button")!;
-      expect(successBtn.className).toContain("text-[#00d4ff]");
-      const allBtn = screen.getByText("audit.filterAll").closest("button")!;
-      expect(allBtn.className).not.toContain("bg-[rgba(0,212,255,0.12)]");
-    });
-
-    it("异常筛选应只显示 failed/warning 条目", () => {
-      render(<OperationAudit />);
-      fireEvent.click(screen.getByText("audit.filterAbnormal"));
-      // Only failed/warning logs shown
-      expect(screen.queryByText("AUD-20260222-0001")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("搜索与导出", () => {
-    it("应渲染搜索框", () => {
-      render(<OperationAudit />);
-      expect(screen.getByPlaceholderText("audit.searchLog")).toBeInTheDocument();
-    });
-
-    it("搜索应过滤日志", () => {
-      render(<OperationAudit />);
-      const input = screen.getByPlaceholderText("audit.searchLog");
-      fireEvent.change(input, { target: { value: "模型部署" } });
-      expect(screen.getByText("AUD-20260222-0001")).toBeInTheDocument();
-      expect(screen.queryByText("AUD-20260222-0002")).not.toBeInTheDocument();
-    });
-
-    it("应渲染导出按钮", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText("audit.export")).toBeInTheDocument();
-    });
-  });
-
-  describe("分页", () => {
-    it("应渲染总记录数", () => {
-      render(<OperationAudit />);
-      expect(screen.getByText(/12/)).toBeInTheDocument();
-    });
-
-    it("应渲染分页页码", () => {
-      render(<OperationAudit />);
-      expect(screen.getAllByText("1").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("2").length).toBeGreaterThan(0);
-    });
-
-    it("点击下一页应显示后续记录", () => {
-      render(<OperationAudit />);
-      // Page 1 shows first 5
-      expect(screen.getByText("AUD-20260222-0001")).toBeInTheDocument();
-      // Click page 2
-      const page2Btns = screen.getAllByText("2");
-      const page2Btn = page2Btns.find(el => el.closest("button"));
-      if (page2Btn) {
-        fireEvent.click(page2Btn);
-        // Page 2 should show logs 6-10
-        expect(screen.getByText("AUD-20260222-0006")).toBeInTheDocument();
-        expect(screen.queryByText("AUD-20260222-0001")).not.toBeInTheDocument();
-      }
-    });
-  });
-
-  describe("详情 Modal", () => {
-    it("点击日志行应打开详情 Modal", () => {
-      render(<OperationAudit />);
-      const row = screen.getByText("AUD-20260222-0001").closest("tr")!;
-      fireEvent.click(row);
-      expect(screen.getByText("audit.detailTitle")).toBeInTheDocument();
-    });
-
-    it("Modal 应显示详情字段", () => {
-      render(<OperationAudit />);
-      const row = screen.getByText("AUD-20260222-0001").closest("tr")!;
-      fireEvent.click(row);
-      expect(screen.getByText("audit.fieldAuditId")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldTime")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldUser")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldRole")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldAction")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldTarget")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldIp")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldStatus")).toBeInTheDocument();
-      expect(screen.getByText("audit.fieldRisk")).toBeInTheDocument();
-    });
-
-    it("Modal 应显示追踪链路和导出按钮", () => {
-      render(<OperationAudit />);
-      const row = screen.getByText("AUD-20260222-0001").closest("tr")!;
-      fireEvent.click(row);
-      expect(screen.getByText("audit.traceLink")).toBeInTheDocument();
-      expect(screen.getByText("audit.exportReport")).toBeInTheDocument();
-    });
-
-    it("关闭按钮应关闭 Modal", () => {
-      render(<OperationAudit />);
-      const row = screen.getByText("AUD-20260222-0001").closest("tr")!;
-      fireEvent.click(row);
-      expect(screen.getByText("audit.detailTitle")).toBeInTheDocument();
-      const closeBtn = screen.getByText("audit.detailTitle").parentElement?.querySelector("button");
-      if (closeBtn) {
-        fireEvent.click(closeBtn);
-        expect(screen.queryByText("audit.detailTitle")).not.toBeInTheDocument();
-      }
-    });
-
-    it("点击遮罩应关闭 Modal", () => {
-      render(<OperationAudit />);
-      const row = screen.getByText("AUD-20260222-0001").closest("tr")!;
-      fireEvent.click(row);
-      const modalOuter = screen.getByText("audit.detailTitle").closest(".fixed");
-      if (modalOuter) {
-        fireEvent.click(modalOuter);
-        expect(screen.queryByText("audit.detailTitle")).not.toBeInTheDocument();
-      }
-    });
+  it("分页: 第 2 页呈现 LOG-1001", () => {
+    render(<OperationAudit />);
+    const page2 = screen.getAllByText("2").find((el) => el.closest("button"));
+    expect(page2).toBeTruthy();
+    fireEvent.click(page2!);
+    expect(screen.getByText("LOG-1001")).toBeInTheDocument();
+    expect(screen.queryByText("LOG-1006")).not.toBeInTheDocument();
   });
 });

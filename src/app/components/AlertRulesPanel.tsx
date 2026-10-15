@@ -6,7 +6,7 @@
  * 赛博朋克风格 #060e1f + #00d4ff
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bell, BellRing, Plus, Trash2, ToggleLeft, ToggleRight,
   AlertTriangle, ShieldAlert, Info,
@@ -19,6 +19,7 @@ import { useAlertRules } from "../hooks/useAlertRules";
 import type { AlertSeverity, AlertRule, AlertEvent } from "../types";
 import { useWebSocketData } from "../hooks/useWebSocketData";
 import { CreateRuleModal } from "./CreateRuleModal";
+import { getGatewayConfig } from "../lib/api-config";
 
 // ============================================================
 // Helpers
@@ -379,6 +380,41 @@ export function AlertRulesPanel() {
   } = state;
   const [viewMode, setViewMode] = useState<"rules" | "events">("rules");
 
+  // ── R5 服务端告警源（BL-A4 消费端）: /v1/admin/alerts 30s 轮询 ──
+  // 上游熔断 + 注册中心事件合成告警（经 /console/gw 代理）; 不可达保持空态不伪造
+  const [serverAlerts, setServerAlerts] = useState<
+    Array<{ source: string; level: string; title: string; model?: string; at?: string }>
+  >([]);
+  const [serverAlertsOk, setServerAlertsOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (typeof fetch !== "function") return;
+      try {
+        const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
+        const r = await fetch(`${base}/v1/admin/alerts`, { signal: AbortSignal.timeout(6000) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = (await r.json()) as { alerts?: Array<{ source?: string; level?: string; title?: string; model?: string; at?: string }> };
+        if (!alive) return;
+        setServerAlerts(
+          (d.alerts ?? []).slice(0, 50).map((a) => ({
+            source: String(a.source ?? "unknown"),
+            level: String(a.level ?? "info"),
+            title: String(a.title ?? ""),
+            model: a.model,
+            at: a.at,
+          })),
+        );
+        setServerAlertsOk(true);
+      } catch {
+        if (alive) setServerAlertsOk(false);
+      }
+    };
+    void load();
+    const timer = setInterval(() => { void load(); }, 30_000);
+    return () => { alive = false; clearInterval(timer); };
+  }, []);
+
   // Handle edit submit: delegates to updateRule or createRule
   const handleModalSubmit = React.useCallback((ruleData: Parameters<typeof createRule>[0]) => {
     if (editingRule) {
@@ -530,6 +566,45 @@ export function AlertRulesPanel() {
         </div>
       ) : (
         <div className="space-y-2">
+          {/* R5: 服务端告警（网关熔断+注册事件, BL-A4 源） */}
+          <div className="rounded-xl border border-[rgba(0,180,255,0.12)] bg-[rgba(4,14,32,0.5)] p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[rgba(0,212,255,0.6)]" style={{ fontSize: "0.72rem" }}>
+                服务端告警（网关 · {serverAlerts.length} 条）
+              </span>
+              <span className={serverAlertsOk === false ? "text-[#ff6464]" : "text-[rgba(0,212,255,0.3)]"} style={{ fontSize: "0.6rem" }}>
+                {serverAlertsOk === false ? "注册表不可达" : "30s 轮询"}
+              </span>
+            </div>
+            {serverAlerts.length === 0 ? (
+              <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.68rem" }}>
+                {serverAlertsOk === false ? "网关告警端点不可达（/console/gw /v1/admin/alerts）" : "无服务端告警（上游熔断与注册事件正常）"}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {serverAlerts.slice(0, 8).map((a, i) => (
+                  <div key={`${a.source}-${i}`} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-[rgba(0,20,40,0.35)] border border-[rgba(0,180,255,0.06)]">
+                    <span
+                      className="shrink-0 px-1.5 py-0.5 rounded text-[#0a1628]"
+                      style={{
+                        fontSize: "0.55rem",
+                        background: a.level === "critical" ? "#ff3366" : a.level === "warning" ? "#ffaa00" : "rgba(0,212,255,0.4)",
+                      }}
+                    >
+                      {a.level}
+                    </span>
+                    <span className="text-[#e0f0ff] truncate" style={{ fontSize: "0.68rem" }}>{a.title}</span>
+                    <span className="ml-auto shrink-0 text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.58rem" }}>{a.source}{a.at ? ` · ${a.at}` : ""}</span>
+                  </div>
+                ))}
+                {serverAlerts.length > 8 && (
+                  <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>…其余 {serverAlerts.length - 8} 条</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 本地规则评估事件（阈值判定, P1 链路） */}
           {events.map((event) => (
             <EventRow
               key={event.id}

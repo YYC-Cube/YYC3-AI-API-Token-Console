@@ -83,6 +83,11 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe("AlertRulesPanel", () => {
+  beforeEach(() => {
+    // R5: 服务端告警源轮询（/v1/admin/alerts）— 单测零网络红线, 统一 stub 拒绝
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("test: offline"))));
+  });
+
   it("renders the page title", () => {
     renderWithProviders(<AlertRulesPanel />);
     expect(screen.getByText("智能告警规则")).toBeInTheDocument();
@@ -114,6 +119,14 @@ describe("AlertRulesPanel", () => {
     fireEvent.click(eventsTab);
     // Events should show event messages
     expect(screen.getByText(/GPU-A100-03 利用率达到/)).toBeInTheDocument();
+  });
+
+  it("R5 服务端告警块: events 视图呈现网关源区块（不可达空态, 不伪造告警）", async () => {
+    renderWithProviders(<AlertRulesPanel />);
+    fireEvent.click(screen.getByText("告警事件"));
+    expect(screen.getByText(/服务端告警（网关/)).toBeInTheDocument();
+    // fetch stub 拒绝 → 不可达提示（等首个轮询 promise 收敛）
+    await screen.findByText(/网关告警端点不可达/, undefined, { timeout: 3000 });
   });
 
   it("renders severity filter buttons", () => {
