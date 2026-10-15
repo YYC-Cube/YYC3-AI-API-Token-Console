@@ -40,6 +40,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // (修复批9 e2e 揭示的本地托管 404: 原硬编码 deploy/dist 与 vite 构建产物位置不符)
 const DIST = path.resolve(__dirname, process.env.DIST_DIR || "../dist");
 const PORT = Number(process.env.PORT || 3100);
+// 默认仅回环（ECS 形态, 上游有 Traefik）；NAS 等局域网直连形态经 HOST=0.0.0.0 显式放开
+const HOST = process.env.HOST || "127.0.0.1";
 
 // 上游：家族 API 网关（frp 隧道 ECS 本机端点；固定常量，非用户可控，无 SSRF 面）
 // GW_ORIGIN 可经环境变量覆盖（R6: 集成测试/staging 指向；生产默认回环隧道端点）
@@ -402,8 +404,8 @@ server.on("upgrade", async (req, socket, head) => {
   socket.on("error", cleanup);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`[console-server] http://127.0.0.1:${PORT}/console  (gw proxy → ${GW_ORIGIN}; auth: ${AUTH_ENABLED ? "enabled" : "disabled"})`);
+server.listen(PORT, HOST, () => {
+  console.log(`[console-server] http://${HOST}:${PORT}/console  (gw proxy → ${GW_ORIGIN}; auth: ${AUTH_ENABLED ? "enabled" : "disabled"})`);
   if (!AUTH_ENABLED) {
     console.warn("[console-server] ⚠️ 鉴权未启用 — 公网部署请配置 CONSOLE_AUTH_SECRET + CONSOLE_ADMIN_PASSWORD");
   }
