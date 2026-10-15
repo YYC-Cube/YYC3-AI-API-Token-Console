@@ -333,12 +333,12 @@ BL-A1~A4 落地 → `/audit` 请求级审计真实、`/alerts`+`/follow-up` 服�
 | 模型面 /v1/models*（5） | 页面直操 | `/models`（已接，补 stats/errors 列） | P0 |
 | 虚拟密钥+账单+价格 /v1/admin/virtual-keys\|usage\|pricing（9） | 页面直操 | `/gateway-keys`（已接）+ 价格表编辑入设置分区 | P0/P1 |
 | 上游池 CRUD /v1/admin/upstreams（4） | 页面直操 | `/models` 上游管理（已接推送，补列表/删除 UI） | P1 |
-| Chat/能力代理 chat/embeddings/rerank/ASR/OCR（5） | 技能封装（chat 已接; OCR/ASR 待 R5） | ⌘K 技能 + SDK 对话面板 | P1 ◐ |
+| Chat/能力代理 chat/embeddings/rerank/ASR/OCR（5） | 技能封装 ✅R6（OCR/ASR multipart 技能落地; chat 已接; embeddings/rerank 留 SDK 面板） | ⌘K 技能 + 工具广场 | P2 ✅ |
 | 模型注册中心 /registry/v1/*（19） | 页面直操 | `/models` 注册健康列 + `/audit` 事件/审计 + drain/rollback/canary 技能 | P1 |
 | A2A /v1/a2a/*（11） | 页面直操+技能 | `/ai-family` 钟盘（发现/心跳可视化，硬约束②）+ orchestrate 技能 | P0/P1 |
 | Agent 编排 /v1/agent/execute\|tasks（3+5 worker） | 页面+豁免 | `/ai` Agent 执行面板（execute/tasks/轮询）；worker claim/heartbeat/result/failure 豁免（机器端点） | P1 |
 | 知识库/RAG kb+documents+rag（16） | 页面直操 | 新增「知识库」管理页（KB CRUD/上传/检索测试） | P2 |
-| MCP 工具 /v1/mcp/*（16） | 技能封装（动态发现待 R5, 广场基建 ✅R4） | ⌘K + `/operations` GatewaySkillPlaza | P1 ◐ |
+| MCP 工具 /v1/mcp/*（16） | 技能封装 ✅R6（tools 发现 + execute 执行技能落地） | ⌘K + `/operations` GatewaySkillPlaza | P2 ✅ |
 | 视频任务 /v1/video/tasks（4+4 runner） | 技能封装 | 数字人任务技能（提交/查进度/取结果）；runner 豁免 | P2 |
 | 管理看板 /v1/admin/dashboard HTML（1） | 归档 | 被 B端整体取代（保留为降级入口，不入导航） | — |
 | 机器端点 /metrics /docs /openapi.json /redoc + registry heartbeat（4） | 豁免 | Prometheus 抓取/API 文档/节点 Agent 上报——非人类操作 | — |

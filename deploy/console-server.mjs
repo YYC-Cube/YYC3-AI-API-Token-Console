@@ -42,7 +42,8 @@ const DIST = path.resolve(__dirname, process.env.DIST_DIR || "../dist");
 const PORT = Number(process.env.PORT || 3100);
 
 // 上游：家族 API 网关（frp 隧道 ECS 本机端点；固定常量，非用户可控，无 SSRF 面）
-const GW_ORIGIN = "http://127.0.0.1:8800";
+// GW_ORIGIN 可经环境变量覆盖（R6: 集成测试/staging 指向；生产默认回环隧道端点）
+const GW_ORIGIN = process.env.GW_ORIGIN || "http://127.0.0.1:8800";
 const GW_ORIGIN_OK = /^https?:\/\//.test(GW_ORIGIN);
 // ADMIN 密钥：仅服务端环境变量（部署时由密钥文件注入，不落代码/仓库）
 const GW_ADMIN_KEY = process.env.GW_ADMIN_KEY || "";

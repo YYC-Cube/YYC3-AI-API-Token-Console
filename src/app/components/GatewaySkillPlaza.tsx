@@ -15,7 +15,7 @@ export function GatewaySkillPlaza() {
   const [open, setOpen] = useState(false);
   const [running, setRunning] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, SkillResult | undefined>>({});
-  const [paramDrafts, setParamDrafts] = useState<Record<string, Record<string, string>>>({});
+  const [paramDrafts, setParamDrafts] = useState<Record<string, Record<string, string | File>>>({});
 
   const byCategory = useMemo(() => {
     const map = new Map<string, typeof GATEWAY_SKILLS>();
@@ -27,7 +27,7 @@ export function GatewaySkillPlaza() {
     return [...map.entries()];
   }, []);
 
-  const run = async (id: string, params: Record<string, string>) => {
+  const run = async (id: string, params: Record<string, string | File>) => {
     setRunning(id);
     try {
       const r = await runGatewaySkill(id, params);
@@ -78,19 +78,35 @@ export function GatewaySkillPlaza() {
                       {s.params.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {s.params.map((p) => (
-                            <input
-                              key={p.key}
-                              value={drafts[p.key] ?? p.defaultValue ?? ""}
-                              onChange={(e) =>
-                                setParamDrafts((prev) => ({
-                                  ...prev,
-                                  [s.id]: { ...(prev[s.id] ?? {}), [p.key]: e.target.value },
-                                }))
-                              }
-                              placeholder={`${p.label}: ${p.placeholder}`}
-                              className="px-2 py-1 rounded-md bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] text-[#e0f0ff] outline-none focus:border-[rgba(0,212,255,0.4)]"
-                              style={{ fontSize: "0.62rem", width: 120 }}
-                            />
+                            p.type === "file" ? (
+                              <input
+                                key={p.key}
+                                type="file"
+                                onChange={(e) =>
+                                  setParamDrafts((prev) => ({
+                                    ...prev,
+                                    [s.id]: { ...(prev[s.id] ?? {}), [p.key]: e.target.files?.[0] ?? "" },
+                                  }))
+                                }
+                                title={`${p.label}: ${p.placeholder}`}
+                                className="px-2 py-1 rounded-md bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] text-[#e0f0ff] outline-none focus:border-[rgba(0,212,255,0.4)]"
+                                style={{ fontSize: "0.58rem", maxWidth: 150 }}
+                              />
+                            ) : (
+                              <input
+                                key={p.key}
+                                value={(typeof drafts[p.key] === "string" ? drafts[p.key] : p.defaultValue ?? "") as string}
+                                onChange={(e) =>
+                                  setParamDrafts((prev) => ({
+                                    ...prev,
+                                    [s.id]: { ...(prev[s.id] ?? {}), [p.key]: e.target.value },
+                                  }))
+                                }
+                                placeholder={`${p.label}: ${p.placeholder}`}
+                                className="px-2 py-1 rounded-md bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] text-[#e0f0ff] outline-none focus:border-[rgba(0,212,255,0.4)]"
+                                style={{ fontSize: "0.62rem", width: p.type === "textarea" ? 200 : 120 }}
+                              />
+                            )
                           ))}
                         </div>
                       )}

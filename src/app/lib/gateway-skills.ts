@@ -19,6 +19,8 @@ export interface SkillParam {
   label: string;
   placeholder: string;
   defaultValue?: string;
+  /** text=单行(默认) · textarea=多行 JSON/长文本 · file=文件上传（multipart） */
+  type?: "text" | "textarea" | "file";
 }
 
 export interface SkillResult {
@@ -36,6 +38,8 @@ export interface GatewaySkill {
   /** 相对网关 base（已去 /v1 尾）的路径; buildQuery 由 params 值拼入查询串 */
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: (p: Record<string, string>) => string;
+  /** POST JSON body 构造器（无 file 参数时; 有 file 参数走 multipart form 全量承载） */
+  body?: (p: Record<string, string>) => Record<string, unknown>;
   /** 响应 → 人读摘要（不做任何数据伪造; 失败路径由执行器统一处理） */
   summarize: (data: unknown) => string;
 }
@@ -161,6 +165,75 @@ export const GATEWAY_SKILLS: GatewaySkill[] = [
     },
   },
   {
+    id: "ocr",
+    label: "图片 OCR",
+    desc: "图片文本识别（POST /v1/ocr · multipart, VLM 多模态适配）",
+    category: "观测",
+    params: [
+      { key: "file", label: "图片文件", placeholder: "选择 png/jpg", type: "file" },
+      { key: "model", label: "模型(可选)", placeholder: "ocr", defaultValue: "" },
+      { key: "prompt", label: "指令(可选)", placeholder: "提取全部文本", type: "textarea" },
+    ],
+    method: "POST",
+    path: () => "/v1/ocr",
+    summarize: (d) => {
+      const o = d as { choices?: Array<{ message?: { content?: string } }>; text?: string };
+      const text = o.choices?.[0]?.message?.content ?? o.text ?? "";
+      return text ? `识别 ${text.length} 字: ${text.slice(0, 60)}${text.length > 60 ? "…" : ""}` : "空结果";
+    },
+  },
+  {
+    id: "asr-transcribe",
+    label: "语音转写",
+    desc: "音频转文字（POST /v1/audio/transcriptions · multipart, Whisper 风格）",
+    category: "观测",
+    params: [
+      { key: "file", label: "音频文件", placeholder: "选择 mp3/wav", type: "file" },
+      { key: "model", label: "模型", placeholder: "whisper-1", defaultValue: "whisper-1" },
+    ],
+    method: "POST",
+    path: () => "/v1/audio/transcriptions",
+    summarize: (d) => {
+      const o = d as { text?: string };
+      return o.text ? `转写 ${o.text.length} 字: ${o.text.slice(0, 60)}${o.text.length > 60 ? "…" : ""}` : "空结果";
+    },
+  },
+  {
+    id: "mcp-tools",
+    label: "MCP 工具发现",
+    desc: "智谱+本地 MCP 工具全集（GET /v1/mcp/tools · §11 动态发现）",
+    category: "注册中心",
+    params: [],
+    method: "GET",
+    path: () => "/v1/mcp/tools",
+    summarize: (d) => {
+      const o = d as { tools?: unknown[]; local_tools?: unknown[]; total_count?: number };
+      const n = o.total_count ?? ((o.tools?.length ?? 0) + (o.local_tools?.length ?? 0));
+      return `共 ${n} 个工具（云 ${o.tools?.length ?? 0} · 本地 ${o.local_tools?.length ?? 0}）`;
+    },
+  },
+  {
+    id: "mcp-execute",
+    label: "MCP 工具执行",
+    desc: "按名执行 MCP 工具（POST /v1/mcp/execute · parameters 为 JSON 对象）",
+    category: "注册中心",
+    params: [
+      { key: "tool_name", label: "工具名", placeholder: "web_search", defaultValue: "" },
+      { key: "parameters", label: "参数 JSON", placeholder: "{}", defaultValue: "{}", type: "textarea" },
+    ],
+    method: "POST",
+    path: () => "/v1/mcp/execute",
+    body: (p) => {
+      let parsed: unknown = {};
+      try { parsed = JSON.parse(p.parameters || "{}"); } catch { parsed = {}; }
+      return { tool_name: p.tool_name || "", parameters: parsed };
+    },
+    summarize: (d) => {
+      const o = d as { success?: boolean; error?: string; tool_name?: string };
+      return o.success ? `工具 ${o.tool_name ?? "?"} 执行成功` : `失败: ${o.error ?? "未知错误"}`;
+    },
+  },
+  {
     id: "models-summary",
     label: "总量摘要",
     desc: "全站请求/Token/真实成本（GET /v1/models/summary · P1 cost 真实化）",
@@ -182,17 +255,42 @@ export function getSkill(id: string): GatewaySkill | undefined {
 /** 执行技能: 经 /console/gw 代理调用网关; 失败如实回报（不伪造成功） */
 export async function runGatewaySkill(
   id: string,
-  paramValues: Record<string, string> = {},
+  paramValues: Record<string, string | File> = {},
 ): Promise<SkillResult> {
   const skill = getSkill(id);
   if (!skill) return { ok: false, summary: `未知技能: ${id}` };
   if (typeof fetch !== "function") return { ok: false, summary: "当前环境不可用 fetch" };
-  const url = `${gwBase()}${skill.path(paramValues)}`;
+  // 路径/JSON body 只消费字符串参数（File 仅 multipart 形态承载）
+  const strParams = Object.fromEntries(
+    Object.entries(paramValues).map(([k, v]) => [k, v instanceof File ? "" : v]),
+  );
+  const url = `${gwBase()}${skill.path(strParams)}`;
   try {
+    const hasFile = skill.params.some((p) => p.type === "file");
+    let body: FormData | string | undefined;
+    let headers: Record<string, string> | undefined;
+    if (hasFile) {
+      // multipart: file + 其余参数全部作 form 字段（OCR/ASR 契约形态）
+      const fd = new FormData();
+      for (const p of skill.params) {
+        const v = paramValues[p.key];
+        if (v instanceof File) { if (v.size > 0) fd.append(p.key, v); continue; }
+        const s = v ?? p.defaultValue ?? "";
+        if (s === "") continue;
+        fd.append(p.key, s);
+      }
+      body = fd; // 不设 Content-Type — 浏览器自动带 boundary
+    } else if (skill.body) {
+      body = JSON.stringify(skill.body(strParams));
+      headers = { "Content-Type": "application/json" };
+    } else if (skill.method !== "GET") {
+      headers = { "Content-Type": "application/json" };
+    }
     const r = await fetch(url, {
       method: skill.method,
-      headers: skill.method === "GET" ? undefined : { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(15000),
+      headers,
+      body,
+      signal: AbortSignal.timeout(30_000),
     });
     if (!r.ok) {
       const hint = r.status === 401 ? "（console 形态请先登录）" : r.status === 503 ? "（GW_ADMIN_KEY 未配置）" : "";

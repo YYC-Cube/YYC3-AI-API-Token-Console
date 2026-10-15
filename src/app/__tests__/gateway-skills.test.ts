@@ -26,9 +26,13 @@ function stubFetch(handler: (url: string, init?: RequestInit) => { status: numbe
 }
 
 describe("gateway-skills: 注册表完备性（§11 P1 覆盖族）", () => {
-  it("9 项技能且 id 唯一", () => {
-    expect(GATEWAY_SKILLS).toHaveLength(9);
-    expect(new Set(GATEWAY_SKILLS.map((s) => s.id)).size).toBe(9);
+  it("13 项技能且 id 唯一（R6: +OCR/ASR/MCP×2）", () => {
+    expect(GATEWAY_SKILLS).toHaveLength(13);
+    expect(new Set(GATEWAY_SKILLS.map((s) => s.id)).size).toBe(13);
+    expect(GATEWAY_SKILLS.some((s) => s.id === "ocr")).toBe(true);
+    expect(GATEWAY_SKILLS.some((s) => s.id === "asr-transcribe")).toBe(true);
+    expect(GATEWAY_SKILLS.some((s) => s.id === "mcp-tools")).toBe(true);
+    expect(GATEWAY_SKILLS.some((s) => s.id === "mcp-execute")).toBe(true);
   });
 
   it("消费 P1 四新端点（logs/timeline/summary 成本/alerts）", () => {
@@ -97,6 +101,39 @@ describe("gateway-skills: 执行器", () => {
     vi.stubGlobal("fetch", stubFetch(() => ({ status: 503, body: {} })));
     const b = await runGatewaySkill("cache-stats");
     expect(b.summary).toContain("GW_ADMIN_KEY");
+  });
+
+  it("R6 OCR: file 参数走 FormData（无 Content-Type 头, 浏览器带 boundary）", async () => {
+    const spy = stubFetch((url) => (url.includes("/v1/ocr") ? { status: 200, body: { choices: [{ message: { content: "识别结果文本" } }] } } : null));
+    vi.stubGlobal("fetch", spy);
+    const fakeFile = new File(["x"], "img.png", { type: "image/png" });
+    const r = await runGatewaySkill("ocr", { file: fakeFile, prompt: "提取文本" });
+    expect(r.ok).toBe(true);
+    expect(r.summary).toContain("识别结果文本");
+    const [, init] = spy.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.body).toBeInstanceOf(FormData);
+    expect((init.body as FormData).get("prompt")).toBe("提取文本");
+    expect((init.headers as Record<string, string> | undefined)?.["Content-Type"]).toBeUndefined();
+  });
+
+  it("R6 MCP execute: JSON body 构造器（非法 JSON 容错为空对象）", async () => {
+    const spy = stubFetch((url) => (url.includes("/v1/mcp/execute") ? { status: 200, body: { success: true, tool_name: "web_search" } } : null));
+    vi.stubGlobal("fetch", spy);
+    const r = await runGatewaySkill("mcp-execute", { tool_name: "web_search", parameters: "{not-json" });
+    expect(r.ok).toBe(true);
+    expect(r.summary).toContain("执行成功");
+    const [, init] = spy.mock.calls[0] as unknown as [string, RequestInit];
+    const sent = JSON.parse(String(init.body));
+    expect(sent).toEqual({ tool_name: "web_search", parameters: {} });
+    expect((init.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
+  });
+
+  it("R6 MCP tools 发现摘要", async () => {
+    vi.stubGlobal("fetch", stubFetch((url) => (url.includes("/v1/mcp/tools") ? { status: 200, body: { tools: [{ name: "a" }], local_tools: [{ name: "b" }, { name: "c" }], total_count: 3 } } : null)));
+    const r = await runGatewaySkill("mcp-tools");
+    expect(r.ok).toBe(true);
+    expect(r.summary).toContain("共 3 个工具");
+    expect(r.summary).toContain("本地 2");
   });
 
   it("网络失败 → 如实报错（不伪造成功）; 未知技能防御", async () => {

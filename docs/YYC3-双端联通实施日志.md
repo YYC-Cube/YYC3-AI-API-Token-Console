@@ -6,6 +6,43 @@
 
 ---
 
+## 批次 R6（已完成 · 2026-10-15）: P2 治理 — 契约 E2E + OCR/ASR/MCP 技能 + 生产实测与哈希流程
+
+**范围**: 契约守卫（双仓）/ 中继链真实进程 E2E / §11 技能补全 / 生产可达性实测。门禁: 后端快层全过 + flake8/importlinter 绿 + 契约守卫 4/4; 前端 typecheck/lint 0 · 单测全过 · size/knip/astgrep/build 全绿 · integration E2E 2/2。
+
+### 契约守卫（双仓） ✅
+
+- 后端 `tests/test_openapi_contract.py` 4 用例: P1 四端点在 schema / §11 技能消费端点（cache/probe/mcp/ocr/asr）在 schema / v5.1 冻结基线抽查 / **openapi 路径数 ≥98 基线**（只增不减; 口径澄清: 路由总数 111 含 WS 与多方法展开, openapi paths=98）。
+- 后端 `scripts/openapi_hash.sh`: 拉取线上 openapi.json 输出 sha256+端点数——冻结快照哈希回填工具。
+
+### 中继链契约 E2E（真实进程, integration 项目） ✅
+
+- `console-relay.integration.test.ts`（YYC3_TEST_INTEGRATION=1 门控）: 进程内桩网关（WS 服务端帧复用 console-ws-relay 编解码器构造）+ 真实 console-server.mjs 子进程（**GW_ORIGIN 环境覆盖**——生产默认回环不变, 测试/staging 可指向）。
+- 断言四环: ① /console/gw 代理透传 + **GW_ADMIN_KEY 注入在桩网关侧捕获证实**（浏览器零暴露闭环证据）; ② WS 101 握手 + Sec-WebSocket-Accept RFC 官方向量; ③ 桩网关下行 metrics 帧经中继原样透传; ④ masked close → close 回环。
+
+### §11 技能补全（OCR/ASR/MCP 动态发现） ✅
+
+- gateway-skills 9→13: **图片 OCR**（multipart file+model+prompt, VLM 适配）/ **语音转写**（Whisper 风格 multipart）/ **MCP 工具发现**（GET /v1/mcp/tools 云+本地计数）/ **MCP 工具执行**（JSON body 构造器, 非法 JSON 容错空对象）。
+- 执行器双形态: file 参数 → FormData（浏览器自动 boundary, 其余参数入 form 字段）; body 构造器 → JSON。工具广场 file 参数渲染文件输入。测试 +3 用例（FormData/JSON body/发现摘要）。
+
+### 生产部署实测（可达部分）+ 运行手册 ✅
+
+- **线上实测（2026-10-16 01:00 前后）**: `GET /healthz`=200（网关活）; `GET /console/gw/v1/ping`=200（**代理链+密钥注入生产可用**）; WS Upgrade 探测返回 **200 HTML**——Upgrade 头已透传到达 console-server（生产跑旧版代码按 GET/SPA 回退处理）, **Traefik v3 透传结论: 证据支持**。
+- **线上契约基线**: `scripts/openapi_hash.sh` 实测 = **95 端点 / sha256 37db4553…fc82f**; 本地 98 = 95+3（恰为 P1 新端点）→ 部署后差异自证。
+- **部署运行手册**（NAS 操作员执行）:
+  1. 0379-World: 拉取 d53b139+961e06f → 部署网关容器（PG 先跑 007 迁移: `psql < core/database/init/007_spend_logs_observability.sql`）。
+  2. Token-Console: 构建产物部署 console-server（R1~R6 已含 WS 中继; GW_ADMIN_KEY/CONSOLE_* 环境就位）。
+  3. **WS 实测**: `curl -i -N --http1.1 -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" -H "Sec-WebSocket-Version: 13" https://api.0379.world/console/ws/monitor` → 预期 **101**（未登录则 401 JSON——两者皆证明 Upgrade 穿透; 400/502=中间件拦截需豁免）。
+  4. **哈希回填**: `./scripts/openapi_hash.sh` → 新哈希+端点数（应 98）回填模型网关 01 文档冻结行, 增补 #53~#55 🔓→🔒。
+- 判例: 集成测试子进程端口须测试侧显式选定（PORT=0 日志解析有竞态）; describe 超时在 vitest 4 为第二参选项式 `describe(name, {timeout}, fn)`。
+
+### 队列（R7+ 可选）
+
+/audit 详情抽屉接 request_id 网关链路跳转; /security 网关视角卡; MCP 动态发现进 ⌘K; console 形态发布流水线（VITE_ENABLE_MOCK 构建双产物）。
+
+---
+---
+
 ## 批次 R5（已完成 · 2026-10-15）: P1 端点前端消费（/audit /alerts）+ chat 记账可观测性 + 冻结快照 52→55
 
 **范围**: R4 落地的数据端点接入页面; 后端错误请求入流水; 契约文档升版。门禁: 后端 flake8/importlinter 绿 + 快层 **287/287**; 前端 typecheck/lint 0 · 单测全过 · size/knip/build 全绿。
