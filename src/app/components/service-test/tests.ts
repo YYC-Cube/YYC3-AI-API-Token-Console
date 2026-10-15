@@ -4,7 +4,8 @@
  * 原 useCallback 闭包改为模块级纯函数: 全部依赖经参数传入, 无组件状态耦合。
  * 调用方: 主壳 ServiceConnectionTest.tsx
  */
-import { Database, Globe, Network, Radio, Server } from "lucide-react";
+import { Database, Globe, Network, Radio, Server, Zap } from "lucide-react";
+import { getAPIConfig, getGatewayConfig } from "../../lib/api-config";
 import { env } from "../../lib/env-config";
 import { getOllamaChatUrl, getOllamaEndpointInfo, getOllamaTagsUrl } from "../../lib/ollama-url";
 import type { DBConnection } from "../../stores/dashboard-stores";
@@ -352,6 +353,57 @@ export async function runWebSocketTest(): Promise<TestResult> {
   result.overallStatus = result.steps[0].status === "pass" ? "pass" : "fail";
   result.completedAt = Date.now();
   return result;
+}
+
+/** 网关中继链探测（双端联通 P0-6 / 2026-10-15）: 代理 ping → 指标聚合 → A2A 注册表 三步实况 */
+export async function runGatewayRelayTest(): Promise<TestResult> {
+  const gwBase = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
+  const result: TestResult = {
+    id: "gateway-relay",
+    category: "network",
+    name: `网关中继链 (${gwBase})`,
+    icon: Zap,
+    color: "#00ff88",
+    steps: [],
+    overallStatus: "running",
+    startedAt: Date.now(),
+  };
+
+  // Step 1: /console/gw 代理 → 网关 /v1/ping（Cookie 会话 + 服务端密钥注入链路验证）
+  const ping = await testFetch(`${gwBase}/v1/ping`, {}, 6000);
+  result.steps.push({
+    label: "网关代理 ping",
+    status: ping.ok ? "pass" : "fail",
+    detail: ping.ok ? `HTTP ${ping.status} — 代理与会话链路通` : `${ping.errorMsg ?? `HTTP ${ping.status}`} — 检查登录态(console 会话)与 GW_ADMIN_KEY`,
+    latencyMs: ping.latencyMs,
+    timestamp: Date.now(),
+  });
+
+  // Step 2: 指标聚合（Ollama 节点 + 网关快照; 401=未登录, 503=聚合上游不可达）
+  const metrics = await testFetch(getAPIConfig().metricsBase, {}, 8000);
+  const metricsDetail = metrics.ok
+    ? "指标聚合可达（四源设备清单供数端）"
+    : metrics.status === 401 ? "未认证 — console 形态请先登录" : `${metrics.errorMsg ?? `HTTP ${metrics.status}`} — console-server 不可达`;
+  result.steps.push({ label: "指标聚合 /console/metrics", status: metrics.ok ? "pass" : "fail", detail: metricsDetail, latencyMs: metrics.latencyMs, timestamp: Date.now() });
+
+  // Step 3: A2A 注册表（管理面, 含离线; 经代理注入密钥）
+  const a2a = await testFetch(`${gwBase}/v1/admin/a2a/agents`, {}, 6000);
+  let a2aDetail = a2a.ok ? "A2A 注册表可达" : `${a2a.errorMsg ?? `HTTP ${a2a.status}`} — 管理面代理或网关异常`;
+  if (a2a.ok) {
+    try {
+      const body = JSON.parse(a2a.body ?? "{}") as { agents?: unknown[] };
+      const n = Array.isArray(body.agents) ? body.agents.length : 0;
+      a2aDetail = `A2A 注册表可达 — ${n} 个 Agent（含离线）`;
+    } catch { /* body 非按预期 JSON — 保留可达结论 */ }
+  }
+  result.steps.push({ label: "A2A 注册表", status: a2a.ok ? "pass" : "fail", detail: a2aDetail, latencyMs: a2a.latencyMs, timestamp: Date.now() });
+
+  return finalize(result);
+}
+
+/** 实时链组合（双端联通 P0-6）: WebSocket + 网关中继链 顺序执行 — 供壳层全链路编排/快捷单项复用 */
+export async function runRealtimeSuite(): Promise<TestResult[]> {
+  return [await runWebSocketTest(), await runGatewayRelayTest()];
 }
 
 /** 网络连通性测试（原 testNetwork, proxyUrl 参数化） */

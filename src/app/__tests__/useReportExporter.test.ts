@@ -1,7 +1,11 @@
 /**
  * useReportExporter.test.ts
  * ==========================
- * useReportExporter hook 单元测试
+ * useReportExporter hook 单元测试 — 双端联通 P0-4 真实数据源版
+ *
+ * 覆盖: 真实三源（usage/summary · models/stats · console/metrics）采集与聚合 /
+ * 全源不可达拒绝生成（硬约束①·不产模拟报表）/ 部分源降级（无源显「—」）/
+ * 规则化建议（熔断/错误率/磁盘/成本）/ 导出链路（JSON/CSV/可打印 HTML）
  */
 
 // @vitest-environment jsdom
@@ -9,159 +13,160 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useReportExporter } from "../hooks/useReportExporter";
 
-describe("useReportExporter", () => {
+/** 真实源桩载荷（契约对齐后端 usage_summary / ModelStat / console-metrics 网关快照） */
+const USAGE_PAYLOAD = {
+  days: 1,
+  total_calls: 1000,
+  total_cost_usd: 1.234,
+  groups: [
+    { grp: "glm-4-flash", calls: 800, prompt_tokens: 100_000, completion_tokens: 50_000, cost_usd: 1.0, avg_latency_ms: 120 },
+    { grp: "deepseek-v4", calls: 200, prompt_tokens: 20_000, completion_tokens: 10_000, cost_usd: 0.234, avg_latency_ms: 200 },
+  ],
+};
+const MODELS_PAYLOAD = [
+  { model_id: "vllm-flagship", usage_count: 500, avg_latency_ms: 150, error_rate: 0.02, total_tokens: 300_000 },
+  { model_id: "bge-embed-nim", usage_count: 100, avg_latency_ms: 30, error_rate: 0.001, total_tokens: 50_000 },
+];
+const METRICS_PAYLOAD = {
+  ts: Date.now(),
+  activeCount: "1/1",
+  nodes: [{ id: "n1", status: "active", latencyMs: 10, models: ["qwen3:14b"] }],
+  gateway: {
+    health: {
+      status: "healthy", version: "2.0.0",
+      services: { ollama: { status: "healthy" }, redis: { status: "healthy" }, postgresql: { status: "healthy" } },
+      system: { cpu_percent: 35.5, memory_percent: 60.2, disk_percent: 72.1 },
+      metrics: { active_requests: 2 },
+    },
+    router: {
+      upstream_pool: [
+        { name: "vllm-flagship", breaker_state: "closed", load: 40 },
+        { name: "bge-embed-nim", status: "open" }, // 熔断 → 建议规则应命中
+      ],
+    },
+    models: [],
+  },
+};
+
+/** 按 URL 路由的 fetch 桩（默认三源全通） */
+function stubSourcesFetch(opts: { usage?: boolean; models?: boolean; metrics?: boolean } = {}) {
+  const { usage = true, models = true, metrics = true } = opts;
+  return vi.fn(async (input: string | URL | Request) => {
+    const url = String(input);
+    if (usage && url.includes("/v1/admin/usage/summary")) {
+      return { ok: true, json: async () => USAGE_PAYLOAD } as unknown as Response;
+    }
+    if (models && url.includes("/v1/models/stats")) {
+      return { ok: true, json: async () => MODELS_PAYLOAD } as unknown as Response;
+    }
+    if (metrics && url.includes("/console/metrics")) {
+      return { ok: true, json: async () => METRICS_PAYLOAD } as unknown as Response;
+    }
+    throw new Error("offline: " + url);
+  });
+}
+
+/** 触发生成并冲刷微任务（真实源采集为 async, 无定时器延迟） */
+async function generate(result: { current: ReturnType<typeof useReportExporter> }) {
+  await act(async () => {
+    result.current.generateReport();
+  });
+}
+
+describe("useReportExporter（真实数据源 P0-4）", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    localStorage.clear();
+    vi.stubGlobal("fetch", stubSourcesFetch());
   });
-
   afterEach(() => {
-    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
-  it("should initialize with default values", () => {
+  it("初始默认值（历史种子已随 mock 清理移除 → 空）", () => {
     const { result } = renderHook(() => useReportExporter());
     expect(result.current.reportType).toBe("performance");
     expect(result.current.timeRange).toBe("24h");
     expect(result.current.isGenerating).toBe(false);
     expect(result.current.report).toBeNull();
-    expect(result.current.recentReports.length).toBeGreaterThan(0);
+    expect(result.current.lastError).toBeNull();
+    expect(result.current.recentReports.length).toBe(0);
   });
 
-  it("should set report type", () => {
+  it("真实三源生成: 账单/延迟/节点健康卡片为真实聚合值", async () => {
     const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.setReportType("security");
-    });
-    expect(result.current.reportType).toBe("security");
-
-    act(() => {
-      result.current.setReportType("audit");
-    });
-    expect(result.current.reportType).toBe("audit");
-  });
-
-  it("should set time range", () => {
-    const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.setTimeRange("1h");
-    });
-    expect(result.current.timeRange).toBe("1h");
-
-    act(() => {
-      result.current.setTimeRange("7d");
-    });
-    expect(result.current.timeRange).toBe("7d");
-  });
-
-  it("should generate a report after delay", () => {
-    const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.generateReport();
-    });
-    expect(result.current.isGenerating).toBe(true);
-    expect(result.current.report).toBeNull();
-
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    await generate(result);
+    const report = result.current.report!;
+    expect(report).not.toBeNull();
     expect(result.current.isGenerating).toBe(false);
-    expect(result.current.report).not.toBeNull();
-    expect(result.current.report?.type).toBe("performance");
+    const card = (label: string) => report.summary.find((m) => m.label === label)?.value;
+    expect(card("总请求次数")).toBe("1,000"); // usage total_calls
+    expect(card("Token 总量")).toBe("180,000"); // groups prompt+completion 合计
+    expect(card("成本 (USD)")).toBe("$1.23");
+    expect(card("节点健康")).toBe("1/2"); // 上游池 closed=active, open=error
+    // 延迟: usage calls 加权 (120*800+200*200)/1000 = 136
+    expect(card("平均延迟")).toBe("136ms");
   });
 
-  it("should generate a report with correct type", () => {
+  it("规则化建议: 熔断上游命中 + 真实成本 top", async () => {
     const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.setReportType("security");
-    });
-
-    act(() => {
-      result.current.generateReport();
-    });
-
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-
-    expect(result.current.report?.type).toBe("security");
+    await generate(result);
+    const recs = result.current.report!.recommendations;
+    expect(recs.some((r) => r.includes("bge-embed-nim") && r.includes("熔断"))).toBe(true);
+    expect(recs.some((r) => r.includes("glm-4-flash") && r.includes("$1.00"))).toBe(true);
   });
 
-  it("should add to recent reports after generating", () => {
+  it("性能快照为真实单点（时序待 BL-A2 不伪造历史）+ 安全时序空集", async () => {
     const { result } = renderHook(() => useReportExporter());
-    const initialCount = result.current.recentReports.length;
+    await generate(result);
+    const report = result.current.report!;
+    expect(report.performanceHistory).toHaveLength(1);
+    expect(report.performanceHistory[0].cpuUsage).toBe(35.5);
+    expect(report.performanceHistory[0].memoryUsage).toBe(60.2);
+    expect(report.performanceHistory[0].latencyP99).toBe(0); // 无 P99 源 → 0 不冒充
+    expect(report.securityHistory).toEqual([]);
+  });
 
-    act(() => {
-      result.current.generateReport();
-    });
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+  it("节点明细: 上游行延迟从 models/stats 按名匹配合并", async () => {
+    const { result } = renderHook(() => useReportExporter());
+    await generate(result);
+    const vllm = result.current.report!.nodeBreakdown.find((n) => n.nodeId === "vllm-flagship");
+    expect(vllm?.avgLatency).toBe(150);
+    expect(vllm?.errorRate).toBe(2);
+    expect(result.current.report!.nodeBreakdown.some((n) => n.nodeId === "nas-gateway")).toBe(true);
+  });
 
-    expect(result.current.recentReports.length).toBe(initialCount + 1);
+  it("全源不可达: 拒绝生成并显式报错（不产模拟报表, 硬约束①）", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    const { result } = renderHook(() => useReportExporter());
+    await generate(result);
+    expect(result.current.report).toBeNull();
+    expect(result.current.lastError).toContain("拒绝生成模拟报表");
+    expect(result.current.isGenerating).toBe(false);
+  });
+
+  it("部分源降级: 仅 models/stats 可达 → 成本/节点健康显「—」", async () => {
+    vi.stubGlobal("fetch", stubSourcesFetch({ usage: false, metrics: false }));
+    const { result } = renderHook(() => useReportExporter());
+    await generate(result);
+    const report = result.current.report!;
+    const card = (label: string) => report.summary.find((m) => m.label === label)?.value;
+    expect(card("成本 (USD)")).toBe("—");
+    expect(card("节点健康")).toBe("—");
+    expect(card("总请求次数")).toBe("600"); // models usage_count 合计
+  });
+
+  it("生成后入历史并置顶", async () => {
+    const { result } = renderHook(() => useReportExporter());
+    await generate(result);
+    expect(result.current.recentReports).toHaveLength(1);
     expect(result.current.recentReports[0].type).toBe("performance");
   });
 
-  it("should have performance history in generated report", () => {
+  it("无报告时导出不抛错", () => {
     const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.generateReport();
-    });
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-
-    const report = result.current.report!;
-    expect(report.performanceHistory.length).toBeGreaterThan(0);
-    expect(report.nodeBreakdown.length).toBeGreaterThan(0);
-    expect(report.recommendations.length).toBeGreaterThan(0);
-    expect(report.summary.length).toBeGreaterThan(0);
-  });
-
-  it("should have valid summary metrics", () => {
-    const { result } = renderHook(() => useReportExporter());
-
-    act(() => {
-      result.current.generateReport();
-    });
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-
-    const summary = result.current.report!.summary;
-    summary.forEach((m) => {
-      expect(m.label).toBeTruthy();
-      expect(m.value).toBeTruthy();
-      expect(["up", "down", "stable"]).toContain(m.trend);
-      expect(m.change).toBeTruthy();
-    });
-  });
-
-  it("should not export when no report exists", () => {
-    const { result } = renderHook(() => useReportExporter());
-    // Should not throw
     act(() => {
       result.current.exportReport("json");
     });
-  });
-
-  it("should cap recent reports at 10", () => {
-    const { result } = renderHook(() => useReportExporter());
-
-    for (let i = 0; i < 12; i++) {
-      act(() => {
-        result.current.generateReport();
-      });
-      act(() => {
-        vi.advanceTimersByTime(1500);
-      });
-    }
-
-    expect(result.current.recentReports.length).toBeLessThanOrEqual(13); // 3 initial + 10 max kept
   });
 });
 
@@ -189,15 +194,18 @@ describe("useReportExporter 导出链路", () => {
       .mockImplementation(function (this: HTMLAnchorElement) {
         downloads.push(this.download);
       });
+    localStorage.clear();
+    vi.stubGlobal("fetch", stubSourcesFetch());
   });
 
   afterEach(() => {
     vi.useRealTimers();
     clickSpy.mockRestore();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  /** 生成一份报告并推进 1.5s 延迟 */
+  /** 生成一份真实源报告（async 采集 + 微任务冲刷） */
   async function generateReadyReport(type?: "audit" | "comprehensive") {
     const { result } = renderHook(() => useReportExporter());
     if (type) {
@@ -205,12 +213,7 @@ describe("useReportExporter 导出链路", () => {
         result.current.setReportType(type);
       });
     }
-    act(() => {
-      result.current.generateReport();
-    });
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    await generate(result);
     return result;
   }
 
@@ -279,5 +282,13 @@ describe("useReportExporter 导出链路", () => {
     const result = await generateReadyReport("audit");
     expect(result.current.report?.title).toBe("操作审计报表");
     expect(result.current.report?.timeRange.label).toBe("最近 24 小时");
+  });
+
+  it("历史记录上限 10（连续生成 12 次）", async () => {
+    const { result } = renderHook(() => useReportExporter());
+    for (let i = 0; i < 12; i++) {
+      await generate(result);
+    }
+    expect(result.current.recentReports.length).toBeLessThanOrEqual(10);
   });
 });

@@ -114,8 +114,8 @@ export interface InteractionSpec {
   feedback: string;
 }
 
-/** 阶段审核状态 */
-export type ChapterStatus = "completed" | "partial" | "pending" | "deferred";
+/** 阶段审核状态（archived=双端联通 R3 清理批归档留痕） */
+export type ChapterStatus = "completed" | "partial" | "pending" | "deferred" | "archived";
 
 /** 章节审核 */
 export interface ChapterReview {

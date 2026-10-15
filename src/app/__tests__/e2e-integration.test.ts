@@ -129,7 +129,6 @@ describe("E2E: Dashboard Stores 数据完整性", () => {
       ["dbConnectionStore", 2],
       ["deployedModelStore", 5],
       ["wifiNetworkStore", 0],
-      ["userStore", 8],
     ];
 
     for (const [name, count] of expected) {
@@ -149,14 +148,6 @@ describe("E2E: Dashboard Stores 数据完整性", () => {
       expect(typeof node.mem).toBe("number");
       expect(typeof node.temp).toBe("number");
     }
-  });
-
-  it("userStore 超级管理员不可批量删除", async () => {
-    vi.resetModules();
-    const { userStore } = await import("../stores/dashboard-stores");
-    const admin = userStore.getAll().find(u => u.role === "超级管理员");
-    expect(admin).toBeDefined();
-    expect(admin!.id).toBe("usr-1");
   });
 });
 

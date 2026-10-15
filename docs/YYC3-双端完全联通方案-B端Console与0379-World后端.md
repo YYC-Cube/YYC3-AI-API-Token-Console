@@ -278,9 +278,9 @@ console-server ──(WS /ws/monitor?token=<GW_ADMIN_KEY 环境变量>)──> �
 | P0-2 ✅R1 | 前端 `lib/gateway-adapter.ts` + `useWebSocketData` 双协议接线（D4, wsEndpoint 默认改中继地址×5 处）; 指标真实化铁则首批（storageUsed/token 吞吐伪值清除, 无源显「—」, token 真实差分轮询） | 单测 +15 用例（adapter 11 + hook 网关帧 4）; 全量 3035/3035 绿; 详见 [实施日志](YYC3-双端联通实施日志.md) |
 | P0-3 ✅R2 | `/console/metrics` 聚合网关三端点（§5.2）+ 节点矩阵四源设备清单接线（§5.4）+ **设备可视化可编辑增减**（DeviceInventoryManager + settings.ollamaNodes desired-state） | 节点矩阵呈现 网关上游池/Ollama 节点/NAS 网关/Agent 容器 四组真实设备; Ollama 节点表增删保存即生效; storageUsed=真实磁盘占用率 |
 | P0-4 | `/reports` 接 `/v1/admin/usage/summary` + `/v1/models/stats`；随机生成器删除 | 报表数字与网关 vk 账单一致（抽查明细核对） |
-| P0-5 | 配置三源收敛（D5）+ `/settings`、`/env-config` UI 收口 | 改一处端点全链路热生效；三 key 只剩 `yyc3_api_endpoints`+`yyc3_gateway_config` |
-| P0-6 | `/connection-test` 增网关中继探测项 | 探测报告含 `/console/gw/v1/ping` 与 WS 握手结果 |
-| P0-7 | 清理批 §7.1 执行 + 文档更新（本文件 §4 矩阵勾选 + 衔接报告登记） | 全门禁绿（typecheck/lint/test:unit/coverage/astgrep/size/knip） |
+| P0-5 ✅R3 | 配置三源收敛（D5·编辑面第一步: NetworkConfig 保存双写 api-config+env 镜像）+ `/settings`、`/env-config` UI 收口 | 改一处端点全链路热生效；三 key 只剩 `yyc3_api_endpoints`+`yyc3_gateway_config` |
+| P0-6 ✅R3 | `/connection-test` 增网关中继探测（runGatewayRelayTest 三步: 代理 ping/指标聚合/A2A; runRealtimeSuite 组合执行器 sibling 承载, 壳层零行增长） | 全链路测试 5 组; 实时链快捷按钮 |
+| P0-7 ✅R3 | 清理批: /loop /users 归档（git 历史留档, 路由重定向 /follow-up /settings, 导航/补全/审计清单/组件目录/阶段审核同步）; 全门禁绿 |
 | P0-8 ✅R2 | **AI Family 钟盘接真实多 Agent**（硬约束②）: `GET /console/gw/v1/admin/a2a/agents` 30s 轮询，家人↔agent_name 中文名映射，心跳超时 90s=离线 | 钟盘八位家人显示真实在线/离线/未接入态, 头部统计=实况（在线家人/容器数/心跳时刻）; 与 N2 容器实况一致（生产验收: 停容器 → 90s 内转离线） |
 
 ### P1 — 后端补齐数据面（0379-World 仓库，对应其 CI 流程）

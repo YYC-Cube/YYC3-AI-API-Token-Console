@@ -114,15 +114,13 @@ export const CHAPTER_REVIEWS: ChapterReview[] = [
   {
     chapter: 8,
     title: "一站式服务闭环",
-    status: "completed",
+    status: "archived",
     progress: 100,
     deliverables: [
-      "8.1 六层管道: useServiceLoop Hook · 监测→分析→决策→执行→验证→优化",
-      "ServiceLoopPanel + LoopStageCard + DataFlowDiagram",
-      "8.2 数据流向: 4 节点 6 连线拓扑图 · 带宽标注 · 脉冲动画",
-      "路由: /loop · 运行历史 · 统计卡片",
+      "8.1 六层管道: useServiceLoop Hook（R3 清理批归档, git 历史留档）",
+      "闭环语义由 /follow-up + 网关 /registry/v1/events 事件流承接（双端联通 P1）",
     ],
-    notes: "完整闭环流转引擎已实现，支持手动/自动/告警触发。",
+    notes: "mock 六阶段管道已归档（2026-10-15 双端联通 R3）; 真实闭环走网关事件流。",
   },
   {
     chapter: 9,
@@ -224,6 +222,7 @@ const statusConfig: Record<ChapterStatus, { color: string; icon: React.ElementTy
   partial:   { color: "#ffaa00", icon: Clock,          label: "部分完成" },
   pending:   { color: "rgba(0,212,255,0.3)", icon: Minus, label: "待实施" },
   deferred:  { color: "rgba(0,212,255,0.2)", icon: Clock, label: "后置" },
+  archived:  { color: "rgba(191,0,255,0.5)", icon: Minus, label: "已归档" },
 };
 
 export function StageReview() {

@@ -89,7 +89,9 @@ describe("ArchitectureAudit", () => {
       fireEvent.click(screen.getByRole("button", { name: /^路由 \(/ }));
       expect(screen.getByText(/路由页面清单/)).toBeInTheDocument();
       expect(screen.getByText("DataMonitoring")).toBeInTheDocument();
-      expect(screen.getByText("UserManagement")).toBeInTheDocument();
+      // R3 清理批: UserManagement/ServiceLoopPanel 已归档 — 清单不再收录
+      expect(screen.queryByText("UserManagement")).not.toBeInTheDocument();
+      expect(screen.queryByText("ServiceLoopPanel")).not.toBeInTheDocument();
     });
   });
 
@@ -99,7 +101,8 @@ describe("ArchitectureAudit", () => {
       fireEvent.click(screen.getByRole("button", { name: /^数据层 \(/ }));
       expect(screen.getByText(/localStorage CRUD Stores/)).toBeInTheDocument();
       expect(screen.getByText("yyc3_nodes")).toBeInTheDocument();
-      expect(screen.getByText("yyc3_users")).toBeInTheDocument();
+      // R3 清理批: yyc3_users 随 userStore 归档 — 断言改挂 wifi store
+      expect(screen.getByText("yyc3_wifi_networks")).toBeInTheDocument();
     });
 
     it("应渲染 createLocalStore API 列表", () => {

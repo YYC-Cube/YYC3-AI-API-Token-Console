@@ -67,10 +67,35 @@ function renderWithProviders(ui: React.ReactElement) {
 describe("ReportExporter", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // P0-4: 报表真实源采集 — 单测零网络红线, URL 路由桩（三源全通）
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/v1/admin/usage/summary")) {
+        return { ok: true, json: async () => ({ days: 1, total_calls: 10, total_cost_usd: 0.5, groups: [] }) } as unknown as Response;
+      }
+      if (url.includes("/v1/models/stats")) {
+        return { ok: true, json: async () => [{ model_id: "vllm-flagship", usage_count: 10, avg_latency_ms: 100, error_rate: 0.01, total_tokens: 1000 }] } as unknown as Response;
+      }
+      if (url.includes("/console/metrics")) {
+        return {
+          ok: true,
+          json: async () => ({
+            activeCount: "1/1",
+            nodes: [],
+            gateway: {
+              health: { status: "healthy", system: { cpu_percent: 30, memory_percent: 50, disk_percent: 60 } },
+              router: { upstream_pool: [{ name: "vllm-flagship", breaker_state: "closed" }, { name: "bge-embed-nim", status: "open" }] },
+            },
+          }),
+        } as unknown as Response;
+      }
+      throw new Error("offline: " + url);
+    }));
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("renders the page title", () => {
@@ -105,7 +130,7 @@ describe("ReportExporter", () => {
     expect(screen.getByText("历史报表")).toBeInTheDocument();
   });
 
-  it("generates a report on click", () => {
+  it("generates a report on click", async () => {
     renderWithProviders(<ReportExporter />);
     const generateBtn = screen.getByText("生成报表");
     fireEvent.click(generateBtn);
@@ -113,9 +138,8 @@ describe("ReportExporter", () => {
     // Should show generating state
     expect(screen.getByText("正在生成...")).toBeInTheDocument();
 
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    // P0-4: 真实源 async 采集 — 冲刷微任务（无定时器延迟）
+    await act(async () => {});
 
     // Should show report content
     expect(screen.getByText("节点明细")).toBeInTheDocument();
@@ -123,40 +147,36 @@ describe("ReportExporter", () => {
     expect(screen.getByText("导出格式")).toBeInTheDocument();
   });
 
-  it("renders export buttons after report generation", () => {
+  it("renders export buttons after report generation", async () => {
     renderWithProviders(<ReportExporter />);
     fireEvent.click(screen.getByText("生成报表"));
 
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    await act(async () => {});
 
     expect(screen.getByText("JSON")).toBeInTheDocument();
     expect(screen.getByText("CSV / Excel")).toBeInTheDocument();
     expect(screen.getByText("PDF / Print")).toBeInTheDocument();
   });
 
-  it("renders charts after generation", () => {
+  it("renders charts after generation", async () => {
     renderWithProviders(<ReportExporter />);
     fireEvent.click(screen.getByText("生成报表"));
 
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    await act(async () => {});
 
     expect(screen.getByText("GPU / CPU 利用率趋势")).toBeInTheDocument();
     expect(screen.getByText("P50 延迟趋势")).toBeInTheDocument();
   });
 
-  it("renders node breakdown table", () => {
+  it("renders node breakdown table（真实上游池节点）", async () => {
     renderWithProviders(<ReportExporter />);
     fireEvent.click(screen.getByText("生成报表"));
 
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
+    await act(async () => {});
 
-    expect(screen.getByText("GPU-A100-01")).toBeInTheDocument();
-    expect(screen.getByText("GPU-A100-03")).toBeInTheDocument();
+    // P0-4: 节点明细 = 网关上游池真实节点（替换 GPU-A100 假节点）
+    expect(screen.getByText("vllm-flagship")).toBeInTheDocument();
+    expect(screen.getByText("bge-embed-nim")).toBeInTheDocument();
+    expect(screen.getByText("nas-gateway")).toBeInTheDocument();
   });
 });

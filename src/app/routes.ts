@@ -52,7 +52,6 @@ const OperationCenter = lazyPage(() => import("./components/OperationCenter"), "
 const LocalFileManager = lazyPage(() => import("./components/LocalFileManager"), "LocalFileManager");
 const DatabaseManager = lazyPage(() => import("./components/DatabaseManager"), "DatabaseManager");
 const ServiceConnectionTest = lazyPage(() => import("./components/ServiceConnectionTest"), "ServiceConnectionTest");
-const ServiceLoopPanel = lazyPage(() => import("./components/ServiceLoopPanel"), "ServiceLoopPanel");
 const ReportExporter = lazyPage(() => import("./components/ReportExporter"), "ReportExporter");
 
 // 3. AI 智能 (API 矩阵与模型)
@@ -73,7 +72,6 @@ const DevGuidePage = lazyPage(() => import("./components/DevGuidePage"), "DevGui
 
 // 6. 系统管理
 const OperationAudit = lazyPage(() => import("./components/OperationAudit"), "OperationAudit");
-const UserManagement = lazyPage(() => import("./components/UserManagement"), "UserManagement");
 const SystemSettings = lazyPage(() => import("./components/SystemSettings"), "SystemSettings");
 const SecurityMonitor = lazyPage(() => import("./components/SecurityMonitor"), "SecurityMonitor");
 const PWAStatusPanel = lazyPage(() => import("./components/PWAStatusPanel"), "PWAStatusPanel");
@@ -104,13 +102,14 @@ export const router = createBrowserRouter(
         { path: "files", element: lazyEl(LocalFileManager) },
         { path: "database", element: lazyEl(DatabaseManager) },
         { path: "connection-test", element: lazyEl(ServiceConnectionTest) },
-        { path: "loop", element: lazyEl(ServiceLoopPanel) },
         { path: "reports", element: lazyEl(ReportExporter) },
 
         // 重叠文件/数据库页面自动重定向
         { path: "host-files", element: React.createElement(Navigate, { to: "/files", replace: true }) },
         { path: "db-connections", element: React.createElement(Navigate, { to: "/database", replace: true }) },
         { path: "data-editor", element: React.createElement(Navigate, { to: "/database", replace: true }) },
+        // 双端联通 R3 清理批: /loop 六阶段 mock 管道归档（git 历史留档）, 闭环语义由 /follow-up + 网关事件流承接
+        { path: "loop", element: React.createElement(Navigate, { to: "/follow-up", replace: true }) },
 
         // 3. AI 智能 (API 矩阵与模型)
         { path: "models", element: lazyEl(ModelProviderPanel) },
@@ -154,7 +153,8 @@ export const router = createBrowserRouter(
 
         // 6. 系统管理
         { path: "audit", element: lazyEl(OperationAudit) },
-        { path: "users", element: lazyEl(UserManagement) },
+        // 双端联通 R3 清理批: /users mock 用户 CRUD 归档（git 历史留档）— console 形态用户=会话角色
+        { path: "users", element: React.createElement(Navigate, { to: "/settings", replace: true }) },
         { path: "settings", element: lazyEl(SystemSettings) },
         { path: "security", element: lazyEl(SecurityMonitor) },
         { path: "pwa", element: lazyEl(PWAStatusPanel) },

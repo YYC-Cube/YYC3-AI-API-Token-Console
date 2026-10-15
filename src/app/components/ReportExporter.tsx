@@ -47,7 +47,7 @@ export function ReportExporter() {
   const {
     reportType, setReportType,
     timeRange, setTimeRange,
-    isGenerating, report, recentReports,
+    isGenerating, report, lastError, recentReports,
     generateReport, exportReport,
   } = useReportExporter();
 
@@ -158,6 +158,10 @@ export function ReportExporter() {
             <RefreshCw className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`} />
             {isGenerating ? t("reports.generating") : t("reports.generate")}
           </button>
+          {/* P0-4: 真实源全不可达时拒绝生成并显式告知（不产模拟报表, 硬约束①） */}
+          {lastError && (
+            <div className="mt-2 text-[#ff6464] text-left" style={{ fontSize: "0.68rem" }}>{lastError}</div>
+          )}
         </GlassCard>
 
         {/* Recent Reports */}

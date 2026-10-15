@@ -8,6 +8,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { getAPIConfig, setAPIConfig } from "../lib/api-config";
+import { setEnvConfig } from "../lib/env-config";
 import {
   generateWsUrl,
   getLocalIP,
@@ -72,9 +74,14 @@ export function useNetworkConfig() {
     []
   );
 
-  /** 保存配置 */
+  /** 保存配置（双端联通 P0-5 三源收敛: 本表保存 → 权威源 api-config 同步生效,
+   *  useWebSocketData 订阅即热重建; env-config 显示层单向镜像, 消除「改一处另两处不动」双源漂移） */
   const save = useCallback(() => {
     saveNetworkConfig(state.config);
+    if (state.config.wsUrl && state.config.wsUrl !== getAPIConfig().wsEndpoint) {
+      setAPIConfig({ wsEndpoint: state.config.wsUrl });
+      setEnvConfig({ WS_ENDPOINT: state.config.wsUrl });
+    }
   }, [state.config]);
 
   /** 重置配置 */

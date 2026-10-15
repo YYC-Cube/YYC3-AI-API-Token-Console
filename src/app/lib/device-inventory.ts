@@ -13,7 +13,7 @@
  */
 
 import type { NodeData } from "../types";
-import { mapUpstreamStatus, normalizeUpstreamNode } from "./gateway-adapter";
+import { normalizeUpstreamNode } from "./gateway-adapter";
 
 // ============================================================
 // 网关 /health 契约（0379-World core/api/main.py health_check）

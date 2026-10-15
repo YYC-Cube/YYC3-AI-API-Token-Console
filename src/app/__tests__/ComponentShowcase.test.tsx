@@ -36,9 +36,9 @@ describe("ComponentShowcase", () => {
       expect(keys).toContain("info");
     });
 
-    it("应有 27 个组件注册", () => {
-      // 以源码 COMPONENT_REGISTRY 实际注册数为准
-      expect(COMPONENT_REGISTRY.length).toBe(27);
+    it("应有 24 个组件注册", () => {
+      // 以源码 COMPONENT_REGISTRY 实际注册数为准（R3 清理批归档 ServiceLoopPanel/DataFlowDiagram/LoopStageCard: 27→24）
+      expect(COMPONENT_REGISTRY.length).toBe(24);
     });
 
     it("组件应覆盖 4 个层级", () => {

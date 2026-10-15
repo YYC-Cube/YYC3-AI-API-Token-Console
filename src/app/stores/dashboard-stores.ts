@@ -235,32 +235,8 @@ export const wifiNetworkStore = createLocalStore<WifiNetwork>("yyc3_wifi_network
 // ============================================================
 // 10. 用户管理存储
 // ============================================================
-
-export interface UserRecord {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  status: "online" | "offline";
-  lastLogin: string;
-  sessions: number;
-  apiCalls: number;
-  locked: boolean;
-}
-
-const DEFAULT_USERS: UserRecord[] = [
-  { id: "usr-1", name: "张管理", username: "admin", email: "admin@cloudpivot.ai", role: "超级管理员", status: "online", lastLogin: "2026-02-22 14:30", sessions: 3, apiCalls: 1284, locked: false },
-  { id: "usr-2", name: "李运维", username: "ops_li", email: "ops_li@cloudpivot.ai", role: "运维工程师", status: "online", lastLogin: "2026-02-22 14:25", sessions: 1, apiCalls: 856, locked: false },
-  { id: "usr-3", name: "王开发", username: "dev_wang", email: "dev_wang@cloudpivot.ai", role: "开发者", status: "online", lastLogin: "2026-02-22 14:18", sessions: 2, apiCalls: 2105, locked: false },
-  { id: "usr-4", name: "赵分析", username: "analyst_zhao", email: "zhao@cloudpivot.ai", role: "数据分析师", status: "online", lastLogin: "2026-02-22 13:55", sessions: 1, apiCalls: 432, locked: false },
-  { id: "usr-5", name: "刘测试", username: "qa_liu", email: "qa_liu@cloudpivot.ai", role: "测试工程师", status: "offline", lastLogin: "2026-02-21 18:30", sessions: 0, apiCalls: 321, locked: false },
-  { id: "usr-6", name: "陈研究", username: "dev_chen", email: "chen@cloudpivot.ai", role: "AI 研究员", status: "offline", lastLogin: "2026-02-21 17:45", sessions: 0, apiCalls: 1567, locked: false },
-  { id: "usr-7", name: "API Service", username: "api_svc", email: "svc@cloudpivot.ai", role: "系统服务", status: "online", lastLogin: "2026-02-22 14:32", sessions: 12, apiCalls: 48920, locked: false },
-  { id: "usr-8", name: "OPS Bot", username: "ops_bot", email: "bot@cloudpivot.ai", role: "自动化运维", status: "online", lastLogin: "2026-02-22 14:32", sessions: 1, apiCalls: 15240, locked: false },
-];
-
-export const userStore = createLocalStore<UserRecord>("yyc3_users", DEFAULT_USERS, "usr");
+// 双端联通 R3 清理批（2026-10-15）: /users mock 用户 CRUD 页归档（路由重定向 /settings,
+// git 历史留档 UserManagement/userStore/DEFAULT_USERS）— console 形态用户=会话角色, 无多用户语义
 
 // ============================================================
 // 11. WiFi 自动重连设置存储 (GAP-002 修复)

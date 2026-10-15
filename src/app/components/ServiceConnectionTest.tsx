@@ -32,7 +32,7 @@ import { dbConnectionStore } from "../stores/dashboard-stores";
 import { GlassCard } from "./GlassCard";
 import { DiagnosticCard, EnvironmentDetectionPanel, QuickTestButton } from "./service-test/panels";
 import { ResultCard } from "./service-test/results-view";
-import { runAIProviderTest, runDBTest, runNetworkTest, runWebSocketTest } from "./service-test/tests";
+import { runAIProviderTest, runDBTest, runNetworkTest, runRealtimeSuite } from "./service-test/tests";
 import { clearStoredResults, loadResults, saveResults, toastStyle } from "./service-test/types";
 import type { TestResult } from "./service-test/types";
 
@@ -80,10 +80,9 @@ export function ServiceConnectionTest() {
       setResults([...allResults]);
     }
 
-    // 2. WebSocket
+    // 2. WebSocket + 网关中继链（双端联通 P0-6 组合执行器）
     if (!abortRef.current) {
-      const ws = await runWebSocketTest();
-      allResults.push(ws);
+      allResults.push(...(await runRealtimeSuite()));
       setResults([...allResults]);
     }
 
@@ -293,9 +292,9 @@ export function ServiceConnectionTest() {
             const r = await runNetworkTest(proxyUrl || undefined);
             setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; saveResults(next); return next; });
           }} />
-          <QuickTestButton label="WebSocket" icon={Radio} color="#7b2ff7" onClick={async () => {
-            const r = await runWebSocketTest();
-            setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; saveResults(next); return next; });
+          <QuickTestButton label="实时链(WS+中继)" icon={Radio} color="#7b2ff7" onClick={async () => {
+            const rs = await runRealtimeSuite();
+            setResults((prev) => { let next = [...prev]; rs.forEach((r) => { next = [r, ...next.filter((p) => p.id !== r.id)]; }); saveResults(next); return next; });
           }} />
           {providers.filter(p => p.isLocal).map((p) => (
             <QuickTestButton key={p.id} label={p.label} icon={Server} color="#00ff88" onClick={async () => {

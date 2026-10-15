@@ -84,13 +84,11 @@ const ROUTES: RouteInfo[] = [
   { path: "/database", component: "DatabaseManager", category: "运维", status: "complete", features: ["SQL 编辑器", "表浏览", "备份管理", "查询历史"] },
   { path: "/ai", component: "AISuggestionPanel", category: "AI", status: "complete", features: ["异常模式检测", "AI 推荐操作", "健康度评估", "一键应用建议"] },
   { path: "/ai-diagnosis", component: "AIDiagnostics", category: "AI", status: "complete", features: ["模式识别", "异常记录", "建议操作", "预测性预报"] },
-  { path: "/loop", component: "ServiceLoopPanel", category: "AI", status: "complete", features: ["六阶段闭环", "数据流可视化", "运行记录", "阶段详情"] },
   { path: "/pwa", component: "PWAStatusPanel", category: "系统", status: "complete", features: ["SW 状态", "缓存管理", "离线就绪", "安装提示"] },
   { path: "/design-system", component: "DesignSystemPage", category: "开发", status: "complete", features: ["色彩 Token", "字体排版", "间距", "阴影", "动效", "组件展示"] },
   { path: "/dev-guide", component: "DevGuidePage", category: "开发", status: "complete", features: ["开发规范", "目录结构", "代码示例"] },
   { path: "/models", component: "ModelProviderPanel", category: "AI", status: "complete", features: ["服务商管理", "模型配置", "API Key 管理", "Ollama 集成"] },
   { path: "/audit", component: "OperationAudit", category: "管理", status: "complete", features: ["搜索过滤", "分页", "JSON 导出", "链路追踪", "详情 Modal"] },
-  { path: "/users", component: "UserManagement", category: "管理", status: "complete", features: ["用户 CRUD", "角色管理", "锁定/解锁", "超管保护", "重置为默认", "权限矩阵"] },
   { path: "/settings", component: "SystemSettings", category: "管理", status: "complete", features: ["模型管理 CRUD", "API 端点配置", "网络配置 Modal", "分类切换", "二次确认"] },
   { path: "/security", component: "SecurityMonitor", category: "管理", status: "complete", features: ["CSP 检测", "Cookie 检查", "敏感数据扫描", "性能分析", "内存监控", "Web Vitals"] },
   { path: "/reports", component: "ReportExporter", category: "管理", status: "complete", features: ["报表生成", "多格式导出", "时间范围", "报表历史"] },
@@ -109,7 +107,6 @@ const STORES: StoreInfo[] = [
   { key: "dbConnectionStore", storageKey: "yyc3_db_connections", itemCount: 2, type: "DBConnection", status: "complete" },
   { key: "deployedModelStore", storageKey: "yyc3_deployed_models", itemCount: 5, type: "DeployedModel", status: "complete" },
   { key: "wifiNetworkStore", storageKey: "yyc3_wifi_networks", itemCount: 0, type: "WifiNetwork", status: "complete" },
-  { key: "userStore", storageKey: "yyc3_users", itemCount: 8, type: "UserRecord", status: "complete" },
   { key: "wifiAutoReconnectStore", storageKey: "yyc3_wifi_auto_reconnect", itemCount: 1, type: "WifiAutoReconnectSettings", status: "complete" },
 ];
 

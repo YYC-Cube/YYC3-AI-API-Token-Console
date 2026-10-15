@@ -32,14 +32,18 @@ describe("StageReview", () => {
       for (const ch of CHAPTER_REVIEWS) {
         expect(ch.chapter).toBeGreaterThan(0);
         expect(ch.title).toBeTruthy();
-        expect(["completed", "partial", "pending", "deferred"]).toContain(ch.status);
+        expect(["completed", "partial", "pending", "deferred", "archived"]).toContain(ch.status);
         expect(ch.progress).toBeGreaterThanOrEqual(0);
         expect(ch.deliverables.length).toBeGreaterThan(0);
       }
     });
 
-    it("第 1~9 章应为 completed", () => {
+    it("第 1~9 章应为 completed（第 8 章 R3 清理批归档除外）", () => {
       for (let i = 0; i < 9; i++) {
+        if (CHAPTER_REVIEWS[i].chapter === 8) {
+          expect(CHAPTER_REVIEWS[i].status).toBe("archived");
+          continue;
+        }
         expect(CHAPTER_REVIEWS[i].status).toBe("completed");
       }
     });
@@ -48,9 +52,9 @@ describe("StageReview", () => {
       expect(CHAPTER_REVIEWS[9].status).toBe("completed");
     });
 
-    it("所有 10 章均为 completed 状态", () => {
-      const allCompleted = CHAPTER_REVIEWS.every((ch) => ch.status === "completed");
-      expect(allCompleted).toBe(true);
+    it("所有 10 章均为 completed 或 archived 状态", () => {
+      const allSettled = CHAPTER_REVIEWS.every((ch) => ch.status === "completed" || ch.status === "archived");
+      expect(allSettled).toBe(true);
     });
 
     it("每章进度应在 0-100 之间", () => {

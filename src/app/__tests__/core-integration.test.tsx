@@ -208,33 +208,6 @@ describe("dashboard-stores 集成测试", () => {
     });
   });
 
-  describe("userStore", () => {
-    it("应有默认用户数据", async () => {
-      const { userStore } = await import("../stores/dashboard-stores");
-      const users = userStore.getAll();
-      expect(users.length).toBeGreaterThanOrEqual(1);
-      expect(users.some(u => u.username === "admin")).toBe(true);
-    });
-
-    it("reset 应恢复默认用户", async () => {
-      const { userStore } = await import("../stores/dashboard-stores");
-      userStore.add({
-        name: "临时用户",
-        username: "temp",
-        email: "temp@test.com",
-        role: "开发者",
-        status: "offline",
-        lastLogin: "--",
-        sessions: 0,
-        apiCalls: 0,
-        locked: false,
-      });
-      const beforeReset = userStore.count();
-      const resetData = userStore.reset();
-      expect(resetData.length).toBeLessThanOrEqual(beforeReset);
-    });
-  });
-
   describe("wifiNetworkStore", () => {
     it("默认应为空", async () => {
       const { wifiNetworkStore } = await import("../stores/dashboard-stores");
@@ -328,23 +301,23 @@ describe("跨 store 数据一致性", () => {
   });
 
   it("多个 store 的 localStorage key 不应冲突", async () => {
-    const { nodeStore, deployedModelStore, userStore } = await import("../stores/dashboard-stores");
+    const { nodeStore, deployedModelStore, wifiNetworkStore } = await import("../stores/dashboard-stores");
     nodeStore.getAll();
     deployedModelStore.getAll();
-    userStore.getAll();
+    wifiNetworkStore.getAll();
 
     // 验证各自写入了不同的 key
     const keys = Object.keys(storageMap);
     expect(keys.filter(k => k === "yyc3_nodes").length).toBeLessThanOrEqual(1);
     expect(keys.filter(k => k === "yyc3_deployed_models").length).toBeLessThanOrEqual(1);
-    expect(keys.filter(k => k === "yyc3_users").length).toBeLessThanOrEqual(1);
+    expect(keys.filter(k => k === "yyc3_wifi_networks").length).toBeLessThanOrEqual(1);
   });
 
   it("reset 不应影响其他 store", async () => {
-    const { deployedModelStore, userStore } = await import("../stores/dashboard-stores");
-    const userCountBefore = userStore.count();
+    const { deployedModelStore, wifiNetworkStore } = await import("../stores/dashboard-stores");
+    const wifiCountBefore = wifiNetworkStore.count();
     deployedModelStore.reset();
-    expect(userStore.count()).toBe(userCountBefore);
+    expect(wifiNetworkStore.count()).toBe(wifiCountBefore);
   });
 });
 

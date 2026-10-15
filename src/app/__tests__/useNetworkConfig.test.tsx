@@ -148,6 +148,28 @@ describe("useNetworkConfig", () => {
     });
   });
 
+  it("P0-5 三源收敛: save 应同步权威源 api-config 并镜像 env-config（改一处全链生效）", async () => {
+    const { resetAPIConfig, getAPIConfig } = await import("../lib/api-config");
+    const { env } = await import("../lib/env-config");
+    resetAPIConfig();
+    localStorage.removeItem("yyc3_env_config");
+
+    const { result } = renderHook(() => useNetworkConfig());
+    act(() => {
+      result.current.updateConfig({ serverAddress: "10.9.9.9", port: "4321" });
+    });
+    act(() => {
+      result.current.save();
+    });
+
+    // 权威源: api-config.wsEndpoint = 网络分区编辑值（useWebSocketData 订阅热重建）
+    expect(getAPIConfig().wsEndpoint).toBe("ws://10.9.9.9:4321/ws");
+    // 显示镜像: env-config WS_ENDPOINT 同步
+    expect(env("WS_ENDPOINT")).toBe("ws://10.9.9.9:4321/ws");
+
+    resetAPIConfig();
+  });
+
   it("reset 应恢复默认配置并清空测试态", () => {
     const { result } = renderHook(() => useNetworkConfig());
 

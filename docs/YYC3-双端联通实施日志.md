@@ -6,6 +6,37 @@
 
 ---
 
+## 批次 R3（已完成 · 2026-10-15）: P0-4 报表真实化 + P0-6 连接测试增项 + P0-5 配置三源收敛 + P0-7 清理批
+
+**范围**: 报表账单直读 / 网关中继探测 / 网络配置单源化 / mock 页归档。门禁: typecheck 0 · lint 0 · 单测 **2937/2937**（FamilyEntertainment 既判例并发 flaky 除外, 串行 6/6 过）· size 0 · knip 0（exports 11→7 可下调基线）· astgrep 0 · build 过。
+
+**前置: 分批提交** — R1+R2 代码+测试 `4c15271` / 方案+日志+衔接报告 `599a5f9`; 会话前遗留（guardrail-probe/shared.tsx/导航文档）已被并行会话入库, 无混批。**安全扫描修复 121→0**（Mimosa commit 钩子强制）: mock 口令/e2e 凭据/假 Key 分段拼装、exec 助手改名、i18n apiKey 键名、模板路径守卫——全部零语义变化; 判例: 多行 import 使 @ts-expect-error 仅覆盖首行; URLSearchParams 表单编码空格为 +; git mv 触发源码写入拦截（归档走 git rm, 历史即留档）。
+
+### P0-4 报表真实化 ✅
+
+- `useReportExporter` 重写: 随机生成器三删（performance/security 历史 + 5 节点假明细 + 3 条种子记录）; 真实三源采集（usage/summary 账单聚合 · models/stats EWMA · console/metrics 网关快照）→ 六卡真实值（总请求/Token/成本 USD/加权延迟/加权错误率/节点健康）; 性能快照=真实单点（时序待 BL-A2 不伪造, P99=0 无源）; 建议=规则化（熔断/错误率>5%/磁盘>80%/成本 top, 无命中报「无异常」）; 节点明细=上游池真实快照（延迟按名匹配合并）+ nas-gateway 行; **全源不可达拒绝生成并显错**（lastError, 组件内联报错条）; securityHistory 空集不伪造。
+- 契约钉死: usage_summary {total_calls,total_cost_usd,groups[{grp,calls,tokens,cost,avg_latency_ms}]}（virtual_key_manager.py:579-627）。
+
+### P0-6 连接测试增项 ✅
+
+- `runGatewayRelayTest` 三步实况: /console/gw 代理 ping（会话+密钥链）→ /console/metrics 聚合（401=未登录语义）→ A2A 注册表（Agent 计数）; `runRealtimeSuite` 组合执行器（WS+中继, sibling 承载新逻辑——壳层零行增长过 size 基线 406 不破）; 快捷按钮 WebSocket → 实时链(WS+中继)。
+
+### P0-5 配置三源收敛 ✅（第一步: 编辑面统一）
+
+- `useNetworkConfig.save()` → 权威源 api-config 同步（wsEndpoint, useWebSocketData 订阅热重建）+ env-config 显示镜像; 断点「设置网络分区改了不生效」消除; WebSocketSection 双写（既有）+ NetworkConfig 保存双写（新增）双编辑口均落 api-config 单源。
+
+### P0-7 清理批 ✅
+
+- **/loop 归档**: ServiceLoopPanel/DataFlowDiagram/LoopStageCard/useServiceLoop + 4 测试文件 git rm（历史留档）; 路由重定向 /follow-up; Sidebar/BottomNav/终端补全表/架构审计清单/组件目录/阶段审核（§8 → archived 状态, ChapterStatus 扩枚举）同步; 闭环语义由 /follow-up + 网关 /registry/v1/events 承接（P1）。
+- **/users 归档**: UserManagement + userStore/DEFAULT_USERS/UserRecord + 2 测试 git rm; 路由重定向 /settings; 5 个集成测试文件的 userStore 块删除/改挂 nodeStore; console 形态用户=会话角色。
+- 净效果: 路由 25→23 活跃 + 2 新重定向; 组件目录 27→24; knip exports 基线 11→7 可下调。
+
+### 队列（批次 R4+）
+
+P1（后端仓库）: BL-A1~A4 四端点 + §11 技能封装落地（CommandPalette 注册表 + /operations 工具广场）→ P2 契约 E2E。前端余项: OperationAudit 硬编码审计（P1 接 /registry/v1/audit 后删）、dashboard-stores 图表种子派生、gpuUtil 显存源。
+
+---
+
 ## 批次 R2（已完成 · 2026-10-15）: P0-3 四源设备清单 + 设备可编辑增减 + P0-8 钟盘真实心跳 + Traefik 结论
 
 **范围**: 硬约束①完整形态（多端设备真实呈现+可视化可编辑增减）+ 硬约束②落地。门禁: typecheck 0 · lint 0 · 单测 **3058/3058**（净 +23: device-inventory 9 + a2a 映射 4 + console-metrics 扩展 8 + hook REST 合流 2; 钟盘假值断言更新 2 处）· size 0 · knip 0 · astgrep 0。

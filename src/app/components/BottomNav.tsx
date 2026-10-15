@@ -35,13 +35,11 @@ import {
   Palette,
   Radar,
   ServerCog,
-  Settings,
   ShieldCheck,
   Smartphone,
   Sparkles,
   Terminal,
   UserCircle2,
-  Users,
   Wrench,
   X
 } from "lucide-react";
@@ -72,7 +70,6 @@ const MORE_CATEGORIES: MoreCategory[] = [
       { key: "nav.fileManager", path: "/files", icon: FolderOpen },
       { key: "nav.database", path: "/database", icon: Database },
       { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
-      { key: "nav.serviceLoop", path: "/loop", icon: Settings },
       { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
     ],
   },
@@ -113,7 +110,6 @@ const MORE_CATEGORIES: MoreCategory[] = [
     labelKey: "nav.catAdmin", icon: ShieldCheck,
     items: [
       { key: "nav.audit", path: "/audit", icon: ClipboardList },
-      { key: "nav.userMgmt", path: "/users", icon: Users },
       { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
       { key: "nav.pwa", path: "/pwa", icon: Smartphone },

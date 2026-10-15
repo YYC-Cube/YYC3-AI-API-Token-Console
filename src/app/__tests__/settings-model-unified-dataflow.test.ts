@@ -172,25 +172,6 @@ describe("dashboard-stores — 节点 Store", () => {
     expect(added.name).toBe("My MongoDB");
     dbConnectionStore.remove(added.id);
   });
-
-  it("userStore: 用户数据 CRUD", async () => {
-    const { userStore } = await import("../stores/dashboard-stores");
-    userStore.reset();
-
-    const added = userStore.add({
-      name: "测试用户",
-      username: "tester",
-      email: "test@yyc3.ai",
-      role: "开发者",
-      status: "online",
-      lastLogin: "2026-03-08",
-      sessions: 1,
-      apiCalls: 0,
-      locked: false,
-    });
-    expect(added.username).toBe("tester");
-    userStore.remove(added.id);
-  });
 });
 
 describe("dashboard-stores — 所有 Store CRUD 接口完整性", () => {
@@ -210,7 +191,6 @@ describe("dashboard-stores — 所有 Store CRUD 接口完整性", () => {
       stores.logStore,
       stores.deployedModelStore,
       stores.dbConnectionStore,
-      stores.userStore,
       stores.wifiNetworkStore,
     ];
 

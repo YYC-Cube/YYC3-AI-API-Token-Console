@@ -5,7 +5,6 @@
  *
  * 覆盖范围:
  * - SystemSettings: 模型管理 CRUD、API 端点配置、分类切换
- * - UserManagement: 用户 CRUD、重置为默认、搜索过滤、锁定/解锁
  * - NetworkConfig: WiFi 扫描/连接/断开、连接历史、Tab 切换
  * - Dashboard stores: createLocalStore 工厂 CRUD 集成
  * - api-config: APIEndpoints 类型导出、配置读写
@@ -261,166 +260,6 @@ describe("SystemSettings 集成测试", () => {
 });
 
 // ============================================================
-// 2. UserManagement 集成测试
-// ============================================================
-
-import { UserManagement } from "../components/UserManagement";
-
-describe("UserManagement 集成测试", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  describe("用户列表渲染", () => {
-    it("应渲染所有默认用户", () => {
-      render(<UserManagement />);
-      expect(screen.getByText("张管理")).toBeInTheDocument();
-      expect(screen.getByText("李运维")).toBeInTheDocument();
-      expect(screen.getByText("王开发")).toBeInTheDocument();
-      expect(screen.getByText("赵分析")).toBeInTheDocument();
-      expect(screen.getByText("刘测试")).toBeInTheDocument();
-      expect(screen.getByText("陈研究")).toBeInTheDocument();
-      expect(screen.getByText("API Service")).toBeInTheDocument();
-      expect(screen.getByText("OPS Bot")).toBeInTheDocument();
-    });
-
-    it("应渲染 5 个统计卡片", () => {
-      render(<UserManagement />);
-      expect(screen.getByText("userMgmt.totalUsers")).toBeInTheDocument();
-      expect(screen.getByText("userMgmt.onlineUsers")).toBeInTheDocument();
-      expect(screen.getByText("userMgmt.admins")).toBeInTheDocument();
-      expect(screen.getByText("userMgmt.serviceAccounts")).toBeInTheDocument();
-      expect(screen.getByText("userMgmt.todayApiCalls")).toBeInTheDocument();
-    });
-  });
-
-  describe("搜索过滤", () => {
-    it("按名称搜索应正确过滤", () => {
-      render(<UserManagement />);
-      const searchInput = screen.getByPlaceholderText("userMgmt.searchUser");
-      fireEvent.change(searchInput, { target: { value: "张管理" } });
-      expect(screen.getByText("张管理")).toBeInTheDocument();
-      expect(screen.queryByText("李运维")).not.toBeInTheDocument();
-    });
-
-    it("按用户名搜索应正确过滤", () => {
-      render(<UserManagement />);
-      const searchInput = screen.getByPlaceholderText("userMgmt.searchUser");
-      fireEvent.change(searchInput, { target: { value: "ops_li" } });
-      expect(screen.getByText("李运维")).toBeInTheDocument();
-      expect(screen.queryByText("张管理")).not.toBeInTheDocument();
-    });
-
-    it("按邮箱搜索应正确过滤", () => {
-      render(<UserManagement />);
-      const searchInput = screen.getByPlaceholderText("userMgmt.searchUser");
-      fireEvent.change(searchInput, { target: { value: "zhao@" } });
-      expect(screen.getByText("赵分析")).toBeInTheDocument();
-      expect(screen.queryByText("张管理")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("添加用户", () => {
-    it("点击添加用户应打开模态框", () => {
-      render(<UserManagement />);
-      fireEvent.click(screen.getByText("userMgmt.addUser"));
-      expect(screen.getByText("添加用户")).toBeInTheDocument();
-    });
-
-    it("填写信息后应创建成功", () => {
-      render(<UserManagement />);
-      fireEvent.click(screen.getByText("userMgmt.addUser"));
-      
-      const nameInput = screen.getByPlaceholderText("输入名称...");
-      const usernameInput = screen.getByPlaceholderText("输入登录账号...");
-      const emailInput = screen.getByPlaceholderText("user@cloudpivot.ai");
-      
-      fireEvent.change(nameInput, { target: { value: "测试用户" } });
-      fireEvent.change(usernameInput, { target: { value: "test_user" } });
-      fireEvent.change(emailInput, { target: { value: "test@cloudpivot.ai" } });
-      
-      fireEvent.click(screen.getByText("创建"));
-      expect(toast.success).toHaveBeenCalledWith(
-        expect.stringContaining("测试用户"),
-        expect.any(Object)
-      );
-    });
-
-    it("空表单提交应显示错误", () => {
-      render(<UserManagement />);
-      fireEvent.click(screen.getByText("userMgmt.addUser"));
-      fireEvent.click(screen.getByText("创建"));
-      expect(toast.error).toHaveBeenCalledWith("请填写完整信息", expect.any(Object));
-    });
-  });
-
-  describe("重置为默认", () => {
-    it("应渲染重置按钮", () => {
-      render(<UserManagement />);
-      expect(screen.getByText("重置")).toBeInTheDocument();
-    });
-
-    it("点击重置应恢复默认用户列表", () => {
-      render(<UserManagement />);
-      fireEvent.click(screen.getByText("重置"));
-      expect(toast.info).toHaveBeenCalledWith("用户列表已重置为默认值", expect.any(Object));
-    });
-  });
-
-  describe("删除用户", () => {
-    it("删除超级管理员应被拒绝", () => {
-      render(<UserManagement />);
-      const row = screen.getByText("张管理").closest("tr")!;
-      const buttons = row.querySelectorAll("button");
-      const deleteBtn = buttons[buttons.length - 1]; // last button is delete
-      fireEvent.click(deleteBtn);
-      expect(toast.error).toHaveBeenCalledWith("无法删除超级管理员", expect.any(Object));
-    });
-  });
-
-  describe("用户详情 Modal", () => {
-    it("查看用户详情应显示正确信息", () => {
-      render(<UserManagement />);
-      const row = screen.getByText("张管理").closest("tr")!;
-      const viewBtn = row.querySelector("button")!; // first button is view
-      fireEvent.click(viewBtn);
-      expect(screen.getByText("userMgmt.userDetail")).toBeInTheDocument();
-      expect(screen.getByText("@admin")).toBeInTheDocument();
-    });
-
-    it("关闭 Modal 应正常工作", () => {
-      render(<UserManagement />);
-      const row = screen.getByText("张管理").closest("tr")!;
-      const viewBtn = row.querySelector("button")!;
-      fireEvent.click(viewBtn);
-      expect(screen.getByText("userMgmt.userDetail")).toBeInTheDocument();
-      
-      const closeBtn = screen.getByText("userMgmt.userDetail").parentElement?.querySelector("button");
-      if (closeBtn) {
-        fireEvent.click(closeBtn);
-        expect(screen.queryByText("userMgmt.userDetail")).not.toBeInTheDocument();
-      }
-    });
-  });
-
-  describe("角色面板", () => {
-    it("应渲染角色列表", () => {
-      render(<UserManagement />);
-      expect(screen.getByText("userMgmt.rolesPerms")).toBeInTheDocument();
-      expect(screen.getByText("全部权限")).toBeInTheDocument();
-    });
-
-    it("权限矩阵切换应正常工作", () => {
-      render(<UserManagement />);
-      fireEvent.click(screen.getByText("userMgmt.permMatrix"));
-      expect(screen.getByText("权限矩阵")).toBeInTheDocument();
-      expect(screen.getByText("节点管理")).toBeInTheDocument();
-    });
-  });
-});
-
-// ============================================================
 // 3. createLocalStore 集成测试
 // ============================================================
 
@@ -571,7 +410,7 @@ import {
   nodeStore, modelPerfStore, modelDistStore,
   recentOpsStore, radarStore, logStore,
   dbConnectionStore, deployedModelStore,
-  wifiNetworkStore, userStore,
+  wifiNetworkStore,
 } from "../stores/dashboard-stores";
 
 describe("Dashboard stores 集成测试", () => {
@@ -587,7 +426,6 @@ describe("Dashboard stores 集成测试", () => {
     { name: "dbConnectionStore", store: dbConnectionStore, defaultCount: 2 },
     { name: "deployedModelStore", store: deployedModelStore, defaultCount: 5 },
     { name: "wifiNetworkStore", store: wifiNetworkStore, defaultCount: 0 },
-    { name: "userStore", store: userStore, defaultCount: 8 },
   ];
 
   storeConfigs.forEach(({ name, store, defaultCount }) => {
@@ -624,30 +462,6 @@ describe("Dashboard stores 集成测试", () => {
     
     deployedModelStore.remove(added.id);
     expect(deployedModelStore.count()).toBe(5);
-  });
-
-  it("userStore CRUD 应正常工作", () => {
-    userStore.reset();
-    expect(userStore.count()).toBe(8);
-    
-    const newUser = userStore.add({
-      name: "测试用户",
-      username: "test",
-      email: "test@cloudpivot.ai",
-      role: "开发者",
-      status: "offline" as const,
-      lastLogin: "--",
-      sessions: 0,
-      apiCalls: 0,
-      locked: false,
-    });
-    expect(userStore.count()).toBe(9);
-    
-    userStore.update(newUser.id, { locked: true });
-    expect(userStore.getById(newUser.id)?.locked).toBe(true);
-    
-    userStore.remove(newUser.id);
-    expect(userStore.count()).toBe(8);
   });
 
   it("wifiNetworkStore 扫描+连接流程", () => {
@@ -705,44 +519,11 @@ describe("api-config 类型导出验证", () => {
 describe("跨组件数据流集成", () => {
   beforeEach(() => localStorage.clear());
 
-  it("userStore 修改后 UserManagement 应反映变更", () => {
-    userStore.reset();
-    const { rerender } = render(<UserManagement />);
-    expect(screen.getByText("8")).toBeInTheDocument(); // total users = 8
-    
-    // 通过 UI 添加用户
-    fireEvent.click(screen.getByText("userMgmt.addUser"));
-    const nameInput = screen.getByPlaceholderText("输入名称...");
-    const usernameInput = screen.getByPlaceholderText("输入登录账号...");
-    const emailInput = screen.getByPlaceholderText("user@cloudpivot.ai");
-    
-    fireEvent.change(nameInput, { target: { value: "新用户" } });
-    fireEvent.change(usernameInput, { target: { value: "new_user" } });
-    fireEvent.change(emailInput, { target: { value: "new@cloudpivot.ai" } });
-    fireEvent.click(screen.getByText("创建"));
-    
-    // 验证用户数增加
-    expect(screen.getByText("9")).toBeInTheDocument();
-  });
-
-  it("store.reset() 后组件重新渲染应反映默认数据", () => {
-    userStore.reset();
-    // 先添加一个用户
-    userStore.add({
-      name: "临时用户",
-      username: "temp",
-      email: "temp@test.com",
-      role: "开发者",
-      status: "offline",
-      lastLogin: "--",
-      sessions: 0,
-      apiCalls: 0,
-      locked: false,
-    });
-    expect(userStore.count()).toBe(9);
-    
-    // 重置
-    userStore.reset();
-    expect(userStore.count()).toBe(8);
+  it("nodeStore reset 后计数恢复默认（R3: userStore/UserManagement 已归档, 数据流断言改挂 nodeStore）", () => {
+    nodeStore.reset();
+    nodeStore.add({ id: "tmp-x", status: "active", gpu: 10, mem: 20, temp: 30, model: "m", tasks: 1 });
+    expect(nodeStore.count()).toBe(10);
+    nodeStore.reset();
+    expect(nodeStore.count()).toBe(9);
   });
 });

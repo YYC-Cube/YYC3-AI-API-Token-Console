@@ -245,7 +245,8 @@ describe("terminal-completions 补全引擎", () => {
     });
 
     it("TERMINAL_ROUTES 与 BASE_COMMANDS 键值完备", () => {
-      expect(Object.keys(TERMINAL_ROUTES).length).toBeGreaterThanOrEqual(25);
+      // R3 清理批归档 /loop /users 后 22 条活跃路由
+      expect(Object.keys(TERMINAL_ROUTES).length).toBeGreaterThanOrEqual(22);
       expect(BASE_COMMANDS["cpim"]).toBeDefined();
       expect(BASE_COMMANDS["family"]).toBeDefined();
     });

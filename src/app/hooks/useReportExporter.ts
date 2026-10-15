@@ -3,9 +3,18 @@
  * =====================
  * Hook for Performance Report Generation & Export
  * Supports JSON, CSV (Excel), and printable HTML (PDF via print dialog)
+ *
+ * 双端联通 P0-4 / 硬约束①（2026-10-15）: 报表数据全面真实化 —
+ *   - 账单面: GET /v1/admin/usage/summary?days=&group_by=model（网关 spend_logs 聚合, 经 /console/gw 代理）
+ *   - 模型面: GET /v1/models/stats（EWMA 延迟/错误率/用量）
+ *   - 节点面: GET /console/metrics（网关快照: 上游池熔断态 + /health 系统资源）
+ * 随机数生成器已删除（方案 §7.1）; 真实源全部不可达时拒绝生成（不产模拟报表）;
+ * 无源字段显「—」或 0（指标真实化铁则 — 禁止伪造）。
  */
 
 import { useCallback, useState } from "react";
+import { getAPIConfig, getGatewayConfig } from "../lib/api-config";
+import { activeNodesKpi, upstreamNodesFromRouterStats } from "../lib/device-inventory";
 import { usePersistedList } from "./usePersistedState";
 
 // ============================================================
@@ -17,52 +26,172 @@ import type {
   ExportReportType,
   PerformanceSnapshot,
   ReportData, ReportHistoryEntry,
-  SecuritySnapshot,
   TimeRange
 } from "../types";
 
-// RF-011: Re-export 已移除
-
 // ============================================================
-// Mock Data Generator
+// 真实数据源采集（双端联通 P0-4）
 // ============================================================
 
-function generatePerformanceHistory(hours: number): PerformanceSnapshot[] {
-  const now = Date.now();
-  const points = Math.min(hours * 4, 120); // 15min intervals, max 120
-  return Array.from({ length: points }, (_, i) => {
-    const t = now - (points - i) * 15 * 60 * 1000;
-    const base = Math.sin(i * 0.2) * 10;
-    return {
-      timestamp: t,
-      cpuUsage: Math.max(10, Math.min(95, 55 + base + (Math.random() - 0.5) * 20)),
-      gpuUsage: Math.max(15, Math.min(98, 72 + base + (Math.random() - 0.5) * 15)),
-      memoryUsage: Math.max(30, Math.min(90, 65 + (Math.random() - 0.5) * 10)),
-      latencyP50: Math.max(50, 180 + base * 5 + (Math.random() - 0.5) * 80),
-      latencyP99: Math.max(100, 450 + base * 10 + (Math.random() - 0.5) * 150),
-      throughput: Math.max(100, 1200 + base * 20 + (Math.random() - 0.5) * 200),
-      errorRate: Math.max(0, 1.2 + (Math.random() - 0.5) * 2),
-    };
-  });
+/** GET /v1/admin/usage/summary 契约（virtual_key_manager.usage_summary） */
+interface UsageSummary {
+  days?: number;
+  total_calls?: number;
+  total_cost_usd?: number;
+  groups?: Array<{
+    grp?: string;
+    calls?: number;
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    cost_usd?: number;
+    avg_latency_ms?: number;
+  }>;
 }
 
-function generateSecurityHistory(hours: number): SecuritySnapshot[] {
-  const now = Date.now();
-  const points = Math.min(hours, 72); // hourly
-  return Array.from({ length: points }, (_, i) => ({
-    timestamp: now - (points - i) * 3600000,
-    cspScore: Math.max(60, Math.min(100, 78 + (Math.random() - 0.5) * 10)),
-    cookieScore: Math.max(60, Math.min(100, 82 + (Math.random() - 0.5) * 8)),
-    sensitiveScore: Math.max(70, Math.min(100, 90 + (Math.random() - 0.5) * 6)),
-    overallScore: Math.max(65, Math.min(100, 83 + (Math.random() - 0.5) * 8)),
-    activeThreats: Math.floor(Math.random() * 3),
-  }));
+/** GET /v1/models/stats 契约（ModelStat 数组） */
+interface ModelStatRow {
+  model_id?: string;
+  usage_count?: number;
+  avg_latency_ms?: number;
+  error_rate?: number;
+  total_tokens?: number;
 }
 
-function generateReportData(type: ExportReportType, range: TimeRange): ReportData {
+interface ReportSources {
+  usage: UsageSummary | null;
+  models: ModelStatRow[] | null;
+  metrics: { gateway?: { health?: unknown; router?: unknown } | null } | null;
+}
+
+const RANGE_DAYS: Record<TimeRange, number> = { "1h": 1, "6h": 1, "24h": 1, "7d": 7, "30d": 30, custom: 1 };
+
+async function grab<T>(url: string, timeoutMs = 6000): Promise<T | null> {
+  if (typeof fetch !== "function") return null;
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!r.ok) return null;
+    return (await r.json()) as T;
+  } catch {
+    return null; // 单源降级, 不拖垮其余
+  }
+}
+
+async function collectReportSources(range: TimeRange): Promise<ReportSources> {
+  const gwBase = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
+  const days = RANGE_DAYS[range] ?? 1;
+  const [usage, models, metrics] = await Promise.all([
+    grab<UsageSummary>(`${gwBase}/v1/admin/usage/summary?days=${days}&group_by=model`),
+    grab<ModelStatRow[]>(`${gwBase}/v1/models/stats`),
+    grab<ReportSources["metrics"]>(getAPIConfig().metricsBase),
+  ]);
+  return { usage, models, metrics };
+}
+
+// ============================================================
+// 真实数据 → ReportData
+// ============================================================
+
+const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+
+function weightedAvg(rows: Array<{ value: number; weight: number }>): number | null {
+  let weighted = 0;
+  let weightSum = 0;
+  for (const r of rows) {
+    if (r.weight > 0) {
+      weighted += r.value * r.weight;
+      weightSum += r.weight;
+    }
+  }
+  return weightSum > 0 ? weighted / weightSum : null;
+}
+
+function buildReportData(type: ExportReportType, range: TimeRange, sources: ReportSources): ReportData {
   const hoursMap: Record<string, number> = { "1h": 1, "6h": 6, "24h": 24, "7d": 168, "30d": 720, custom: 24 };
   const hours = hoursMap[range] || 24;
+  const days = RANGE_DAYS[range] ?? 1;
   const now = Date.now();
+
+  const groups = sources.usage?.groups ?? [];
+  const models = Array.isArray(sources.models) ? sources.models : [];
+  const health = (sources.metrics?.gateway?.health ?? null) as
+    | { status?: string; system?: { cpu_percent?: number; memory_percent?: number; disk_percent?: number } }
+    | null;
+  const pool = upstreamNodesFromRouterStats(sources.metrics?.gateway?.router);
+
+  // ---- 账单聚合（真实）----
+  const usageTokens = groups.reduce((s, g) => s + num(g.prompt_tokens) + num(g.completion_tokens), 0);
+  const modelTokens = models.reduce((s, m) => s + num(m.total_tokens), 0);
+  const totalCalls = sources.usage?.total_calls ?? models.reduce((s, m) => s + num(m.usage_count), 0);
+  const tokensTotal = usageTokens > 0 ? usageTokens : modelTokens;
+
+  // ---- 加权指标（真实）----
+  const latency =
+    weightedAvg(groups.map((g) => ({ value: num(g.avg_latency_ms), weight: num(g.calls) }))) ??
+    weightedAvg(models.map((m) => ({ value: num(m.avg_latency_ms), weight: num(m.usage_count) })));
+  const errorRate = weightedAvg(models.map((m) => ({ value: num(m.error_rate) * 100, weight: num(m.usage_count) })));
+
+  const fmtInt = (n: number) => n.toLocaleString("zh-CN");
+  const summary: ReportData["summary"] = [
+    { label: "总请求次数", value: totalCalls > 0 || groups.length > 0 ? fmtInt(totalCalls) : "—", trend: "stable", change: "—" },
+    { label: "Token 总量", value: tokensTotal > 0 ? fmtInt(tokensTotal) : "—", trend: "stable", change: "—" },
+    { label: "成本 (USD)", value: sources.usage ? `$${num(sources.usage.total_cost_usd).toFixed(2)}` : "—", trend: "stable", change: "—" },
+    { label: "平均延迟", value: latency !== null ? `${Math.round(latency)}ms` : "—", trend: "stable", change: "—" },
+    { label: "加权错误率", value: errorRate !== null ? `${errorRate.toFixed(2)}%` : "—", trend: "stable", change: "—" },
+    { label: "节点健康", value: pool.length > 0 ? activeNodesKpi(pool) : "—", trend: "stable", change: "—" },
+  ];
+
+  // ---- 性能快照: 当前真实单点（时序聚合端点待后端 BL-A2, 不伪造历史）----
+  const throughputPerSec = days > 0 ? tokensTotal / (days * 86400) : 0;
+  const snapshot: PerformanceSnapshot = {
+    timestamp: now,
+    cpuUsage: num(health?.system?.cpu_percent),
+    gpuUsage: 0, // 无真实 GPU 利用率源（节点导出器属后端 BL 项）
+    memoryUsage: num(health?.system?.memory_percent),
+    latencyP50: latency !== null ? Math.round(latency) : 0,
+    latencyP99: 0, // 无 P99 源 — 0 表「无数据」, 不以 P50 冒充
+    throughput: Math.round(throughputPerSec),
+    errorRate: errorRate ?? 0,
+  };
+
+  // ---- 建议规则化（真实数据驱动, 无命中→无异常）----
+  const recommendations: string[] = [];
+  for (const n of pool) {
+    if (n.status === "error") recommendations.push(`上游 ${n.id} 处于熔断态 — 建议检查该上游服务与网络链路`);
+    else if (n.status === "warning") recommendations.push(`上游 ${n.id} 半开降级态 — 建议关注其错误率恢复情况`);
+  }
+  for (const m of models) {
+    if (num(m.error_rate) > 0.05) {
+      recommendations.push(`模型 ${m.model_id ?? "?"} 错误率 ${(num(m.error_rate) * 100).toFixed(1)}% 偏高 — 建议检查上游或切换 fallback`);
+    }
+  }
+  const disk = num(health?.system?.disk_percent);
+  if (disk > 80) recommendations.push(`网关磁盘占用 ${disk.toFixed(1)}% 超过 80% — 建议清理日志/缓存`);
+  const topCost = groups[0];
+  if (topCost && num(topCost.cost_usd) > 0) {
+    recommendations.push(`近 ${days} 天成本最高: ${topCost.grp ?? "?"} $${num(topCost.cost_usd).toFixed(2)}（${fmtInt(num(topCost.calls))} 次调用）`);
+  }
+  if (recommendations.length === 0) recommendations.push(`近 ${days} 天真实数据无异常项（熔断/错误率/磁盘/成本均正常）`);
+
+  // ---- 节点明细: 上游池真实快照 + models/stats 按名匹配真实延迟（无 CPU/GPU 源 → 0 不伪造）----
+  const nodeBreakdown: ReportData["nodeBreakdown"] = pool.map((n) => {
+    const stat = models.find((m) => m.model_id === n.id);
+    return {
+      nodeId: n.id,
+      avgCpu: 0,
+      avgGpu: 0,
+      avgLatency: stat ? Math.round(num(stat.avg_latency_ms)) : 0,
+      errorRate: stat ? num(stat.error_rate) * 100 : 0,
+    };
+  });
+  if (health) {
+    nodeBreakdown.push({
+      nodeId: "nas-gateway",
+      avgCpu: num(health.system?.cpu_percent),
+      avgGpu: 0,
+      avgLatency: latency !== null ? Math.round(latency) : 0,
+      errorRate: 0,
+    });
+  }
 
   return {
     id: `rpt-${Date.now()}`,
@@ -74,30 +203,11 @@ function generateReportData(type: ExportReportType, range: TimeRange): ReportDat
       end: now,
       label: range === "1h" ? "最近 1 小时" : range === "6h" ? "最近 6 小时" : range === "24h" ? "最近 24 小时" : range === "7d" ? "最近 7 天" : range === "30d" ? "最近 30 天" : "自定义",
     },
-    summary: [
-      { label: "平均 GPU 利用率", value: "72.3%", trend: "up", change: "+3.2%" },
-      { label: "平均推理延迟", value: "185ms", trend: "down", change: "-12ms" },
-      { label: "Token 吞吐量", value: "1,248/s", trend: "up", change: "+8.5%" },
-      { label: "错误率", value: "1.2%", trend: "down", change: "-0.3%" },
-      { label: "节点健康度", value: "96%", trend: "stable", change: "±0%" },
-      { label: "安全评分", value: "83/100", trend: "up", change: "+2" },
-    ],
-    performanceHistory: generatePerformanceHistory(hours),
-    securityHistory: generateSecurityHistory(hours),
-    recommendations: [
-      "GPU-A100-03 近期利用率持续偏高（>90%），建议迁移部分负载到 GPU-A100-07",
-      "P99 延迟在高峰期（10:00-12:00）明显上升，建议启用动态负载均衡",
-      "错误率在 02:00-04:00 时段有波动，建议检查定时备份任务影响",
-      "CSP 配置中存在 unsafe-inline，建议替换为 nonce 方案",
-      "3 个节点内存使用率接近 85%，建议清理推理缓存",
-    ],
-    nodeBreakdown: [
-      { nodeId: "GPU-A100-01", avgCpu: 45.2, avgGpu: 78.5, avgLatency: 165, errorRate: 0.8 },
-      { nodeId: "GPU-A100-02", avgCpu: 52.1, avgGpu: 82.3, avgLatency: 178, errorRate: 1.5 },
-      { nodeId: "GPU-A100-03", avgCpu: 68.7, avgGpu: 92.1, avgLatency: 245, errorRate: 2.1 },
-      { nodeId: "GPU-A100-04", avgCpu: 38.9, avgGpu: 65.4, avgLatency: 142, errorRate: 0.5 },
-      { nodeId: "GPU-A100-05", avgCpu: 41.3, avgGpu: 70.2, avgLatency: 155, errorRate: 0.7 },
-    ],
+    summary,
+    performanceHistory: [snapshot],
+    securityHistory: [], // 无真实安全时序源（后端 BL 项）— 空集不伪造
+    recommendations,
+    nodeBreakdown,
   };
 }
 
@@ -110,7 +220,7 @@ function exportJSON(data: ReportData) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `yyc3-${data.type}-report-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `yyc3-${data.type}-report-${new Date(data.generatedAt).toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -133,7 +243,7 @@ function exportCSV(data: ReportData) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `yyc3-${data.type}-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `yyc3-${data.type}-report-${new Date(data.generatedAt).toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -205,11 +315,11 @@ function exportPrintable(data: ReportData) {
     `).join("")}
   </table>
 
-  <h2>优化建议</h2>
+  <h2>优化建议（真实数据规则化）</h2>
   ${data.recommendations.map((r) => `<div class="recommendation">${esc(r)}</div>`).join("")}
 
   <div class="footer">
-    YYC³ CloudPivot Intelli-Matrix — 自动生成报告 — ${new Date().toISOString().slice(0, 10)}
+    YYC³ CloudPivot Intelli-Matrix — 真实数据报告（账单/模型/节点三源） — ${new Date().toISOString().slice(0, 10)}
   </div>
 
   <div class="no-print" style="text-align:center;margin-top:24px;">
@@ -235,27 +345,34 @@ export function useReportExporter() {
   const [timeRange, setTimeRange] = useState<TimeRange>("24h");
   const [isGenerating, setIsGenerating] = useState(false);
   const [report, setReport] = useState<ReportData | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
   const {
     items: recentReports,
     prepend: prependReport,
     loaded: reportsLoaded,
-  } = usePersistedList<ReportHistoryEntry>("reports", [
-    { id: "rpt-prev-1", type: "performance", time: Date.now() - 86400000, range: "24h" },
-    { id: "rpt-prev-2", type: "security", time: Date.now() - 86400000 * 2, range: "7d" },
-    { id: "rpt-prev-3", type: "comprehensive", time: Date.now() - 86400000 * 3, range: "24h" },
-  ]);
+  } = usePersistedList<ReportHistoryEntry>("reports", []);
 
+  // P0-4: 真实源采集 → 报表; 全源不可达拒绝生成（不产模拟数据, 硬约束①）
   const generateReport = useCallback(() => {
     setIsGenerating(true);
-    setTimeout(() => {
-      const data = generateReportData(reportType, timeRange);
+    setLastError(null);
+    void (async () => {
+      const sources = await collectReportSources(timeRange);
+      const anyReal = sources.usage !== null || sources.models !== null || (sources.metrics?.gateway ?? null) !== null;
+      if (!anyReal) {
+        setReport(null);
+        setLastError("真实数据源全部不可达（网关 /console/gw 与指标聚合 /console/metrics）— 拒绝生成模拟报表");
+        setIsGenerating(false);
+        return;
+      }
+      const data = buildReportData(reportType, timeRange, sources);
       setReport(data);
       prependReport(
         { id: data.id, type: data.type, time: data.generatedAt, range: timeRange },
         10,
       );
       setIsGenerating(false);
-    }, 1500);
+    })();
   }, [reportType, timeRange, prependReport]);
 
   const exportReport = useCallback((format: ExportFormat) => {
@@ -272,6 +389,7 @@ export function useReportExporter() {
     setTimeRange,
     isGenerating,
     report,
+    lastError,
     recentReports,
     reportsLoaded,
     generateReport,

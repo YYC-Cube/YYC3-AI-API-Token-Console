@@ -60,6 +60,8 @@ const m = vi.hoisted(() => ({
   storedResults: [] as unknown[],
   runNetworkTest: vi.fn(),
   runWebSocketTest: vi.fn(),
+  runGatewayRelayTest: vi.fn(),
+  runRealtimeSuite: vi.fn(),
   runAIProviderTest: vi.fn(),
   runDBTest: vi.fn(),
   saveResults: vi.fn(),
@@ -85,6 +87,8 @@ vi.mock("../stores/dashboard-stores", () => ({
 vi.mock("../components/service-test/tests", () => ({
   runNetworkTest: m.runNetworkTest,
   runWebSocketTest: m.runWebSocketTest,
+  runGatewayRelayTest: m.runGatewayRelayTest,
+  runRealtimeSuite: m.runRealtimeSuite,
   runAIProviderTest: m.runAIProviderTest,
   runDBTest: m.runDBTest,
 }));
@@ -177,6 +181,8 @@ describe("ServiceConnectionTest", () => {
     m.dbConnections = [];
     m.runNetworkTest.mockResolvedValue(makeResult("net", "pass"));
     m.runWebSocketTest.mockResolvedValue(makeResult("ws", "pass"));
+    m.runGatewayRelayTest.mockResolvedValue(makeResult("gateway-relay", "pass"));
+    m.runRealtimeSuite.mockResolvedValue([makeResult("ws", "pass"), makeResult("gateway-relay", "pass")]);
     m.runAIProviderTest.mockResolvedValue(makeResult("ai", "pass"));
     m.runDBTest.mockResolvedValue(makeResult("db", "pass"));
   });
@@ -187,9 +193,9 @@ describe("ServiceConnectionTest", () => {
     expect(screen.getByTestId("env-detection-panel")).toBeInTheDocument();
     expect(screen.getByText(/点击「一键全部测试」开始诊断/)).toBeInTheDocument();
     expect(screen.getByText(/将测试: 2 个 AI 服务商 · 0 个数据库/)).toBeInTheDocument();
-    // 快速按钮: 网络 + WS + 本地 provider + 云 provider (前 4)
+    // 快速按钮: 网络 + 实时链(WS+网关中继 P0-6) + 本地 provider + 云 provider (前 4)
     expect(screen.getByRole("button", { name: "网络连通性" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "WebSocket" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "实时链(WS+中继)" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ollama" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Z.ai" })).toBeInTheDocument();
     expect(screen.getByText("诊断参考")).toBeInTheDocument();
@@ -203,7 +209,7 @@ describe("ServiceConnectionTest", () => {
 
     await waitFor(() => {
       expect(m.toastSuccess).toHaveBeenCalledWith(
-        "测试完成: 4 通过 / 0 警告 / 0 失败",
+        "测试完成: 5 通过 / 0 警告 / 0 失败",
         expect.anything()
       );
     });
@@ -213,7 +219,8 @@ describe("ServiceConnectionTest", () => {
       expect.anything()
     );
     expect(m.runNetworkTest).toHaveBeenCalledTimes(1);
-    expect(m.runWebSocketTest).toHaveBeenCalledTimes(1);
+    // P0-6: WS+网关中继经 runRealtimeSuite 组合执行（壳层零行增长, 新逻辑在 sibling）
+    expect(m.runRealtimeSuite).toHaveBeenCalledTimes(1);
     // configuredModels 非空 → 只测已配置模型, 不做全 provider 探测
     expect(m.runAIProviderTest).toHaveBeenCalledTimes(1);
     expect(m.runAIProviderTest).toHaveBeenCalledWith(
@@ -334,9 +341,9 @@ describe("ServiceConnectionTest", () => {
       expect(m.runNetworkTest).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "WebSocket" }));
+    fireEvent.click(screen.getByRole("button", { name: "实时链(WS+中继)" }));
     await waitFor(() => {
-      expect(m.runWebSocketTest).toHaveBeenCalledTimes(1);
+      expect(m.runRealtimeSuite).toHaveBeenCalledTimes(1);
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Ollama" }));
