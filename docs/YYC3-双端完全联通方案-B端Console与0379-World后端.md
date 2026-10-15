@@ -226,10 +226,10 @@ console-server ──(WS /ws/monitor?token=<GW_ADMIN_KEY 环境变量>)──> �
 
 | 编号 | 端点/改动 | 服务的 B端页面 | 对应后端既有 Backlog |
 | --- | --- | --- | --- |
-| BL-A1 | `GET /v1/logs?since=&model=&status=&limit=`（UsageLog 查询 + 补 latency_ms/status/error_code/request_id 字段） | `/audit` 请求级审计、`/` 实时操作流 | BL-01/06/07 |
-| BL-A2 | `GET /v1/usage/timeline?window=1h&step=5m&group_by=model`（时序聚合，供趋势图直读） | `/` 吞吐/延迟趋势、`/reports` 历史报表 | BL-06 |
-| BL-A3 | `/v1/models/summary` 的 `cost_usd` 接 `model_prices`/`task_prices` 真实计算（现硬编码 0.0，main.py:738） | `/reports` 成本报表 | BL-02 |
-| BL-A4 | `GET /v1/admin/alerts?level=`（把 Prometheus/Alertmanager 告警经网关 HTTP 暴露只读查询；或 `/registry/v1/events` 分级扩写） | `/alerts`、`/follow-up` 服务端事件源 | 新增（评估） |
+| BL-A1 ✅R4 | `GET /v1/logs?since=&model=&status=&limit=`（UsageLog 查询 + 补 latency_ms/status/error_code/request_id 字段） | `/audit` 请求级审计、`/` 实时操作流 | BL-01/06/07 |
+| BL-A2 ✅R4 | `GET /v1/usage/timeline?window=1h&step=5m&group_by=model`（时序聚合，供趋势图直读） | `/` 吞吐/延迟趋势、`/reports` 历史报表 | BL-06 |
+| BL-A3 ✅R4 | `/v1/models/summary` 的 `cost_usd` 接 `model_prices`/`task_prices` 真实计算（现硬编码 0.0，main.py:738） | `/reports` 成本报表 | BL-02 |
+| BL-A4 ✅R4 | `GET /v1/admin/alerts?level=`（把 Prometheus/Alertmanager 告警经网关 HTTP 暴露只读查询；或 `/registry/v1/events` 分级扩写） | `/alerts`、`/follow-up` 服务端事件源 | 新增（评估） |
 | BL-A5 | `ALLOWED_ORIGINS` 维持最小集（网关自域）；console 同源形态不依赖 CORS 放行 | — | 配置项确认 |
 
 ---
@@ -328,17 +328,17 @@ BL-A1~A4 落地 → `/audit` 请求级审计真实、`/alerts`+`/follow-up` 服�
 | 后端操作族（路由数） | 归属 | B端载体 | 阶段 |
 | --- | --- | --- | --- |
 | 健康诊断 /health /healthz /v1/ping /v1/versions（4） | 页面直操 | `/` KPI · `/patrol` · `/connection-test` | P0 |
-| 缓存观测与操作 /v1/cache/*（4） | 页面直操+技能 | `/operations` 缓存卡（stats/invalidate/clear-all 三操作） | P1 |
+| 缓存观测与操作 /v1/cache/*（4） | 技能封装 ✅R4 | gateway-skills: cache-stats/cache-invalidate + `/operations` 工具广场 + ⌘K | P1 ✅ |
 | 路由器 /v1/router/stats\|health + probe（3） | 页面直操 | `/` 节点矩阵 · `/operations`「触发上游验活」按钮 | P0 |
 | 模型面 /v1/models*（5） | 页面直操 | `/models`（已接，补 stats/errors 列） | P0 |
 | 虚拟密钥+账单+价格 /v1/admin/virtual-keys\|usage\|pricing（9） | 页面直操 | `/gateway-keys`（已接）+ 价格表编辑入设置分区 | P0/P1 |
 | 上游池 CRUD /v1/admin/upstreams（4） | 页面直操 | `/models` 上游管理（已接推送，补列表/删除 UI） | P1 |
-| Chat/能力代理 chat/embeddings/rerank/ASR/OCR（5） | 技能封装 | ⌘K 技能（OCR 识图/ASR 转写/rerank 重排）+ SDK 对话面板（chat 已接） | P1 |
+| Chat/能力代理 chat/embeddings/rerank/ASR/OCR（5） | 技能封装（chat 已接; OCR/ASR 待 R5） | ⌘K 技能 + SDK 对话面板 | P1 ◐ |
 | 模型注册中心 /registry/v1/*（19） | 页面直操 | `/models` 注册健康列 + `/audit` 事件/审计 + drain/rollback/canary 技能 | P1 |
 | A2A /v1/a2a/*（11） | 页面直操+技能 | `/ai-family` 钟盘（发现/心跳可视化，硬约束②）+ orchestrate 技能 | P0/P1 |
 | Agent 编排 /v1/agent/execute\|tasks（3+5 worker） | 页面+豁免 | `/ai` Agent 执行面板（execute/tasks/轮询）；worker claim/heartbeat/result/failure 豁免（机器端点） | P1 |
 | 知识库/RAG kb+documents+rag（16） | 页面直操 | 新增「知识库」管理页（KB CRUD/上传/检索测试） | P2 |
-| MCP 工具 /v1/mcp/*（16） | 技能封装 | ⌘K 技能注册表（动态发现）+ `/operations` 工具广场 | P1 |
+| MCP 工具 /v1/mcp/*（16） | 技能封装（动态发现待 R5, 广场基建 ✅R4） | ⌘K + `/operations` GatewaySkillPlaza | P1 ◐ |
 | 视频任务 /v1/video/tasks（4+4 runner） | 技能封装 | 数字人任务技能（提交/查进度/取结果）；runner 豁免 | P2 |
 | 管理看板 /v1/admin/dashboard HTML（1） | 归档 | 被 B端整体取代（保留为降级入口，不入导航） | — |
 | 机器端点 /metrics /docs /openapi.json /redoc + registry heartbeat（4） | 豁免 | Prometheus 抓取/API 文档/节点 Agent 上报——非人类操作 | — |

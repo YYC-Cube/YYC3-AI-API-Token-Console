@@ -6,6 +6,32 @@
 
 ---
 
+## 批次 R4（已完成 · 2026-10-15）: 后端 P1 四数据端点（BL-A1~A4）+ §11 技能封装落地
+
+**范围**: 跨入 0379-World 后端仓库补齐数据面, 前端技能广场/⌘K 同源消费。门禁: 后端 flake8/importlinter 绿 + 快层 **284/284** + P1 新测试 **10/10**; 前端 typecheck/lint 0 · 单测全过 · size/knip/astgrep/build 全绿。
+
+### 后端（YYC3-0379-World）BL-A1~A4 ✅
+
+- **BL-A1 `/v1/logs`**: `core/database/init/007_spend_logs_observability.sql`（spend_logs 增 status/error_code/request_id + 状态索引）; 记账写入器 `_flush_batch` 透传新列（载荷缺省 ok/NULL 不伪造; sqlite ensure_tables DDL 同步）; `logs_query()` 近 N 分钟倒序分页 + 同条件总数, NULL 守卫绑定参数单一字面量 SQL, DB 不可达优雅降级 ok=false。
+- **BL-A2 `/v1/usage/timeline`**: `usage_timeline()` 窗口原始行（上限 5 万行防大窗拖垮）→ Python 侧 step 分桶（portable——sqlite 无 date_bin; created_at 兼容 datetime/ISO 字符串双形态）; group_by ∈ model/key/upstream/capability/total, 422 白名单校验。
+- **BL-A3 `/v1/models/summary` cost 真实化**: `total_cost_usd()` = spend_logs 全量 SUM（替换 main.py 硬编码 0.0）。
+- **BL-A4 `/v1/admin/alerts`**: 上游池熔断态（open→critical / half-open→warning）+ 注册中心 `recent_events`（failover/drain/timeout/error/deregister→critical, 其余 info）两源合成, level 过滤 + 级别倒序, 上限 200; admin RBAC 闸门覆盖。
+- 测试 `tests/test_data_endpoints_p1.py` 10 用例（sqlite 隔离库 fixture 对齐 test_registry_api 范式: monkeypatch 会话工厂 + UsageLog 单表 DDL + 生产写入器插桩）; 既有回归: usage_summary/vk/RBAC/gateway/registry 全过。
+- 判例: 本机测试须用 `.venv/bin/python`（系统 python 无依赖）; `/v1/models/summary` 用 main 模块级 `async_session` 绑定——monkeypatch 须同打 `app.main.async_session`; ORM 全量 create_all 在 sqlite 会因 JSONB 失败——按需单表 DDL。
+
+### 前端 §11 技能封装（硬约束③）✅
+
+- **`lib/gateway-skills.ts` 注册表+执行器**: 9 技能（缓存统计/失效·上游验活·注册审计·账单汇总·**用量时序**·**请求日志**·**告警总览**·**总量摘要**——后四项直连 P1 新端点）; 全部经 `/console/gw` 代理（浏览器零密钥）; 401/503 语义化提示; 失败如实回报不伪造。
+- **⌘K CommandPalette**: 技能条目入注册面板（无参技能直接执行 + toast 回报, 带参技能引导至工具广场）; 顺带清除 /loop /users 死导航条目（R3 归档残留）。
+- **`/operations` 工具广场 `GatewaySkillPlaza`**: 分类分组技能卡（参数表单 → 执行 → 摘要 + JSON 详情内联）; 挂载于操作中心快速操作卡内（OperationCenter 仅 +2 行, size 基线零压力）。
+- 测试 `gateway-skills.test.ts` 8 用例（注册表完备/P1 新端点消费断言/URL 编码/401/503/网络失败/未知技能防御）+ 既有面板/操作中心 26 用例全过。
+
+### 队列（批次 R5+）
+
+P1 后端余项: chat 记账载荷补 status/error_code 透传（错误请求也入流水）; registry audit→/audit 页接线。P2: 契约 E2E + 前端 /audit、/alerts 页消费 P1 新端点（BL-A1/A4 数据源已就绪待页面接线）; 52 端点冻结快照升版登记（52→56）。
+
+---
+
 ## 批次 R3（已完成 · 2026-10-15）: P0-4 报表真实化 + P0-6 连接测试增项 + P0-5 配置三源收敛 + P0-7 清理批
 
 **范围**: 报表账单直读 / 网关中继探测 / 网络配置单源化 / mock 页归档。门禁: typecheck 0 · lint 0 · 单测 **2937/2937**（FamilyEntertainment 既判例并发 flaky 除外, 串行 6/6 过）· size 0 · knip 0（exports 11→7 可下调基线）· astgrep 0 · build 过。

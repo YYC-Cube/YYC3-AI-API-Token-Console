@@ -31,17 +31,20 @@ import {
   Users,
   Wrench,
   X,
+  Zap,
 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { useI18n } from "../hooks/useI18n";
 import { SHORTCUT_LIST } from "../hooks/useKeyboardShortcuts";
+import { GATEWAY_SKILLS, runGatewaySkill } from "../lib/gateway-skills";
 
 const iconMap: Record<string, React.ElementType> = {
   Activity, Bell, Shield, Wrench, FolderOpen, Terminal,
   Code2, FileSearch, Users, Settings, Bot, BarChart3,
   Cpu, Smartphone, HardDrive, Database, GitBranch, BrainCircuit,
-  Gauge, ServerCog,
+  Gauge, ServerCog, Zap,
 };
 
 interface PaletteItem {
@@ -52,6 +55,8 @@ interface PaletteItem {
   icon: string;
   path?: string;
   shortcut?: string;
+  /** 双端联通 P1 / §11 技能封装: 网关技能 id（labelKey/descKey 此时为字面文案, 免 i18n 键） */
+  skill?: string;
 }
 
 const PALETTE_ITEMS: PaletteItem[] = [
@@ -61,12 +66,10 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: "nav-operations", labelKey: "nav.operations", descKey: "operations.subtitle", category: "nav", icon: "Wrench", path: "/operations", shortcut: "⌘+Shift+O" },
   { id: "nav-files", labelKey: "nav.fileManager", descKey: "fileManager.subtitle", category: "nav", icon: "FolderOpen", path: "/files", shortcut: "⌘+Shift+F" },
   { id: "nav-ai", labelKey: "nav.aiDecision", descKey: "ai.subtitle", category: "nav", icon: "Bot", path: "/ai" },
-  { id: "nav-loop", labelKey: "nav.serviceLoop", descKey: "loop.subtitle", category: "nav", icon: "Activity", path: "/loop" },
   { id: "nav-design", labelKey: "nav.designSystem", descKey: "devGuide.architecture", category: "nav", icon: "BarChart3", path: "/design-system" },
   { id: "nav-devguide", labelKey: "nav.devGuide", descKey: "devGuide.subtitle", category: "nav", icon: "Activity", path: "/dev-guide" },
   { id: "nav-models", labelKey: "modelProvider.title", descKey: "modelProvider.subtitle", category: "nav", icon: "Cpu", path: "/models" },
   { id: "nav-audit", labelKey: "nav.audit", descKey: "palette.navigate", category: "nav", icon: "FileSearch", path: "/audit" },
-  { id: "nav-users", labelKey: "nav.userMgmt", descKey: "palette.navigate", category: "nav", icon: "Users", path: "/users" },
   { id: "nav-settings", labelKey: "nav.settings", descKey: "settings.title", category: "nav", icon: "Settings", path: "/settings" },
   { id: "nav-security", labelKey: "nav.securityMonitor", descKey: "security.subtitle", category: "nav", icon: "Shield", path: "/security" },
   { id: "nav-alerts", labelKey: "nav.alertRules", descKey: "alerts.subtitle", category: "nav", icon: "Bell", path: "/alerts" },
@@ -75,6 +78,15 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: "nav-database", labelKey: "nav.database", descKey: "palette.navigate", category: "nav", icon: "Database", path: "/database" },
   { id: "nav-pwa", labelKey: "nav.pwa", descKey: "pwa.subtitle", category: "nav", icon: "Smartphone", path: "/pwa" },
   { id: "nav-envconfig", labelKey: "nav.envConfig", descKey: "palette.navigate", category: "nav", icon: "ServerCog", path: "/env-config" },
+  // ── 网关技能（双端联通 P1 / §11: 与 /operations 工具广场同源注册表）──
+  ...GATEWAY_SKILLS.map((s) => ({
+    id: `skill-${s.id}`,
+    labelKey: s.label,
+    descKey: s.desc,
+    category: "skill",
+    icon: "Zap",
+    skill: s.id,
+  })),
 ];
 
 interface CommandPaletteProps {
@@ -112,7 +124,18 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   const handleSelect = useCallback(
     (item: PaletteItem) => {
-      if (item.path) {
+      if (item.skill) {
+        // §11 技能执行: 无参技能直接跑（带参技能请用 /operations 工具广场）, 结果 toast 回报
+        const skill = GATEWAY_SKILLS.find((s) => s.id === item.skill);
+        if (skill && skill.params.length === 0) {
+          void runGatewaySkill(item.skill).then((r) => {
+            if (r.ok) toast.success(`${skill.label}: ${r.summary}`);
+            else toast.error(`${skill.label}: ${r.summary}`);
+          });
+        } else {
+          toast.info("该技能带参数 — 请在 操作中心 · 网关技能广场 执行", { duration: 4000 });
+        }
+      } else if (item.path) {
         navigate(item.path);
       }
       onClose();

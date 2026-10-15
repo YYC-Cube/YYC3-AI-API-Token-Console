@@ -10,6 +10,7 @@
 import React, { useContext } from "react";
 import { Settings, Zap } from "lucide-react";
 import { GlassCard } from "./GlassCard";
+import { GatewaySkillPlaza } from "./GatewaySkillPlaza";
 import { OperationCategory } from "./OperationCategory";
 import { QuickActionGrid } from "./QuickActionGrid";
 import { OperationTemplate } from "./OperationTemplate";
@@ -84,6 +85,8 @@ export function OperationCenter() {
           onExecute={executeAction}
           isMobile={isMobile}
         />
+        {/* 双端联通 P1 / 硬约束③ §11: 后端操作项技能封装（经 /console/gw, 与 ⌘K 同源注册表） */}
+        <GatewaySkillPlaza />
       </GlassCard>
 
       {/* ======== Templates ======== */}
