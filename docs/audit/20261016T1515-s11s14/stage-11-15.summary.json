@@ -1,0 +1,54 @@
+{
+  "stages": ["S11", "S12", "S13", "S14", "S15"],
+  "title": "E2E 全链路 / 构建验证 / PWA-i18n-图标 / 部署双形态 / 闭环终判",
+  "timestamp": "2026-10-16T15:15+08:00",
+  "mode": "online",
+  "results": {
+    "S11": {
+      "name": "端到端全链路 (playwright)",
+      "cmd": "pnpm test:e2e (webServer 编排: VITE_BASE=/console/ 构建 → 测试凭据启动 console-server → auth/status 就绪探测)",
+      "exit": 0,
+      "actual": "7/7 passed (9.8s): auth 3 (登录 401 拒绝/HttpOnly 会话签发穿门/gw 未认证 401 门) + models 4 (SPA 子路径挂载//console/models 挂载/24 提供商全量渲染云端18+本地6/页面零错误)",
+      "note": "首跑 4 失败=浏览器版本错配 (缓存 chromium-1248 vs 项目需 headless_shell-1243), playwright install chromium 后复跑全绿 — 环境修复非测试妥协",
+      "result": "PASS",
+      "evidence": "stage-11.e2e.log"
+    },
+    "S12": {
+      "name": "构建验证 (双产物)",
+      "cmd": "pnpm build (smart:audit 内含) + pnpm build:console",
+      "exit": 0,
+      "actual": "dist 构建通过 (smart:audit S12 维度: 6.3s, precache 90 项 2.92MB≤6MB); dist-console 同源形态构建通过 (90 项 precache 注入)",
+      "result": "PASS",
+      "evidence": "stage-9.smartaudit.log + /tmp/s12-console-build.log 摘要"
+    },
+    "S13": {
+      "name": "PWA / i18n / 图标链路",
+      "cmd": "manifest 解析 + sw precache 断言 + i18n-packs/pwa-i18n-types 测试",
+      "exit": 0,
+      "actual": "manifest.json (YYC³ 数据看盘, icons 13) + sw.js 90 项 precache 注入 + i18n 双语对齐 15 用例绿 (结构一致性/翻译非空/模板变量/key 覆盖) + public 全域 PNG 95 (含 yyc3-icons 29 与设计稿素材)",
+      "result": "PASS",
+      "evidence": "i18n-packs.test.ts 15/15 (run 实录) + manifest 解析输出"
+    },
+    "S14": {
+      "name": "部署验证 (LAN + 公网双形态)",
+      "cmd": "LAN: node deploy/server.mjs 冒烟 :3118; 公网形态: e2e webServer 编排即本地 console-server 全链; 生产: NAS 3210 七项绿 (R10 留档) + ECS 公网链 (R8b 留档)",
+      "exit": 0,
+      "actual": "LAN root 200 / healthz 200; console-server 本地全链 (登录会话/401 门/SPA 挂载) e2e 实证; 生产双形态既有留档 (NAS resurrect 自愈 + ECS HMAC)",
+      "result": "PASS",
+      "evidence": "stage-11.e2e.log (webServer 编排) + 本文件 LAN 冒烟记录 + docs/audit/20261016T0832-nas-console-incident/ (R10)"
+    },
+    "S15": {
+      "name": "闭环审核与回溯 (终判)",
+      "cmd": "聚合 S0-S14 全部 stage 证据",
+      "actual": "S1 12/12 → S2 7/7 (764→0 双旗标固化) → S3 10/10 (拆环) → S4 10/10 (2973 用例) → S5 5/5 (四阈值) → S6-S10 五阶段全 PASS → S11-S14 全 PASS; 全程 0 blocking 未决; 治理留账 6/6 闭环",
+      "result": "PASS"
+    }
+  },
+  "blocking": [],
+  "backtrace": [
+    "playwright 浏览器版本与缓存错配判例: 项目锁 headless_shell-1243, 全局缓存被他项目升到 1248 — 新机/升级后先 pnpm exec playwright install chromium",
+    "长尾延续: S5 覆盖率热点 12 处 / 色值迁移长期批 (color:check 基线冻结) / 多 worker 并发竞争 (CI maxWorkers 收敛评估)"
+  ],
+  "next": null,
+  "verdict": "S11-S15 全 PASS · 15 阶段闭环完成 · 放行"
+}
