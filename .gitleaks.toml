@@ -32,12 +32,14 @@ paths = ['''YYC3-设计原型差距分析报告\.md$''']
 regexes = ['''curl https://api\.0379\.world/v1/chat/completions''']
 
 # ④ 原因: Figma 文件 key 为公开标识符 (每个 Figma 链接均含), 非访问凭证; 历史导入说明文档。
-#   复核: 2026-09-29 (批11 季度核对) · HEAD 已无该文件, 但历史提交仍含, 全历史扫描
-#         (fetch-depth:0) 仍命中, 豁免必须保留 · 证据: Fingerprint
+#   复核: 2026-10-16 (S6 安全审计) · 文件已被 16b0169 归档迁移至 docs/archive/src-imports/,
+#         原路径模式失守致 --no-git 工作树扫描误漏 — 路径改为位置无关后缀匹配 (文件名全局唯一);
+#         历史提交仍含原路径, 全历史扫描 (fetch-depth:0) 命中, 豁免必须保留 · 证据: Fingerprint
 #         852122a:src/imports/figma-integration-config.md:generic-api-key:23
+#         2026-10-16:docs/archive/src-imports/figma-integration-config.md:generic-api-key:23
 [[allowlists]]
 description = "Figma 文件公开 key (URL 标识符, 非凭证)"
-paths = ['''src/imports/figma-integration-config\.md$''']
+paths = ['''figma-integration-config\.md$''']
 regexes = ['''FIGMA_FILE_KEY=[A-Za-z0-9]+''']
 
 # ⑤ 原因: RFC 6455 官方握手测试向量 — 示例 Sec-WebSocket-Key nonce 与其唯一派生 Accept

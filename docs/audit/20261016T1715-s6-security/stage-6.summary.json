@@ -1,0 +1,37 @@
+{
+  "stage": "S6",
+  "title": "本地安全审计（密钥/PII/HMAC 链路/依赖/RBAC 十维）",
+  "timestamp": "2026-10-16T17:15+08:00",
+  "mode": "online",
+  "secrets_found": 0,
+  "env_leaks": 0,
+  "pii_leaks": 0,
+  "vulns": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "hmac_chain": "PASS",
+  "commands": [
+    { "cmd": "gitleaks detect --no-git --source . -v (规定命令, 无 --config)", "exit": 1, "summary": "1 命中: docs/archive/src-imports/figma-integration-config.md:23 FIGMA_FILE_KEY — 系豁免条目④已裁决的公开 Figma 文件标识符 (URL 组成部分, 非凭证, 无吊销概念), 命中根因=16b0169 归档迁移致豁免路径漂移 (gitleaks path+regex 为 AND 语义)" },
+    { "cmd": "gitleaks detect --no-git --source . --config .gitleaks.toml (规范形态)", "exit": 0, "summary": "修复条目④路径为位置无关后缀后: no-git 模式 0 命中 / git 全历史模式 no leaks / JSON 报告 findings=0" },
+    { "cmd": "pnpm audit --prod", "exit": 0, "summary": "No known vulnerabilities found" }
+  ],
+  "checks": [
+    { "id": 1, "name": "0 secrets", "actual": "工作树+全历史双模式 0 命中 (修复豁免路径漂移后)", "result": "PASS" },
+    { "id": 2, "name": ".env 不入库", "actual": ".env/.env.local/.env.production 三者 gitignore 实证; git ls-files 仅 .env.example", "result": "PASS" },
+    { "id": 3, "name": ".env.example 无真实值", "actual": "全注释式字段说明, 0 条凭据形态值", "result": "PASS" },
+    { "id": 4, "name": "HMAC 鉴权链路", "actual": "三要素齐备: ①签名=HMAC-SHA256(payload{exp},secret)+constantTimeEqual 比较 (时序攻击防御) ②时间戳=payload.exp=now+12h TTL, 过期拒验 (测试域 14 用例含过期/篡改/密钥错) ③防暴力=LoginRateLimiter 5 次/5min/IP + 滑窗恢复; Cookie HttpOnly+SameSite=Strict+Path=/; HTTPS 下自动附加 Secure", "result": "PASS", "note": "bearer-within-TTL 语义 (12h 内重放 inherent, 单管理员控制面可接受); 无 jti 吊销清单 — 留账可选增强" },
+    { "id": 5, "name": "Ollama 代理无敏感头透传", "actual": "server.mjs:184-185 转发前显式删除 origin/referer; LAN 形态无 GW 密钥注入 (仅 console-server 公网形态持 GW_ADMIN_KEY 且仅注入网关方向)", "result": "PASS" },
+    { "id": 6, "name": "审计留痕", "actual": "关键操作=operationLogs IndexedDB 持久留痕 (useOperationCenter 执行/模板/失败全记) + yyc3-storage StoreName 契约; 登录=服务端 LoginRateLimiter 计数 + pm2 运行日志; 权限变更=单管理员形态无运行时权限变更面", "result": "PASS", "advisory": "登录成功/失败事件未独立持久化 (仅限流计数与进程日志) — 可选增强" },
+    { "id": 7, "name": "PII 脱敏", "actual": "日志/上报链路 0 明文用户标识: 命中 4 处均为 UI 展示文本 (Login demo 提示文案/placeholder/supabaseClient 本地会话展示态 — 注释明确 UI 展示态不承载凭证); error-handler AppError 仅记错误文本/来源, 不含用户标识字段; 无上报/遥测链路 (本地闭环)", "result": "PASS" },
+    { "id": 8, "name": "依赖漏洞", "actual": "pnpm audit --prod: No known vulnerabilities found (critical/high/medium/low 全 0)", "result": "PASS" },
+    { "id": 9, "name": "RBAC 权限边界", "actual": "双角色 (admin/developer, types/core.ts:8): UI 层 nav 差异化 (TopBar roleLabel) + App.tsx 会话角色恢复; 服务端=单管理员门禁 (console 密码 + 401 门); 模板「六域×角色矩阵」在仓库无此物 — 同 S3 六域判例, 属模板维度高于现状", "result": "PASS", "advisory": "路由级角色守卫未强制 (本地单用户闭环形态下低危) — 如需多角色强制须加 route guard" },
+    { "id": 10, "name": "密钥零入库/零明文", "actual": "gitleaks 双模式 0; DBConnection.password 契约注释「加密存储, 前端仅做 mask 展示」(types/ai-provider.ts:212); console 形态会话 localStorage 仅 UI 展示态不承载凭证 (supabaseClient 注释实证); GW 密钥仅存服务端 env (600 权限) 永不出现在浏览器/源码", "result": "PASS" }
+  ],
+  "evidence": ["stage-6.gitleaks.log", "stage-6.json (findings=0)", "stage-6.summary.json (本文件)"],
+  "blocking": [],
+  "backtrace": [
+    "已处置: 豁免条目④路径漂移 (16b0169 归档迁移 src/imports→docs/archive/src-imports, AND 语义下路径失守) — 改位置无关后缀 figma-integration-config\\.md$ + 复核记录更新; 该值系公开 Figma 文件标识符非凭证, 无吊销/轮换概念 (2026-09-29 已裁决, 本次仅修路径)",
+    "可选增强: ① 会话 jti 吊销清单 (12h TTL 内主动失效) ② 登录成功/失败事件持久化审计流 ③ 路由级 admin/developer 守卫 (多角色强制时)",
+    "判例沉淀: gitleaks 豁免条目跟随文件移动须同步——路径模式建议位置无关后缀; 规定命令模板未带 --config 会跑默认规则集, 扫描一律用仓库规范形态 --config .gitleaks.toml"
+  ],
+  "next": "S7",
+  "verdict": "10/10 PASS · secrets 0 (双模式) · env 0 · PII 0 · 依赖 0 漏洞 · HMAC 三要素完整 · 放行 S7"
+}
