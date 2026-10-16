@@ -39,3 +39,15 @@ regexes = ['''curl https://api\.0379\.world/v1/chat/completions''']
 description = "Figma 文件公开 key (URL 标识符, 非凭证)"
 paths = ['''src/imports/figma-integration-config\.md$''']
 regexes = ['''FIGMA_FILE_KEY=[A-Za-z0-9]+''']
+
+# ⑤ 原因: RFC 6455 官方握手测试向量 — 示例 Sec-WebSocket-Key nonce 与其唯一派生 Accept
+#       均为 RFC 文档公开常量 (非凭证, 任何人可从 RFC 文本取得); 用于 WS 中继握手测试的
+#       官方向量回环断言。覆盖: ops 运维探针 + 中继集成测试 + 实施日志中的实测记录 (历史提交)。
+#   复核: 2026-10-16 (S1 审计定性) · 命中行注释「RFC 6455 官方向量」实存 · 证据: Fingerprint
+#         b2b43fb:scripts/nas-console-ops.mjs:generic-api-key:102
+#         35d11a5:src/app/__tests__/console-relay.integration.test.ts:generic-api-key:160
+#         35d11a5 / 599a5f9:docs/YYC3-双端联通实施日志.md:generic-api-key:35/21
+[[allowlists]]
+description = "RFC 6455 官方握手测试向量 (公开文档常量, 非凭证)"
+paths = ['''scripts/nas-console-ops\.mjs$''', '''console-relay\.integration\.test\.ts$''', '''YYC3-双端联通实施日志\.md$''']
+regexes = ['''dGhlIHNhbXBsZSBub25jZQ\s*=+''', '''s3pPLMBiTxaQ9kYGzzhZRbK\+xOo\s*=+''']

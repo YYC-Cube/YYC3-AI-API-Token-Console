@@ -71,4 +71,4 @@ components → hooks → lib → types
 
 ## 自诊断
 
-新机初始化或环境异常时: `pnpm doctor`（Node/pnpm 版本、依赖策略、构建链一键体检）
+新机初始化或环境异常时: `pnpm run doctor`（裸 `pnpm doctor` 会执行 pnpm 内建命令而非项目脚本）（Node/pnpm 版本、依赖策略、构建链一键体检）

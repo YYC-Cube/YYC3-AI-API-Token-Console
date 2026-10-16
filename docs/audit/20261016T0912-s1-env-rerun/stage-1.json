@@ -1,0 +1,46 @@
+{
+  "stage": "S1",
+  "title": "环境自诊断（12 维度）· 复跑（两项阻断处置后）",
+  "timestamp": "2026-10-16T09:12+08:00",
+  "mode": "online",
+  "previous_run": "docs/audit/20261016T0905-s1-env/stage-1.json (BLOCKED: #8 #10)",
+  "remediation": [
+    {
+      "id": 10,
+      "fix": ".gitleaks.toml 追加豁免条目 ⑤ — RFC 6455 官方握手测试向量 (nonce + accept), 按仓库纪律带原因/复核日期/Fingerprint 四条证据; path+regex 双重限域三条路径",
+      "verify": "gitleaks git . --config .gitleaks.toml → 'no leaks found', exit 0 (124 commits, 11.67MB)"
+    },
+    {
+      "id": 8,
+      "fix": "yyc3-prometheus 恢复声明端口 9090:9090。排查链: compose up 因本地无 prom/prometheus:latest 标签触发 Docker Hub 拉取超时 → 以运行容器镜像 ID 重打标签 (源 docker.m.daocloud.io/prom/prometheus:v2.53.0); 二次 up 卡网络调和 (subnet 实为一致 172.20.0.0/16, compose 重建怪癖) 被活跃端点拒绝, 核心服务零波及; bind-mount 形态被 fnOS 祖先目录 ACL 拒 (容器 nobody 用户, root 可读的二分实证) → 按旧具名卷形态重建 (yyc3-33_prometheus-conf 含生产配置 v1.1.0: gateway 抓取 + alertmanager 分发 + 3 组告警规则; 仓库 bind 的 548B 模板引用不存在的 exporters, 属潜伏观测降级)",
+      "verify": "docker ps: 0.0.0.0:9090->9090 published, Up; /-/ready 200; /api/v1/targets 发现 gateway:8000; Mac→192.168.3.45:9090 200"
+    }
+  ],
+  "commands": [
+    { "cmd": "pnpm run doctor", "exit": 0, "summary": "12/12 通过 · 环境全绿" },
+    { "cmd": "node -v / pnpm -v / git --version", "output": "v22.22.3 / 12.11.2 / 2.56.0" },
+    { "cmd": "pnpm install --frozen-lockfile --prefer-offline", "exit": 0, "summary": "Done in 20ms" },
+    { "cmd": "gitleaks git . --config .gitleaks.toml --redact", "exit": 0, "summary": "no leaks found" },
+    { "cmd": "df -h . / lsof :3030 :3118 / touch 写删 / date+locale", "summary": "422Gi 可用; 双端口 0 占用; 三目录可写; CST+0800 en_US.UTF-8" }
+  ],
+  "checks": [
+    { "id": 1, "name": "Node 版本", "expected": ">=22", "actual": "v22.22.3", "result": "PASS" },
+    { "id": 2, "name": "pnpm 版本", "expected": ">=11", "actual": "12.11.2", "result": "PASS" },
+    { "id": 3, "name": "Git 版本", "expected": ">=2.40", "actual": "2.56.0", "result": "PASS" },
+    { "id": 4, "name": "依赖锁定完整", "expected": "无漂移", "actual": "doctor 12/12 + frozen install 20ms", "result": "PASS" },
+    { "id": 5, "name": "磁盘可用空间", "expected": ">=10Gi", "actual": "422Gi", "result": "PASS" },
+    { "id": 6, "name": "端口 3030 (dev)", "expected": "未占用", "actual": "0 进程", "result": "PASS" },
+    { "id": 7, "name": "端口 3118 (部署)", "expected": "未占用", "actual": "0 进程", "result": "PASS" },
+    { "id": 8, "name": "本地服务清单可达", "expected": "逐项可达", "actual": "prometheus 9090 ✓(200, 修复后) / grafana 3000 ✓(200) / gateway 8000 ✓(200 healthy) / NAS console 3210 ✓(enabled) / loki 3100 ✓(200, Tailscale 面, 就绪完成) / redis 6379 + postgres 5432 设计内回环(NAS 本机 ss 实证监听) / Registry: 拓扑不存在(docker ps 12 容器无此项, 属清单模板项)", "result": "PASS" },
+    { "id": 9, "name": "env 文件齐全", "expected": ".env.example 在位", "actual": "IN_PLACE", "result": "PASS" },
+    { "id": 10, "name": "密钥零入库", "expected": "0 findings", "actual": "no leaks found, exit 0 (豁免 ⑤ 生效)", "result": "PASS" },
+    { "id": 11, "name": "缓存目录可写", "expected": "三目录可写", "actual": "全 W", "result": "PASS" },
+    { "id": 12, "name": "时区与编码", "expected": "UTF-8+正确时区", "actual": "CST+0800 / en_US.UTF-8", "result": "PASS" }
+  ],
+  "blocking": [],
+  "backtrace": [
+    "运维留档(非阻断): ① yyc3-prometheus 现为 docker run 直管形态(具名卷配置), 后端仓库 docker-compose.yml 的 bind-mount 声明与 fnOS ACL 不兼容且配置内容为模板级——建议后端仓库后续把 compose 改回具名卷形态并收录 v1.1.0 生产配置, 消除三重漂移(port/volume/config); ② NAS docker hub 直连超时, 镜像源为 daocloud mirror(本地已有 v2.53.0, 已重打 latest 标签); ③ AGENTS.md `pnpm doctor` 建议改 `pnpm run doctor`(裸调用被 pnpm 内建命令抢占)"
+  ],
+  "next": "S2",
+  "verdict": "12/12 PASS · 环境全绿 · 放行进入 S2 (静态类型门禁)"
+}
