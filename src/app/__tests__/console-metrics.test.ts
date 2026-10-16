@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块 (同 console-auth.test 先例; 单行 import 保证 @ts-expect-error 覆盖)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块 (同 console-auth.test 先例; 单行 import 保证 @ts-expect-error 覆盖); 失效条件: deploy/*.mjs 有 .d.ts 类型声明后移除本指令与该豁免
 // @ts-expect-error
 import { collectGatewaySnapshot, collectNodeMetrics, effectiveOllamaNodes, filterSettingsPayload, CONSOLE_SETTINGS_KEYS } from "../../../deploy/console-metrics.mjs";
 

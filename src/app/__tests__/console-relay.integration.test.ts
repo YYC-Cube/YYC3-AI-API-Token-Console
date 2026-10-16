@@ -21,7 +21,7 @@ import net from "node:net";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-// @ts-expect-error -- deploy/ 下 .mjs 无类型声明（同 console-metrics.test 先例; 单行 import 保覆盖）
+// @ts-expect-error -- deploy/ 下 .mjs 无类型声明（同 console-metrics.test 先例; 单行 import 保覆盖）; 失效条件: deploy/*.mjs 有 .d.ts 类型声明后移除本指令
 import { computeAcceptKey, encodeCloseFrame, encodeTextFrame, parseClientFrames } from "../../../deploy/console-ws-relay.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

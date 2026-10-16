@@ -3,7 +3,7 @@
  * 覆盖: constant-time 比较 / 令牌签发与校验（篡改·过期·垃圾输入）/ 登录限流 / Cookie 解析
  */
 import { describe, expect, it } from "vitest";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块; 失效条件: deploy/*.mjs 有 .d.ts 类型声明后移除本指令与该豁免
 // @ts-expect-error
 import { LoginRateLimiter, RATE_LIMIT_MAX, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "../../../deploy/console-auth.mjs";
 

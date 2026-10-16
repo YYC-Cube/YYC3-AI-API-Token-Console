@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块 (同 console-metrics.test 先例; 单行 import 保证 @ts-expect-error 覆盖模块解析错误)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块 (同 console-metrics.test 先例; 单行 import 保证 @ts-expect-error 覆盖模块解析错误); 失效条件: deploy/*.mjs 有 .d.ts 类型声明后移除本指令与该豁免
 // @ts-expect-error
 import { WS_MONITOR_PATH, computeAcceptKey, deriveGatewayWsUrl, encodeCloseFrame, encodePongFrame, encodeTextFrame, handshakeResponse, parseClientFrames, rawRejectResponse } from "../../../deploy/console-ws-relay.mjs";
 
