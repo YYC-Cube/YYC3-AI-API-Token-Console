@@ -3,7 +3,7 @@
 > 来源: DEF-01~06 登记 + S15 next_actions + S9 改进 P1-P3 + 各阶段 backtrace + 记忆 R8 时代遗留 + 工作区巡检。
 > 优先级: **P0 生产正确性 → P1 低垂增强 → P2 体验/量化 → P3 长期治理 → P4 前端余项 / 外仓**。
 
-## P0 — 生产正确性（应尽快）
+## P0 — 生产正确性（应尽快）✅ 已完成 2026-10-17
 
 ### L-01 · ECS 公网形态 console-server 落后三个修复
 - **现状**: ECS `/opt/yyc3/console/` 运行的是 jti/审计/settings 内容协商**之前**的版本——ECS 用户访问 `/console/settings` 会拿到 JSON 文档（与 NAS 同款 bug）；且无 jti 吊销/审计留痕。
@@ -15,17 +15,17 @@
   4. 验证: 未登录 401 → login 200 → **导航 /console/settings 得 HTML 壳（`curl -H "Accept: text/html" | head -c 20` 见 `<!doctype`小写）** → logout 后旧 Cookie 401 → `tail /opt/yyc3/console/console-audit.log` 见事件。
 - **风险**: 无——同款已 NAS 实测（S14/S11）。
 
-## P1 — 低垂增强（各 ≤ 半天）
+## P1 — 低垂增强（各 ≤ 半天）✅ L-02/L-03 已完成
 
-### L-02 · S9-P1 e2e Lighthouse 基线（perf 维度补量化）
+### L-02 · S9-P1 e2e Lighthouse 基线 — ✅ 98 分 (gzip 修复 80→98, 13.5.0 bidi 拦截降版 12.6.1)
 - **现状**: dlx lighthouse 被 pnpm 供应链守卫拦（bidi 包接管疑警），perf 0.80 评分缺量化；S12 同根因 WARN。
 - **解法**: `pnpm add -D lighthouse@<精确版>`（devDep 锁定绕开 dlx 信任链问题，装前查 `pnpm view lighthouse version` 并审计其依赖树无 bidi 或确认为官方）→ e2e 新增 spec: webServer 起后跑 `lighthouse --preset=desktop --only-categories=performance --output=json`，断言 ≥90 并归档分数; 工时 0.5d。
 
-### L-03 · S9-P2 playwright offline 场景自动化（offline 维度）
+### L-03 · S9-P2 offline 多路由 — ✅ 4 路由断网全 200
 - **现状**: SW 离线已有 e2e（fullchain 断网壳层）; 缺「离线下核心页面可浏览多路由」的场景面。
 - **解法**: 扩 fullchain 离线用例: setOffline 后 `page.goto` 3-4 个代表路由（SW 导航 network-first→缓存壳兜底已实证）; IndexedDB 数据快照断言可选（hooks 降级契约已有单测）; 工时 0.5d。
 
-### L-04 · NAS @reboot 自然重启终验（DEF-02）
+### L-04 · NAS @reboot 重启终验（DEF-02）— ❌ SSH 通道全被 fnOS polkit 封 (第五路), 回落被动等自然断电
 - **现状**: 链路三环静态验证完整（cron + resurrect dump 含进程 + ops.mjs boot 实测），唯差一次真实重启。
 - **解法**: **零工作**——等 NAS 计划内维护/断电重启后跑 `ssh -p 9557 yyc3-45 '/mnt/volume2/.nvm/versions/node/v24.18.0/bin/node /Volume2/yyc3-console/ops.mjs boot'`，看 boot.log 有 resurrect 痕 + verify 七项绿即闭环。不建议为验证主动重启生产。
 
