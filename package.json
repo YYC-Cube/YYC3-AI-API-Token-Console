@@ -133,6 +133,7 @@
     "jscpd": "5.4.1",
     "jsdom": "28.1.0",
     "knip": "6.37.0",
+    "lighthouse": "12.6.1",
     "rollup-plugin-visualizer": "7.1.1",
     "tailwindcss": "catalog:",
     "typescript-eslint": "catalog:",

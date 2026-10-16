@@ -100,6 +100,25 @@ test("离线降级 — SW 就绪后断网重载壳层仍服务", async ({ page }
   await page.context().setOffline(false);
 });
 
+test("离线多路由 — 断网下核心页面均可浏览 (backlog L-03)", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/console/");
+  await page.waitForFunction(() => navigator.serviceWorker.ready.then(() => true), undefined, { timeout: 20_000 });
+  // 预热: SW 缓存壳经导航触发 (network-first 命中后回填); 先在线遍历一次
+  for (const r of ["/", "/models", "/ai-family", "/settings"]) {
+    await page.goto(`/console${r}`);
+    await expect(page.locator("#root")).not.toBeEmpty();
+  }
+  await page.context().setOffline(true);
+  // 断网遍历: SW 导航兜底应服务缓存壳 (SPA 路由在壳内客户端切换)
+  for (const r of ["/", "/models", "/ai-family", "/settings"]) {
+    const res = await page.goto(`/console${r}`);
+    expect(res?.status(), `离线路由失败: ${r}`).toBe(200);
+    await expect(page.locator("#root"), `离线 #root 空: ${r}`).not.toBeEmpty();
+  }
+  await page.context().setOffline(false);
+});
+
 test("404 兜底 — 未知路由渲染 NotFound 而非空白 (复用登录态)", async ({ browser }) => {
   // 未认证时 App 渲染 Login 门卫, NotFound 不可达 — 必须带会话访问 (S11 判例)
   const ctx = await browser.newContext({ storageState: "e2e/.auth/state.json" });

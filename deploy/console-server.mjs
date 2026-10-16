@@ -22,6 +22,7 @@
  */
 
 import { promises as fs } from "node:fs";
+import { gzipSync } from "node:zlib";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -301,13 +302,22 @@ const server = http.createServer(async (req, res) => {
   if (!filePath.startsWith(DIST)) { res.writeHead(403); return res.end(); }
   if (pathname === "/console" || pathname === "/console/") filePath = path.join(DIST, "index.html");
   else filePath = path.join(DIST, pathname.replace(/^\/console\/?/, "") || "index.html");
+  // L-02 判例 (2026-10-17): Lighthouse 实测 FCP 2.0s 根因 = 手写静态服务无压缩 (~600KB 明传)。
+  // gzip 后 ~150KB (zlib 零依赖); vite 内容 hash 产物可 immutable 长缓存, html 仍 no-cache。
+  const GZIP_EXT = new Set([".js", ".css", ".json", ".svg", ".html"]);
+  const acceptsGzip = GZIP_EXT.has(path.extname(filePath).toLowerCase()) && /\bgzip\b/.test(String(req.headers["accept-encoding"] ?? ""));
   try {
     const data = await fs.readFile(filePath);
     const ext = path.extname(filePath).toLowerCase();
     const mime = MIME[ext] || "application/octet-stream";
-    const cache = ext === ".html" ? "no-cache" : "public, max-age=86400";
-    res.writeHead(200, { "Content-Type": mime, "Cache-Control": cache });
-    res.end(data);
+    const cache = ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable";
+    if (acceptsGzip) {
+      res.writeHead(200, { "Content-Type": mime, "Cache-Control": cache, "Content-Encoding": "gzip", Vary: "Accept-Encoding" });
+      res.end(gzipSync(data));
+    } else {
+      res.writeHead(200, { "Content-Type": mime, "Cache-Control": cache });
+      res.end(data);
+    }
   } catch {
     try {
       const index = await fs.readFile(path.join(DIST, "index.html"));
