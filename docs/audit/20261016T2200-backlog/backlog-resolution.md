@@ -43,12 +43,12 @@
 - **现状**: 限流 5/5min/IP，套件已满额（5 登录），fullchain 单测 90s 长测试承载过多。
 - **解法**: `test.describe.serial` + 首测 `storageState` 落盘 + 依赖 describe `test.use({storageState})` 拆分导航/i18n 两个测试; 0.5d（有需要时做）。
 
-## P3 — 长期治理（分批）— L-08 第二片完成 (NetworkConfig 240→70, 基线 5841)
+## P3 — 长期治理 — L-08 **五片全数完成** (Dashboard+NetworkConfig+SecurityMonitor+AIAssistant+DatabaseManager/NodeDetailModal, 6080→5486 累计 -594)
 
 ### L-08 · 色值 tokens 存量迁移（DEF-01，6011 处）
 - **解法**（首片模式已立，e6f9fb1）: 顺序 NetworkConfig(240)→SecurityMonitor(163)→AIAssistant(152)→DatabaseManager(149)→NodeDetailModal(110); 每批: 映射表替换（primary/foreground/destructive/chart-2/3/4 已实证同值）+ Recharts props 走 `var(--chart-N)` + 测试网回归 + `color:check` 基线人工下调（禁抬）; theme-presets.ts 永久豁免（数据源本体）; 每片约 1-2h，可穿插进行。
 
-### L-09 · editor chunk 语言包懒加载（S12 backtrace）
+### L-09 · editor 语言包懒加载 — 触发条件未达 (perf 98·IDE 路由已重定向 dev-guide, editor 块非首屏) 维持不做
 - **现状**: CodeMirror 全语言打包 692KB（异步块, 首屏不含）。
 - **解法**: `@codemirror/lang-*` 按文件后缀动态 import; 省 ~300KB; 仅在 Lighthouse 量化（L-02）后若 IDE 路由加载敏感再做。
 
@@ -60,10 +60,10 @@
 
 ## P4 — 前端余项 / 外仓 / 工作区
 
-### L-12 · 前端余项（R8 记忆遗留）
+### L-12 · 前端余项 — gpuUtil ✅ 真实源 (节点 gpu 聚合, 89d91b4); 图表种子派生留判据 (radar 轴语义需产品定义)
 - dashboard-stores 图表种子派生（种子数据→图表可复现）; gpuUtil 显存真实源（当前推导值）; 各 0.5d, 体验级。
 
-### L-13 · 后端仓（YYC3-0379-World）
+### L-13 · 后端仓 — smoke 加固 ✅ (f8b3f27: compose --wait+轮询+fail 收口); deploy key/compose 重建终验另挂钩
 - smoke-test.sh 加 `docker compose ps --wait healthy` 等待（SMOKE_FAIL 竞态残余防线, 0.5h）;
 - GitHub deploy key（backend origin push 凭据, 运维决策）;
 - compose 037dac3 已修 prometheus 声明——下次 `docker compose up -d prometheus` 按声明态重建即终验（注意先 `docker tag` 镜像或拉取, fnOS 无 Docker Hub 直连, daocloud 源判例）。
