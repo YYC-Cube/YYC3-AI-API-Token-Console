@@ -1,0 +1,42 @@
+{
+  "stage": "S2",
+  "title": "静态类型门禁（tsc strict · 7 维度）",
+  "timestamp": "2026-10-16T09:18+08:00",
+  "mode": "online",
+  "commands": [
+    { "cmd": "pnpm typecheck", "exit": 0, "summary": "tsc --noEmit 通过, 0 错误" },
+    { "cmd": "pnpm exec tsc --noEmit --pretty false > docs/audit/20261016T0918-s2-typecheck/stage-2.raw.log", "exit": 0, "summary": "raw log 0 行" },
+    { "cmd": "pnpm exec tsc --noEmit --noUncheckedIndexedAccess --pretty false | grep -c 'error TS'", "output": "719" },
+    { "cmd": "pnpm exec tsc --noEmit --exactOptionalPropertyTypes --pretty false | grep -c 'error TS'", "output": "44" },
+    { "cmd": "grep 扫描 any / @ts-ignore / @ts-nocheck / 重名类型 / vite alias", "summary": "见 checks" }
+  ],
+  "checks": [
+    { "id": 1, "name": "0 个 TS 编译错误", "actual": "0 (exit 0, raw log 空)", "result": "PASS" },
+    { "id": 2, "name": "0 个 any (含隐式)", "actual": "业务码 1 处: src/app/components/ide/ide-mock-data.ts:321 `let val: any = PACKS[lang]`（另 1 处 grep 命中为 ModelManagementSection.tsx:4 注释文本, 非代码）; 隐式 any = 0 (strict 覆盖); 测试码 141 处 — eslint 策略内豁免 (eslint.config.js 测试文件放宽段, 2026-09 已制度化)", "result": "FAIL", "note": "按业务码口径判 FAIL" },
+    { "id": 3, "name": "0 个 @ts-ignore/@ts-expect-error (白名单+原因)", "actual": "共 6 处, 全部为测试文件 import deploy/*.mjs (无类型声明的 ESM 纯 JS), 每处上一行均带原因注释, 且遵循「单行 import 保证覆盖」既有判例; 0 处 @ts-ignore, 0 处业务码指令", "result": "PASS", "advisory": "原因注释未附失效日期, 建议补「deploy/*.mjs 补 .d.ts 后移除」字样" },
+    { "id": 4, "name": "0 个 @ts-nocheck", "actual": "0", "result": "PASS" },
+    { "id": 5, "name": "strict 全家桶开启", "actual": "strict: true ✅ (隐含 noImplicitAny ✅ / strictNullChecks ✅); noUncheckedIndexedAccess: ❌ 未开启 (叠加实验: 将浮出 719 errors); exactOptionalPropertyTypes: ❌ 未开启 (叠加实验: 44 errors)", "result": "FAIL", "note": "命令行旗标叠加实验为只读取证, 未改 tsconfig" },
+    { "id": 6, "name": "paths 别名与 vite 一致", "actual": "tsconfig paths '@/*'→'./src/*' == vite resolve.alias '@'→path.resolve(__dirname,'./src') ✅", "result": "PASS" },
+    { "id": 7, "name": "类型只在 contracts 层", "actual": "7 组重名 (types/ 契约层 vs 业务文件): AlertEvent/NodeData/PatrolResult @ ide-mock-data.ts, ChatMessage/QuickAction @ ide-types.ts, DBConnection @ dashboard-stores.ts, TestStatus @ service-test/types.ts。三对抽样定性: NodeData=结构级真重复 (同字段同语义, mock 内联联合); DBConnection=疑似重复 (同为连接配置域); ChatMessage=同名异构已漂移 (timestamp number vs string — 命名冲突实害)", "result": "FAIL" }
+  ],
+  "errors_total": 0,
+  "any_count": 1,
+  "ts_ignore_count": 6,
+  "ts_nocheck_count": 0,
+  "strict_flags": { "strict": true, "noImplicitAny": true, "strictNullChecks": true, "noUncheckedIndexedAccess": false, "exactOptionalPropertyTypes": false },
+  "evidence": "docs/audit/20261016T0918-s2-typecheck/stage-2.raw.log (tsc 0 错误) + 本文件 commands/checks + /tmp/s2-flagtest.log (旗标叠加实验 764 errors)",
+  "blocking": [
+    "src/app/components/ide/ide-mock-data.ts:321 — 业务码显式 any",
+    "tsconfig.json compilerOptions — 缺 noUncheckedIndexedAccess (影响面 719) 与 exactOptionalPropertyTypes (影响面 44)",
+    "类型重复定义 7 组 — 见 checks[6] 清单 (ide-mock-data.ts 独占 3 组)"
+  ],
+  "backtrace": [
+    "any → ide-mock-data.ts:321 改 `let val: unknown = PACKS[lang]` 后 typeof 收窄, 或给 PACKS 声明 Record<PackLang, ...> 索引契约 (本地 .d.ts 或导出类型, 禁 any 兜底)",
+    "exactOptionalPropertyTypes (44 errors) → 量小, 建议第一批专项批处理 (可选属性赋值显式 undefined 收窄)",
+    "noUncheckedIndexedAccess (719 errors) → 独立重构批, 按目录分片推进 (索引访问点统一 `?? 默认值` 或显式判空); 建议先开 exactOptionalPropertyTypes 验证流程再启此项",
+    "类型重复 → NodeData/AlertEvent/PatrolResult 从 types/core+ops-monitor 导入替代 ide-mock-data 本地副本; DBConnection 收敛至 types/ai-provider; ChatMessage 同名异构 → ide-types 改名 IdeChatMessage 消除 timestamp number/string 漂移隐患; TestStatus/QuickAction 同法逐对判",
+    "@ts-expect-error 建议补失效条件注释 (deploy/*.mjs 有 .d.ts 后移除)"
+  ],
+  "next": "STOP",
+  "verdict": "编译零错误但契约维度 3 项 FAIL (any×1 / strict 旗标缺 2 / 类型重复 7 组) → BLOCKED, 处置后复跑 S2"
+}
