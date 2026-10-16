@@ -1,17 +1,17 @@
 {
-  "baseline": 5841,
+  "baseline": 5486,
   "lockedAt": "2026-10-16",
-  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明。2026-10-16 首批迁移: Dashboard.tsx 硬编码色值 159→90 (#00d4ff→primary / #e0f0ff→foreground / #ff3366→destructive / #ffdd00→chart-5 / rgba(0,212,255,X)→primary/X), 基线 6080→6011。2026-10-16 二批迁移: NetworkConfig.tsx 硬编码色值 240→70 (同映射 + #00ff88/rgba(0,255,136,X)→chart-2; 保留: rgba(0,180,255,X) 23 处无精确 token / rgba(0,40,80,X) 20 处 / #c0dcf0 10 处映射表外 / toast 内联与 shadow 任意值 rgba 17 处), 基线 6011→5841",
+  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明。2026-10-16 首批迁移: Dashboard.tsx 硬编码色值 159→90 (#00d4ff→primary / #e0f0ff→foreground / #ff3366→destructive / #ffdd00→chart-5 / rgba(0,212,255,X)→primary/X), 基线 6080→6011。2026-10-16 二批迁移: NetworkConfig.tsx 硬编码色值 240→70 (同映射 + #00ff88/rgba(0,255,136,X)→chart-2; 保留: rgba(0,180,255,X) 23 处无精确 token / rgba(0,40,80,X) 20 处 / #c0dcf0 10 处映射表外 / toast 内联与 shadow 任意值 rgba 17 处), 基线 6011→5841。2026-10-16 三批迁移: SecurityMonitor.tsx 硬编码色值 163→68 (-95, 映射同前两片: primary 24+30 类修饰符 / foreground 19 / chart-2 12 / destructive 6+3 类修饰符 / chart-4 1; 保留 68 处登记: rgba(0,180,255,X) 20 无精确 token / rgba(224,240,255,X) 14 前景带透明度映射表外 / #ffaa00 族 10 映射表外 / 内联 style alpha rgba(0,212,255,X) 10 无 var 修饰符语法 (NetworkConfig toast 判例) / #ff6464+#ff6688 3 低频色 / 渐变字符串 hex 2 (Dashboard 判例) / vitalColor 3 动态色板 alpha 拼接 / 网关 border 模板 rgba 2 / 头注释 2)。同期并行片 AIAssistant 152→54 / DatabaseManager 149→62 / NodeDetailModal 110→35 已一并计入本实测, 基线 5841→5486",
   "topFiles": {
     "src/app/components/theme/theme-presets.ts": 190,
-    "src/app/components/SecurityMonitor.tsx": 163,
-    "src/app/components/AIAssistant.tsx": 152,
-    "src/app/components/DatabaseManager.tsx": 149,
     "src/app/components/ModelProviderPanel.tsx": 131,
     "src/app/components/AlertRulesPanel.tsx": 126,
     "src/app/components/OperationAudit.tsx": 120,
-    "src/app/components/NodeDetailModal.tsx": 110,
     "src/app/components/ai-family-doc/sections-a.tsx": 109,
-    "src/app/components/ai-family/FamilyActivityCenter.tsx": 101
+    "src/app/components/ai-family/FamilyActivityCenter.tsx": 101,
+    "src/app/components/ReportExporter.tsx": 98,
+    "src/app/components/settings/sections-core.tsx": 98,
+    "src/app/components/AIFamilyPage.tsx": 97,
+    "src/app/components/ThemeCustomizer.tsx": 95
   }
 }

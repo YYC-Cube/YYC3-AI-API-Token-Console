@@ -39,8 +39,8 @@ import { GlassCard } from "./GlassCard";
 import { InlineEditableTable } from "./InlineEditableTable";
 
 // ── 样式常量 ──
-const textPrimary = "#e0f0ff";
-const textDim = "rgba(0,212,255,0.4)";
+const textPrimary = "var(--foreground)";
+const textDim = "color-mix(in srgb, var(--primary) 40%, transparent)";
 const f = { xs: "0.65rem", sm: "0.72rem", md: "0.8rem", lg: "0.92rem" };
 
 const DB_TYPE_LABELS: Record<DatabaseType, { label: string; color: string; icon: string }> = {
@@ -121,15 +121,15 @@ export function DatabaseManager() {
       {/* ══ Header ══ */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[rgba(0,212,255,0.1)] flex items-center justify-center">
-            <Database className="w-5 h-5 text-[#00d4ff]" />
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Database className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h2 style={{ fontSize: f.lg, color: textPrimary }}>本地数据库管理</h2>
             <p style={{ fontSize: f.xs, color: textDim }}>
               连接 · 查询 · 表浏览 · 备份恢复
               {db.activeConnection && (
-                <span className="text-[#00ff88]"> · 已连接: {db.activeConnection.name}</span>
+                <span className="text-chart-2"> · 已连接: {db.activeConnection.name}</span>
               )}
             </p>
           </div>
@@ -138,7 +138,7 @@ export function DatabaseManager() {
         <button
           onClick={db.detectDatabases}
           disabled={db.detecting}
-          className="px-3 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,180,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all flex items-center gap-1.5 disabled:opacity-50"
+          className="px-3 py-1.5 rounded-lg bg-primary/8 border border-[rgba(0,180,255,0.2)] text-primary hover:bg-primary/15 transition-all flex items-center gap-1.5 disabled:opacity-50"
           style={{ fontSize: f.sm }}
         >
           {db.detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scan className="w-3.5 h-3.5" />}
@@ -149,8 +149,8 @@ export function DatabaseManager() {
       {/* ══ Stats Bar ══ */}
       <div className={`grid gap-2 ${isMobile ? "grid-cols-2" : "grid-cols-5"}`}>
         {[
-          { label: "连接数", value: db.stats.totalConnections, color: "#00d4ff" },
-          { label: "已连接", value: db.stats.connectedCount, color: "#00ff88" },
+          { label: "连接数", value: db.stats.totalConnections, color: "var(--primary)" },
+          { label: "已连接", value: db.stats.connectedCount, color: "var(--chart-2)" },
           { label: "表数量", value: db.stats.totalTables, color: "#7b8cff" },
           { label: "总行数", value: db.stats.totalTableRows.toLocaleString(), color: "#ffaa00" },
           { label: "查询历史", value: db.stats.queryCount, color: "#ff6b9d" },
@@ -169,15 +169,15 @@ export function DatabaseManager() {
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${activeTab === tab.key
-                ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                : "text-[rgba(0,212,255,0.35)] border border-transparent hover:border-[rgba(0,180,255,0.12)]"
+                ? "bg-primary/10 text-primary border border-primary/25"
+                : "text-primary/35 border border-transparent hover:border-[rgba(0,180,255,0.12)]"
               }`}
             style={{ fontSize: f.sm }}
           >
             <tab.icon className="w-3.5 h-3.5" />
             {!isMobile && tab.label}
             {tab.count > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-[rgba(0,212,255,0.1)]" style={{ fontSize: f.xs }}>{tab.count}</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-primary/10" style={{ fontSize: f.xs }}>{tab.count}</span>
             )}
           </button>
         ))}
@@ -192,7 +192,7 @@ export function DatabaseManager() {
             <span style={{ fontSize: f.xs, color: textDim }}>{db.connections.length} 个连接</span>
             <button
               onClick={() => setShowAddForm(true)}
-              className="px-3 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,180,255,0.15)] text-[#00d4ff] flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-primary/8 border border-[rgba(0,180,255,0.15)] text-primary flex items-center gap-1.5"
               style={{ fontSize: f.sm }}
             >
               <Plus className="w-3.5 h-3.5" /> 新建连接
@@ -204,14 +204,14 @@ export function DatabaseManager() {
             <GlassCard className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <span style={{ fontSize: f.md, color: textPrimary }}>新建数据库连接</span>
-                <button onClick={() => setShowAddForm(false)} className="text-[rgba(0,212,255,0.3)]"><X className="w-4 h-4" /></button>
+                <button onClick={() => setShowAddForm(false)} className="text-primary/30"><X className="w-4 h-4" /></button>
               </div>
               <div className={`grid gap-3 ${isMobile ? "grid-cols-1" : "grid-cols-2"}`}>
                 <div>
                   <label style={{ fontSize: f.xs, color: textDim }}>连接名称</label>
                   <input value={formData.name} onChange={(e) => setFormData(d => ({ ...d, name: e.target.value }))}
                     placeholder="YYC³ PostgreSQL"
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none focus:border-[rgba(0,212,255,0.3)]"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none focus:border-primary/30"
                     style={{ fontSize: f.sm }}
                   />
                 </div>
@@ -222,7 +222,7 @@ export function DatabaseManager() {
                     const ports: Record<string, string> = { postgresql: "5432", mysql: "3306", redis: "6379" };
                     setFormData(d => ({ ...d, type: t, port: ports[t] || "5432" }));
                   }}
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                     style={{ fontSize: f.sm }}
                   >
                     <option value="postgresql">PostgreSQL</option>
@@ -233,28 +233,28 @@ export function DatabaseManager() {
                 <div>
                   <label style={{ fontSize: f.xs, color: textDim }}>主机地址</label>
                   <input value={formData.host} onChange={(e) => setFormData(d => ({ ...d, host: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                     style={{ fontSize: f.sm }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: f.xs, color: textDim }}>端口</label>
                   <input value={formData.port} onChange={(e) => setFormData(d => ({ ...d, port: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                     style={{ fontSize: f.sm }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: f.xs, color: textDim }}>数据库名</label>
                   <input value={formData.database} onChange={(e) => setFormData(d => ({ ...d, database: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                     style={{ fontSize: f.sm }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: f.xs, color: textDim }}>用户名</label>
                   <input value={formData.username} onChange={(e) => setFormData(d => ({ ...d, username: e.target.value }))}
-                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                     style={{ fontSize: f.sm }}
                   />
                 </div>
@@ -263,11 +263,11 @@ export function DatabaseManager() {
                   <div className="relative mt-1">
                     <input type={showPassword["form"] ? "text" : "password"} value={formData.password}
                       onChange={(e) => setFormData(d => ({ ...d, password: e.target.value }))}
-                      className="w-full px-3 py-2 pr-10 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-[#e0f0ff] outline-none"
+                      className="w-full px-3 py-2 pr-10 rounded-lg bg-[rgba(0,10,20,0.5)] border border-[rgba(0,180,255,0.1)] text-foreground outline-none"
                       style={{ fontSize: f.sm }}
                     />
                     <button onClick={() => setShowPassword(p => ({ ...p, form: !p.form }))}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[rgba(0,212,255,0.3)]"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/30"
                     >
                       {showPassword["form"] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -275,9 +275,9 @@ export function DatabaseManager() {
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-4">
-                <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-lg text-[rgba(0,212,255,0.4)]" style={{ fontSize: f.sm }}>取消</button>
+                <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-lg text-primary/40" style={{ fontSize: f.sm }}>取消</button>
                 <button onClick={handleAddConnection}
-                  className="px-4 py-2 rounded-lg bg-[rgba(0,212,255,0.15)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
+                  className="px-4 py-2 rounded-lg bg-primary/15 border border-primary/30 text-primary"
                   style={{ fontSize: f.sm }}
                 >添加连接</button>
               </div>
@@ -287,7 +287,7 @@ export function DatabaseManager() {
           {/* 连接列表 */}
           {db.connections.length === 0 ? (
             <GlassCard className="p-8 text-center">
-              <Database className="w-12 h-12 mx-auto mb-4 text-[rgba(0,212,255,0.15)]" />
+              <Database className="w-12 h-12 mx-auto mb-4 text-primary/15" />
               <p style={{ fontSize: f.md, color: textPrimary }}>暂无数据库连接</p>
               <p style={{ fontSize: f.xs, color: textDim }}>点击"自动检测"扫描本地服务，或手动"新建连接"</p>
             </GlassCard>
@@ -297,7 +297,7 @@ export function DatabaseManager() {
                 const meta = DB_TYPE_LABELS[conn.type];
                 const isActive = conn.id === db.activeConnectionId;
                 return (
-                  <GlassCard key={conn.id} className={`p-4 ${isActive ? "ring-1 ring-[rgba(0,255,136,0.3)]" : ""}`}>
+                  <GlassCard key={conn.id} className={`p-4 ${isActive ? "ring-1 ring-chart-2/30" : ""}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${meta.color}22`, border: `1px solid ${meta.color}44` }}
@@ -307,10 +307,10 @@ export function DatabaseManager() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span style={{ fontSize: f.md, color: textPrimary }}>{conn.name}</span>
-                          <span className={`px-1.5 py-0.5 rounded-full ${conn.status === "connected" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
-                              conn.status === "connecting" ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" :
+                          <span className={`px-1.5 py-0.5 rounded-full ${conn.status === "connected" ? "bg-chart-2/10 text-chart-2" :
+                              conn.status === "connecting" ? "bg-primary/10 text-primary" :
                                 conn.status === "error" ? "bg-[rgba(255,60,60,0.1)] text-[#ff6464]" :
-                                  "bg-[rgba(0,212,255,0.05)] text-[rgba(0,212,255,0.3)]"
+                                  "bg-primary/5 text-primary/30"
                             }`} style={{ fontSize: f.xs }}>
                             {conn.status === "connected" ? "已连接" :
                               conn.status === "connecting" ? "连接中..." :
@@ -328,7 +328,7 @@ export function DatabaseManager() {
                         <button
                           onClick={() => db.testConnection(conn.id)}
                           disabled={db.testing === conn.id}
-                          className="px-2 py-1.5 rounded-lg bg-[rgba(0,212,255,0.06)] border border-[rgba(0,180,255,0.12)] text-[rgba(0,212,255,0.5)] flex items-center gap-1 disabled:opacity-50"
+                          className="px-2 py-1.5 rounded-lg bg-primary/6 border border-[rgba(0,180,255,0.12)] text-primary/50 flex items-center gap-1 disabled:opacity-50"
                           style={{ fontSize: f.xs }}
                         >
                           {db.testing === conn.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <TestTube className="w-3 h-3" />}
@@ -343,7 +343,7 @@ export function DatabaseManager() {
                           </button>
                         ) : (
                           <button onClick={() => db.connectDB(conn.id)} disabled={conn.status === "connecting"}
-                            className="px-3 py-1.5 rounded-lg bg-[rgba(0,255,136,0.08)] border border-[rgba(0,255,136,0.2)] text-[#00ff88] flex items-center gap-1.5 disabled:opacity-50"
+                            className="px-3 py-1.5 rounded-lg bg-chart-2/8 border border-chart-2/20 text-chart-2 flex items-center gap-1.5 disabled:opacity-50"
                             style={{ fontSize: f.xs }}
                           >
                             {conn.status === "connecting" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plug className="w-3 h-3" />}
@@ -377,7 +377,7 @@ export function DatabaseManager() {
             </GlassCard>
           ) : db.tables.length === 0 ? (
             <GlassCard className="p-8 text-center">
-              <Table2 className="w-8 h-8 mx-auto mb-3 text-[rgba(0,212,255,0.2)]" />
+              <Table2 className="w-8 h-8 mx-auto mb-3 text-primary/20" />
               <p style={{ fontSize: f.sm, color: textDim }}>暂无表数据</p>
             </GlassCard>
           ) : (
@@ -400,10 +400,10 @@ export function DatabaseManager() {
                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[rgba(0,40,80,0.2)] transition-all text-left group"
                   >
                     {expandedTable === table.name
-                      ? <ChevronDown className="w-4 h-4 text-[#00d4ff] shrink-0" />
-                      : <ChevronRight className="w-4 h-4 text-[rgba(0,212,255,0.3)] shrink-0" />
+                      ? <ChevronDown className="w-4 h-4 text-primary shrink-0" />
+                      : <ChevronRight className="w-4 h-4 text-primary/30 shrink-0" />
                     }
-                    <Table2 className="w-4 h-4 text-[#00d4ff] shrink-0" />
+                    <Table2 className="w-4 h-4 text-primary shrink-0" />
                     <span style={{ fontSize: f.sm, color: textPrimary }}>{table.name}</span>
                     <span style={{ fontSize: f.xs, color: textDim }}>
                       {table.rowCount.toLocaleString()} 行 · {table.columns.length} 列 · {formatBytes(table.sizeBytes)}
@@ -414,7 +414,7 @@ export function DatabaseManager() {
                         db.setSqlInput(`SELECT * FROM ${table.name} LIMIT 20;`);
                         setActiveTab("query");
                       }}
-                      className="ml-auto px-2 py-1 rounded bg-[rgba(0,212,255,0.1)] text-[#00d4ff] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="ml-auto px-2 py-1 rounded bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ fontSize: f.xs }}
                     >
                       查询
@@ -439,10 +439,10 @@ export function DatabaseManager() {
                           <tbody>
                             {table.columns.map(col => (
                               <tr key={col.name} className="border-t border-[rgba(0,180,255,0.04)]">
-                                <td className="py-1.5 px-2 text-[#e0f0ff] font-mono">{col.name}</td>
+                                <td className="py-1.5 px-2 text-foreground font-mono">{col.name}</td>
                                 <td className="py-1.5 px-2 text-[#7b8cff] font-mono">{col.dataType}</td>
                                 <td className="py-1.5 px-2">{col.nullable ? <span className="text-[#ffaa00]">YES</span> : <span style={{ color: textDim }}>NO</span>}</td>
-                                <td className="py-1.5 px-2">{col.isPrimaryKey && <Key className="w-3 h-3 text-[#00ff88]" />}</td>
+                                <td className="py-1.5 px-2">{col.isPrimaryKey && <Key className="w-3 h-3 text-chart-2" />}</td>
                                 <td className="py-1.5 px-2 font-mono" style={{ color: textDim }}>{col.defaultValue || "-"}</td>
                               </tr>
                             ))}
@@ -455,14 +455,14 @@ export function DatabaseManager() {
                         <p style={{ fontSize: f.xs, color: textDim }}>数据预览 (前 20 行)</p>
                         <button
                           onClick={() => db.loadTableData(table.name)}
-                          className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[rgba(0,212,255,0.3)]"
+                          className="p-1 rounded hover:bg-primary/10 text-primary/30"
                         >
                           <RefreshCcw className="w-3 h-3" />
                         </button>
                       </div>
                       {db.tableDataLoading ? (
                         <div className="flex items-center justify-center py-4">
-                          <Loader2 className="w-5 h-5 text-[#00d4ff] animate-spin" />
+                          <Loader2 className="w-5 h-5 text-primary animate-spin" />
                         </div>
                       ) : db.tableData.length > 0 ? (
                         <InlineEditableTable
@@ -510,8 +510,8 @@ export function DatabaseManager() {
                 <button
                   onClick={() => setShowTemplates(!showTemplates)}
                   className={`px-2 py-1 rounded-lg flex items-center gap-1 transition-all ${showTemplates
-                      ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff]"
-                      : "bg-[rgba(0,212,255,0.04)] text-[rgba(0,212,255,0.4)] hover:bg-[rgba(0,212,255,0.08)]"
+                      ? "bg-primary/12 text-primary"
+                      : "bg-primary/4 text-primary/40 hover:bg-primary/8"
                     }`}
                   style={{ fontSize: f.xs }}
                 >
@@ -522,7 +522,7 @@ export function DatabaseManager() {
               <button
                 onClick={() => db.executeQuery()}
                 disabled={db.querying || !db.activeConnectionId}
-                className="px-4 py-1.5 rounded-lg bg-[rgba(0,255,136,0.1)] border border-[rgba(0,255,136,0.25)] text-[#00ff88] flex items-center gap-1.5 disabled:opacity-40"
+                className="px-4 py-1.5 rounded-lg bg-chart-2/10 border border-chart-2/25 text-chart-2 flex items-center gap-1.5 disabled:opacity-40"
                 style={{ fontSize: f.sm }}
               >
                 {db.querying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
@@ -539,8 +539,8 @@ export function DatabaseManager() {
                       key={cat}
                       onClick={() => setTemplateFilter(cat)}
                       className={`px-2 py-0.5 rounded ${templateFilter === cat
-                          ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff]"
-                          : "text-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]"
+                          ? "bg-primary/15 text-primary"
+                          : "text-primary/30 hover:text-primary"
                         }`}
                       style={{ fontSize: f.xs }}
                     >
@@ -555,7 +555,7 @@ export function DatabaseManager() {
                       <button
                         key={t.id}
                         onClick={() => { db.executeTemplate(t); setShowTemplates(false); }}
-                        className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.06)] text-left hover:border-[rgba(0,212,255,0.2)] transition-all"
+                        className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.06)] text-left hover:border-primary/20 transition-all"
                       >
                         <span className="block truncate" style={{ fontSize: f.xs, color: textPrimary }}>{t.label}</span>
                         <span style={{ fontSize: "0.6rem", color: textDim }}>
@@ -584,7 +584,7 @@ export function DatabaseManager() {
                 <div className="flex items-center gap-2">
                   {result.error
                     ? <AlertTriangle className="w-3.5 h-3.5 text-[#ff6464]" />
-                    : <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff88]" />
+                    : <CheckCircle2 className="w-3.5 h-3.5 text-chart-2" />
                   }
                   <span style={{ fontSize: f.xs, color: textDim }}>
                     {result.rowCount} 行 · {result.executionTimeMs.toFixed(1)}ms
@@ -593,7 +593,7 @@ export function DatabaseManager() {
                 </div>
                 <button
                   onClick={() => copyToClipboard(JSON.stringify(result.rows, null, 2))}
-                  className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[rgba(0,212,255,0.3)]"
+                  className="p-1 rounded hover:bg-primary/10 text-primary/30"
                   title="复制 JSON"
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -637,7 +637,7 @@ export function DatabaseManager() {
 
           {db.queryResults.length === 0 && (
             <GlassCard className="p-8 text-center">
-              <Play className="w-8 h-8 mx-auto mb-3 text-[rgba(0,212,255,0.15)]" />
+              <Play className="w-8 h-8 mx-auto mb-3 text-primary/15" />
               <p style={{ fontSize: f.sm, color: textDim }}>执行 SQL 查询查看结果</p>
             </GlassCard>
           )}
@@ -664,7 +664,7 @@ export function DatabaseManager() {
 
           {db.queryHistory.length === 0 ? (
             <GlassCard className="p-8 text-center">
-              <History className="w-8 h-8 mx-auto mb-3 text-[rgba(0,212,255,0.15)]" />
+              <History className="w-8 h-8 mx-auto mb-3 text-primary/15" />
               <p style={{ fontSize: f.sm, color: textDim }}>执行查询后自动记录</p>
             </GlassCard>
           ) : (
@@ -673,14 +673,14 @@ export function DatabaseManager() {
                 <div className="flex items-center gap-2 mb-1">
                   {result.error
                     ? <AlertTriangle className="w-3 h-3 text-[#ff6464] shrink-0" />
-                    : <CheckCircle2 className="w-3 h-3 text-[#00ff88] shrink-0" />
+                    : <CheckCircle2 className="w-3 h-3 text-chart-2 shrink-0" />
                   }
                   <span style={{ fontSize: f.xs, color: textDim }}>
                     {result.rowCount} 行 · {result.executionTimeMs.toFixed(1)}ms · {new Date(result.executedAt).toLocaleString("zh-CN")}
                   </span>
                   <button
                     onClick={() => { db.replayQuery(result); setActiveTab("query"); }}
-                    className="ml-auto px-2 py-0.5 rounded bg-[rgba(0,212,255,0.08)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)]"
+                    className="ml-auto px-2 py-0.5 rounded bg-primary/8 text-primary hover:bg-primary/15"
                     style={{ fontSize: f.xs }}
                   >
                     重新执行
@@ -705,7 +705,7 @@ export function DatabaseManager() {
             {db.activeConnectionId && (
               <button
                 onClick={() => db.createBackup(db.activeConnectionId!)}
-                className="px-3 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,180,255,0.15)] text-[#00d4ff] flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg bg-primary/8 border border-[rgba(0,180,255,0.15)] text-primary flex items-center gap-1.5"
                 style={{ fontSize: f.sm }}
               >
                 <HardDrive className="w-3.5 h-3.5" /> 创建备份
@@ -715,29 +715,29 @@ export function DatabaseManager() {
 
           {db.backups.length === 0 ? (
             <GlassCard className="p-8 text-center">
-              <HardDrive className="w-8 h-8 mx-auto mb-3 text-[rgba(0,212,255,0.15)]" />
+              <HardDrive className="w-8 h-8 mx-auto mb-3 text-primary/15" />
               <p style={{ fontSize: f.sm, color: textDim }}>暂无备份 · 连接数据库后可创建备份</p>
             </GlassCard>
           ) : (
             db.backups.map(backup => (
               <GlassCard key={backup.id} className="p-4">
                 <div className="flex items-center gap-3">
-                  <HardDrive className="w-5 h-5 text-[#00d4ff] shrink-0" />
+                  <HardDrive className="w-5 h-5 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p style={{ fontSize: f.sm, color: textPrimary }}>{backup.fileName}</p>
                     <p style={{ fontSize: f.xs, color: textDim }}>
                       {backup.connectionName} · {formatBytes(backup.sizeBytes)} · {new Date(backup.createdAt).toLocaleString("zh-CN")}
                     </p>
                   </div>
-                  <span className={`px-1.5 py-0.5 rounded-full ${backup.status === "completed" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
-                      backup.status === "in_progress" ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" :
+                  <span className={`px-1.5 py-0.5 rounded-full ${backup.status === "completed" ? "bg-chart-2/10 text-chart-2" :
+                      backup.status === "in_progress" ? "bg-primary/10 text-primary" :
                         "bg-[rgba(255,60,60,0.1)] text-[#ff6464]"
                     }`} style={{ fontSize: f.xs }}>
                     {backup.status === "completed" ? "完成" : backup.status === "in_progress" ? "进行中" : "失败"}
                   </span>
                   <button
                     onClick={() => db.restoreBackup(backup.id)}
-                    className="px-2 py-1 rounded bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                    className="px-2 py-1 rounded bg-primary/10 text-primary"
                     style={{ fontSize: f.xs }}
                   >
                     恢复

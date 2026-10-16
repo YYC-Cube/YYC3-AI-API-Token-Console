@@ -265,20 +265,20 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
           right: isMobile ? 16 : 24,
         }}
       >
-        <div className="relative rounded-2xl bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center shadow-[0_0_30px_rgba(0,180,255,0.4)] hover:shadow-[0_0_40px_rgba(0,180,255,0.6)] transition-all hover:scale-105 active:scale-95"
+        <div className="relative rounded-2xl bg-gradient-to-br from-primary to-[#7b2ff7] flex items-center justify-center shadow-[0_0_30px_rgba(0,180,255,0.4)] hover:shadow-[0_0_40px_rgba(0,180,255,0.6)] transition-all hover:scale-105 active:scale-95"
           style={{ width: isMobile ? 48 : 56, height: isMobile ? 48 : 56 }}
         >
           <YYC3LogoSvg size={isMobile ? 24 : 28} showText={false} className="rounded-md" />
           {/* Pulse ring */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] animate-ping opacity-20" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-[#7b2ff7] animate-ping opacity-20" />
           {/* Badge */}
-          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#00ff88] flex items-center justify-center shadow-[0_0_8px_rgba(0,255,136,0.5)]">
+          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-chart-2 flex items-center justify-center shadow-[0_0_8px_rgba(0,255,136,0.5)]">
             <Sparkles className="w-3 h-3 text-[#060e1f]" />
           </div>
         </div>
         {/* Tooltip */}
         <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 rounded-lg bg-[rgba(8,25,55,0.95)] border border-[rgba(0,180,255,0.2)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-          <span className="text-[#00d4ff]" style={{ fontSize: "0.72rem" }}>AI 智能助理 (⌘J)</span>
+          <span className="text-primary" style={{ fontSize: "0.72rem" }}>AI 智能助理 (⌘J)</span>
         </div>
       </button>
     );
@@ -292,14 +292,14 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
         {/* ========= Header ========= */}
         <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-[rgba(0,180,255,0.12)] bg-[rgba(0,40,80,0.2)]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center shadow-[0_0_15px_rgba(0,180,255,0.3)] overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[#7b2ff7] flex items-center justify-center shadow-[0_0_15px_rgba(0,180,255,0.3)] overflow-hidden">
               <YYC3LogoSvg size={20} showText={false} className="rounded" />
             </div>
             <div>
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>AI 智能助理</h3>
+              <h3 className="text-foreground" style={{ fontSize: "0.9rem" }}>AI 智能助理</h3>
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" />
-                <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-chart-2 animate-pulse" />
+                <span className="text-primary/40" style={{ fontSize: "0.62rem" }}>
                   {availableModels.find(m => m.id === selectedModel)?.name ?? (ollamaLoading ? "模型加载中..." : "未选择模型")}
                 </span>
               </div>
@@ -308,27 +308,27 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={clearChat}
-              className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)] transition-all"
+              className="p-1.5 rounded-lg hover:bg-primary/10 transition-all"
               title="清空对话"
             >
-              <Trash2 className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
+              <Trash2 className="w-4 h-4 text-primary/40" />
             </button>
             {!isMobile && (
               <button
                 onClick={() => setIsMaximized(!isMaximized)}
-                className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)] transition-all"
+                className="p-1.5 rounded-lg hover:bg-primary/10 transition-all"
                 title={isMaximized ? "还原" : "最大化"}
               >
                 {isMaximized
-                  ? <Minimize2 className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
-                  : <Maximize2 className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />}
+                  ? <Minimize2 className="w-4 h-4 text-primary/40" />
+                  : <Maximize2 className="w-4 h-4 text-primary/40" />}
               </button>
             )}
             <button
               onClick={() => { setIsOpen(false); setIsMaximized(false); }}
-              className="p-1.5 rounded-lg hover:bg-[rgba(255,51,102,0.1)] transition-all"
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-all"
             >
-              <X className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
+              <X className="w-4 h-4 text-primary/50" />
             </button>
           </div>
         </div>
@@ -346,8 +346,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === tab.key
-                  ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                  : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+                  ? "bg-primary/12 text-primary border border-primary/25"
+                  : "text-primary/40 hover:text-primary border border-transparent"
               }`}
               style={{ fontSize: "0.72rem" }}
             >
@@ -369,14 +369,14 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[85%] relative group ${
                       msg.role === "user"
-                        ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.2)] rounded-2xl rounded-br-sm"
+                        ? "bg-primary/12 border border-primary/20 rounded-2xl rounded-br-sm"
                         : msg.role === "system"
-                          ? "bg-[rgba(255,221,0,0.08)] border border-[rgba(255,221,0,0.15)] rounded-2xl"
+                          ? "bg-chart-5/8 border border-chart-5/15 rounded-2xl"
                           : "bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] rounded-2xl rounded-bl-sm"
                     } px-3.5 py-2.5`}>
                       <div
                         className={`whitespace-pre-wrap ${
-                          msg.role === "user" ? "text-[#e0f0ff]" : msg.role === "system" ? "text-[#ffdd00]" : "text-[#c0dcf0]"
+                          msg.role === "user" ? "text-foreground" : msg.role === "system" ? "text-chart-5" : "text-[#c0dcf0]"
                         }`}
                         style={{ fontSize: "0.78rem", lineHeight: "1.6" }}
                       >
@@ -386,14 +386,14 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                       {msg.role === "assistant" && (
                         <button
                           onClick={() => copyToClipboard(msg.content, msg.id)}
-                          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-[rgba(0,212,255,0.1)] transition-all"
+                          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
                         >
                           {copiedId === msg.id
-                            ? <Check className="w-3 h-3 text-[#00ff88]" />
-                            : <Copy className="w-3 h-3 text-[rgba(0,212,255,0.3)]" />}
+                            ? <Check className="w-3 h-3 text-chart-2" />
+                            : <Copy className="w-3 h-3 text-primary/30" />}
                         </button>
                       )}
-                      <div className="text-[rgba(0,212,255,0.2)] mt-1" style={{ fontSize: "0.58rem" }}>
+                      <div className="text-primary/20 mt-1" style={{ fontSize: "0.58rem" }}>
                         {new Date(msg.timestamp).toLocaleTimeString("zh-CN")}
                       </div>
                     </div>
@@ -405,9 +405,9 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   <div className="flex justify-start">
                     <div className="bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] rounded-2xl rounded-bl-sm px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-[#00d4ff] animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <div className="w-2 h-2 rounded-full bg-[#00d4ff] animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <div className="w-2 h-2 rounded-full bg-[#00d4ff] animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
                   </div>
@@ -425,13 +425,13 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="输入指令... (Enter 发送, Shift+Enter 换行)"
                     rows={1}
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.25)] focus:outline-none focus:border-[rgba(0,212,255,0.4)] resize-none"
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-foreground placeholder:text-primary/25 focus:outline-none focus:border-primary/40 resize-none"
                     style={{ fontSize: "0.8rem", maxHeight: "100px" }}
                   />
                   <button
                     onClick={() => sendMessage(inputValue)}
                     disabled={!inputValue.trim() || isTyping}
-                    className="p-2.5 rounded-xl bg-gradient-to-r from-[#00d4ff] to-[#0066ff] text-white hover:shadow-[0_0_15px_rgba(0,180,255,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    className="p-2.5 rounded-xl bg-gradient-to-r from-primary to-[#0066ff] text-white hover:shadow-[0_0_15px_rgba(0,180,255,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <Send className="w-4 h-4" />
                   </button>
@@ -450,8 +450,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                     onClick={() => setCmdFilter(cat.key)}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
                       cmdFilter === cat.key
-                        ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                        : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+                        ? "bg-primary/12 text-primary border border-primary/25"
+                        : "text-primary/40 hover:text-primary border border-transparent"
                     }`}
                     style={{ fontSize: "0.68rem" }}
                   >
@@ -473,14 +473,14 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                         <Icon className="w-4 h-4" style={{ color: cmd.color }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#e0f0ff] group-hover:text-[#00d4ff] transition-colors" style={{ fontSize: "0.8rem" }}>
+                        <p className="text-foreground group-hover:text-primary transition-colors" style={{ fontSize: "0.8rem" }}>
                           {cmd.label}
                         </p>
-                        <p className="text-[rgba(0,212,255,0.35)] truncate" style={{ fontSize: "0.68rem" }}>
+                        <p className="text-primary/35 truncate" style={{ fontSize: "0.68rem" }}>
                           {cmd.desc}
                         </p>
                       </div>
-                      <Play className="w-4 h-4 text-[rgba(0,212,255,0.2)] group-hover:text-[#00d4ff] transition-colors shrink-0" />
+                      <Play className="w-4 h-4 text-primary/20 group-hover:text-primary transition-colors shrink-0" />
                     </button>
                   );
                 })}
@@ -491,7 +491,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
           {/* === Prompts Tab === */}
           {activeTab === "prompts" && (
             <div className="flex-1 overflow-auto p-3">
-              <h4 className="text-[#e0f0ff] mb-3" style={{ fontSize: "0.82rem" }}>
+              <h4 className="text-foreground mb-3" style={{ fontSize: "0.82rem" }}>
                 系统提示词预设
               </h4>
               <div className="space-y-2 mb-4">
@@ -500,23 +500,23 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                     key={preset.id}
                     className={`p-3 rounded-xl border cursor-pointer transition-all ${
                       systemPrompt === preset.prompt
-                        ? "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)]"
+                        ? "bg-primary/10 border-primary/30"
                         : "bg-[rgba(0,40,80,0.15)] border-[rgba(0,180,255,0.08)] hover:border-[rgba(0,180,255,0.2)]"
                     }`}
                     onClick={() => applyPreset(preset)}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#e0f0ff]" style={{ fontSize: "0.8rem" }}>{preset.name}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-[rgba(0,212,255,0.06)] text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>
+                        <span className="text-foreground" style={{ fontSize: "0.8rem" }}>{preset.name}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-primary/6 text-primary/40" style={{ fontSize: "0.58rem" }}>
                           {preset.category}
                         </span>
                       </div>
                       {systemPrompt === preset.prompt && (
-                        <Check className="w-4 h-4 text-[#00ff88]" />
+                        <Check className="w-4 h-4 text-chart-2" />
                       )}
                     </div>
-                    <p className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.68rem", lineHeight: 1.5 }}>
+                    <p className="text-primary/35" style={{ fontSize: "0.68rem", lineHeight: 1.5 }}>
                       {preset.prompt.slice(0, 80)}...
                     </p>
                   </div>
@@ -524,18 +524,18 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
               </div>
 
               {/* Custom prompt editor */}
-              <h4 className="text-[#e0f0ff] mb-2" style={{ fontSize: "0.82rem" }}>
+              <h4 className="text-foreground mb-2" style={{ fontSize: "0.82rem" }}>
                 自定义系统提示词
               </h4>
               <textarea
                 value={systemPrompt}
                 onChange={e => setSystemPrompt(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.25)] focus:outline-none focus:border-[rgba(0,212,255,0.4)] resize-none"
+                className="w-full px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-foreground placeholder:text-primary/25 focus:outline-none focus:border-primary/40 resize-none"
                 style={{ fontSize: "0.75rem", lineHeight: 1.6 }}
                 rows={5}
                 placeholder="输入自定义系统提示词..."
               />
-              <p className="text-[rgba(0,212,255,0.25)] mt-1" style={{ fontSize: "0.62rem" }}>
+              <p className="text-primary/25 mt-1" style={{ fontSize: "0.62rem" }}>
                 字数: {systemPrompt.length} | 建议控制在 500 字以内以获得最佳效果
               </p>
             </div>
@@ -546,8 +546,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
             <div className="flex-1 overflow-auto p-3 space-y-4">
               {/* API Key */}
               <div>
-                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
-                  <Key className="w-4 h-4 text-[#ffdd00]" />
+                <h4 className="text-foreground mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <Key className="w-4 h-4 text-chart-5" />
                   OpenAI API 认证
                 </h4>
                 <div className="relative">
@@ -556,19 +556,19 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                     value={apiKey}
                     onChange={e => setApiKey(e.target.value)}
                     placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                    className="w-full px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.2)] focus:outline-none focus:border-[rgba(0,212,255,0.4)]"
+                    className="w-full px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-foreground placeholder:text-primary/20 focus:outline-none focus:border-primary/40"
                     style={{ fontSize: "0.78rem", fontFamily: "monospace" }}
                   />
                   <button
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[rgba(0,212,255,0.1)]"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-primary/10"
                   >
-                    <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.65rem" }}>
+                    <span className="text-primary/40" style={{ fontSize: "0.65rem" }}>
                       {showApiKey ? "隐藏" : "显示"}
                     </span>
                   </button>
                 </div>
-                <p className="text-[rgba(0,212,255,0.25)] mt-1" style={{ fontSize: "0.62rem" }}>
+                <p className="text-primary/25 mt-1" style={{ fontSize: "0.62rem" }}>
                   {apiKey ? "✅ API Key 已配置" : "⚠️ 未配置 Key，将使用本地模拟模式"}
                   {" · 密钥仅保存在本地浏览器"}
                 </p>
@@ -576,12 +576,12 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
               {/* Model Selection */}
               <div>
-                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
-                  <Cpu className="w-4 h-4 text-[#00d4ff]" />
+                <h4 className="text-foreground mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <Cpu className="w-4 h-4 text-primary" />
                   模型选择
                 </h4>
                 {ollamaLoading && (
-                  <p className="text-[rgba(0,212,255,0.35)] mb-2" style={{ fontSize: "0.65rem" }}>
+                  <p className="text-primary/35 mb-2" style={{ fontSize: "0.65rem" }}>
                     正在检测 Ollama 本地模型...
                   </p>
                 )}
@@ -593,23 +593,23 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                         onClick={() => setSelectedModel(model.id)}
                         className={`w-full px-3 py-2 rounded-lg text-left transition-all flex items-center gap-2 ${
                           selectedModel === model.id
-                            ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
-                            : "bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.08)] text-[rgba(0,212,255,0.5)] hover:border-[rgba(0,180,255,0.2)]"
+                            ? "bg-primary/12 border border-primary/30 text-primary"
+                            : "bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.08)] text-primary/50 hover:border-[rgba(0,180,255,0.2)]"
                         }`}
                         style={{ fontSize: "0.72rem" }}
                       >
                         {model.isLocal && (
-                          <span className="text-[#00ff88] shrink-0" style={{ fontSize: "0.58rem" }}>本地</span>
+                          <span className="text-chart-2 shrink-0" style={{ fontSize: "0.58rem" }}>本地</span>
                         )}
                         <span className="truncate flex-1">{model.name}</span>
-                        <span className="text-[rgba(0,212,255,0.25)] shrink-0" style={{ fontSize: "0.55rem" }}>
+                        <span className="text-primary/25 shrink-0" style={{ fontSize: "0.55rem" }}>
                           {model.provider}
                         </span>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[rgba(0,212,255,0.25)] text-center py-3" style={{ fontSize: "0.72rem" }}>
+                  <p className="text-primary/25 text-center py-3" style={{ fontSize: "0.72rem" }}>
                     暂无可用模型，请前往「模型设置」页面添加
                   </p>
                 )}
@@ -618,10 +618,10 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
               {/* Temperature */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-[#e0f0ff] flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <h4 className="text-foreground flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
                     温度 (Temperature)
                   </h4>
-                  <span className="text-[#00d4ff]" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
+                  <span className="text-primary" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
                     {temperature.toFixed(2)}
                   </span>
                 </div>
@@ -632,21 +632,21 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="0.05"
                   value={temperature}
                   onChange={e => setTemperature(Number(e.target.value))}
-                  className="w-full accent-[#00d4ff]"
+                  className="w-full accent-primary"
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>精确 0</span>
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>创意 2.0</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>精确 0</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>创意 2.0</span>
                 </div>
               </div>
 
               {/* Top-P */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-[#e0f0ff] flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <h4 className="text-foreground flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
                     Top-P (核采样)
                   </h4>
-                  <span className="text-[#00d4ff]" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
+                  <span className="text-primary" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
                     {topP.toFixed(2)}
                   </span>
                 </div>
@@ -657,21 +657,21 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="0.05"
                   value={topP}
                   onChange={e => setTopP(Number(e.target.value))}
-                  className="w-full accent-[#aa55ff]"
+                  className="w-full accent-chart-4"
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>集中 0</span>
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>多样 1.0</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>集中 0</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>多样 1.0</span>
                 </div>
               </div>
 
               {/* Max Tokens */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-[#e0f0ff] flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <h4 className="text-foreground flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
                     最大 Token 数
                   </h4>
-                  <span className="text-[#00d4ff]" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
+                  <span className="text-primary" style={{ fontSize: "0.8rem", fontFamily: "'Orbitron', sans-serif" }}>
                     {maxTokens}
                   </span>
                 </div>
@@ -682,18 +682,18 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="256"
                   value={maxTokens}
                   onChange={e => setMaxTokens(Number(e.target.value))}
-                  className="w-full accent-[#00ff88]"
+                  className="w-full accent-chart-2"
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>256</span>
-                  <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.6rem" }}>8192</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>256</span>
+                  <span className="text-primary/25" style={{ fontSize: "0.6rem" }}>8192</span>
                 </div>
               </div>
 
               {/* Reset */}
               <button
                 onClick={() => { setTemperature(0.7); setTopP(0.9); setMaxTokens(2048); }}
-                className="w-full py-2.5 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:border-[rgba(0,180,255,0.2)] transition-all"
+                className="w-full py-2.5 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)] text-primary/50 hover:text-primary hover:border-[rgba(0,180,255,0.2)] transition-all"
                 style={{ fontSize: "0.78rem" }}
               >
                 <RotateCcw className="w-3.5 h-3.5 inline mr-2" />
@@ -701,8 +701,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
               </button>
 
               {/* Global sync hint */}
-              <div className="p-2.5 rounded-xl bg-[rgba(0,255,136,0.04)] border border-[rgba(0,255,136,0.1)]">
-                <p className="text-[rgba(0,255,136,0.5)] flex items-center gap-1.5" style={{ fontSize: "0.62rem" }}>
+              <div className="p-2.5 rounded-xl bg-chart-2/4 border border-chart-2/10">
+                <p className="text-chart-2/50 flex items-center gap-1.5" style={{ fontSize: "0.62rem" }}>
                   <Settings className="w-3 h-3" />
                   以上参数与「系统设置 → AI / 大模型配置」实时双向同步
                 </p>

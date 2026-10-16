@@ -151,12 +151,16 @@ export function createGatewayFrameTranslator(): GatewayFrameTranslator {
       const nodes = Object.entries(models).map(([name, snap]) => normalizeUpstreamNode(name, snap ?? {}));
       if (nodes.length > 0) {
         messages.push({ type: "node_status", payload: nodes });
-        const healthy = nodes.filter((n) => n.status === "active" || n.status === "warning").length;
+        const healthy = nodes.filter((n) => n.status === "active" || n.status === "warning");
+        // L-12a (2026-10-17): gpuUtil 真实源 — 网关 WS 不发该字段 (NAS app 零命中实证),
+        // 由节点矩阵 gpu 字段 (四源真实数据) 聚合推导; 无在线节点保持 "—" (真实化铁则不造数)
+        const gpuValues = healthy.map((n) => n.gpu).filter((g) => Number.isFinite(g) && g >= 0);
+        const gpuUtil = gpuValues.length > 0 ? `${Math.round(gpuValues.reduce((s, g) => s + g, 0) / gpuValues.length)}%` : "—";
         messages.push({
           type: "system_stats",
           payload: {
-            activeNodes: `${healthy}/${nodes.length}`,
-            gpuUtil: "—",
+            activeNodes: `${healthy.length}/${nodes.length}`,
+            gpuUtil,
             tokenThroughput: "—",
             storageUsed: "—",
           },

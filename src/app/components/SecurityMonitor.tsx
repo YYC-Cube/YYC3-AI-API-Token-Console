@@ -49,15 +49,15 @@ function formatBytes(bytes: number): string {
 }
 
 function riskColor(risk: RiskLevel): string {
-  if (risk === "safe") return "#00ff88";
+  if (risk === "safe") return "var(--chart-2)";
   if (risk === "warning") return "#ffaa00";
-  return "#ff3366";
+  return "var(--destructive)";
 }
 
 function statusIcon(status: "pass" | "warn" | "fail") {
-  if (status === "pass") return <CheckCircle2 className="w-4 h-4" style={{ color: "#00ff88" }} />;
+  if (status === "pass") return <CheckCircle2 className="w-4 h-4" style={{ color: "var(--chart-2)" }} />;
   if (status === "warn") return <AlertTriangle className="w-4 h-4" style={{ color: "#ffaa00" }} />;
-  return <XCircle className="w-4 h-4" style={{ color: "#ff3366" }} />;
+  return <XCircle className="w-4 h-4" style={{ color: "var(--destructive)" }} />;
 }
 
 function vitalColor(rating: VitalRating): string {
@@ -70,7 +70,7 @@ function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
   const r = (size - 8) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
-  const color = score >= 80 ? "#00ff88" : score >= 60 ? "#ffaa00" : "#ff3366";
+  const color = score >= 80 ? "var(--chart-2)" : score >= 60 ? "#ffaa00" : "var(--destructive)";
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -112,7 +112,7 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
 
   if (!csp || !cookie || !sensitive) {
     return (
-      <div className="flex items-center justify-center py-16 text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.85rem" }}>
+      <div className="flex items-center justify-center py-16 text-primary/30" style={{ fontSize: "0.85rem" }}>
         {t("security.noScanYet")}
       </div>
     );
@@ -124,8 +124,8 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
       <GlassCard className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-[#00d4ff]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.cspTitle")}</span>
+            <Lock className="w-4 h-4 text-primary" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.cspTitle")}</span>
           </div>
           <ScoreRing score={csp.score} size={48} />
         </div>
@@ -133,14 +133,14 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
           {csp.directives.map((d) => (
             <div key={d.name} className="flex items-center gap-2" style={{ fontSize: "0.75rem" }}>
               {statusIcon(d.status)}
-              <span className="text-[rgba(0,212,255,0.6)] min-w-[100px]">{d.name}</span>
+              <span className="text-primary/60 min-w-[100px]">{d.name}</span>
               <span className="text-[rgba(224,240,255,0.5)] truncate">{d.value}</span>
             </div>
           ))}
         </div>
         {csp.recommendations.length > 0 && (
           <div className="mt-3 pt-3 border-t border-[rgba(0,180,255,0.1)]">
-            <span className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.7rem" }}>{t("security.cspRecommendation")}</span>
+            <span className="text-primary/50" style={{ fontSize: "0.7rem" }}>{t("security.cspRecommendation")}</span>
             {csp.recommendations.map((r, i) => (
               <div key={i} className="flex items-start gap-1.5 mt-1" style={{ fontSize: "0.7rem" }}>
                 <span className="text-[#ffaa00] shrink-0">*</span>
@@ -155,21 +155,21 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
       <GlassCard className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Cookie className="w-4 h-4 text-[#00d4ff]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.cookieTitle")}</span>
+            <Cookie className="w-4 h-4 text-primary" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.cookieTitle")}</span>
           </div>
           <ScoreRing score={cookie.score} size={48} />
         </div>
         <div className="flex items-center gap-2 mb-3" style={{ fontSize: "0.75rem" }}>
-          <span className="text-[rgba(0,212,255,0.5)]">{t("security.cookieCount")}:</span>
-          <span className="text-[#00d4ff]">{cookie.count}</span>
+          <span className="text-primary/50">{t("security.cookieCount")}:</span>
+          <span className="text-primary">{cookie.count}</span>
         </div>
         <div className="space-y-2">
           {cookie.checks.map((c) => (
             <div key={c.name} className="flex items-start gap-2" style={{ fontSize: "0.75rem" }}>
               {statusIcon(c.status)}
               <div>
-                <span className="text-[#e0f0ff]">{c.name}</span>
+                <span className="text-foreground">{c.name}</span>
                 <p className="text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.68rem" }}>{c.detail}</p>
               </div>
             </div>
@@ -181,8 +181,8 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
       <GlassCard className="p-4 lg:col-span-2">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-[#00d4ff]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.sensitiveTitle")}</span>
+            <Eye className="w-4 h-4 text-primary" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.sensitiveTitle")}</span>
           </div>
           <div className="flex items-center gap-3">
             <span style={{ fontSize: "0.7rem", color: riskColor(sensitive.totalRisks === 0 ? "safe" : "warning") }}>
@@ -193,21 +193,21 @@ function SecurityTabContent({ state, t }: { state: ReturnType<typeof useSecurity
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <div className="text-[rgba(0,212,255,0.5)] mb-2" style={{ fontSize: "0.7rem" }}>{t("security.sensitiveLocalStorage")}</div>
+            <div className="text-primary/50 mb-2" style={{ fontSize: "0.7rem" }}>{t("security.sensitiveLocalStorage")}</div>
             {sensitive.localStorage.map((item) => (
               <div key={item.key} className="flex items-center gap-2 py-1" style={{ fontSize: "0.72rem" }}>
                 <div className="w-2 h-2 rounded-full" style={{ background: riskColor(item.risk) }} />
-                <span className="text-[rgba(0,212,255,0.7)] font-mono">{item.key}</span>
+                <span className="text-primary/70 font-mono">{item.key}</span>
                 <span className="text-[rgba(224,240,255,0.35)] truncate">{item.detail}</span>
               </div>
             ))}
           </div>
           <div>
-            <div className="text-[rgba(0,212,255,0.5)] mb-2" style={{ fontSize: "0.7rem" }}>{t("security.sensitiveSessionStorage")}</div>
+            <div className="text-primary/50 mb-2" style={{ fontSize: "0.7rem" }}>{t("security.sensitiveSessionStorage")}</div>
             {sensitive.sessionStorage.map((item) => (
               <div key={item.key} className="flex items-center gap-2 py-1" style={{ fontSize: "0.72rem" }}>
                 <div className="w-2 h-2 rounded-full" style={{ background: riskColor(item.risk) }} />
-                <span className="text-[rgba(0,212,255,0.7)] font-mono">{item.key}</span>
+                <span className="text-primary/70 font-mono">{item.key}</span>
                 <span className="text-[rgba(224,240,255,0.35)] truncate">{item.detail}</span>
               </div>
             ))}
@@ -223,7 +223,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
 
   if (!perf || !memory) {
     return (
-      <div className="flex items-center justify-center py-16 text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.85rem" }}>
+      <div className="flex items-center justify-center py-16 text-primary/30" style={{ fontSize: "0.85rem" }}>
         {t("security.noScanYet")}
       </div>
     );
@@ -234,8 +234,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
       {/* Resource Analysis */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <FileSearch className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.perfResourceTitle")}</span>
+          <FileSearch className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.perfResourceTitle")}</span>
         </div>
         <div className="grid grid-cols-3 gap-2 mb-3">
           {[
@@ -244,8 +244,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             { label: t("security.perfLoadTime"), value: `${perf.pageLoadTime}ms` },
           ].map((m) => (
             <div key={m.label} className="text-center">
-              <div className="text-[#00d4ff]" style={{ fontSize: "1rem", fontFamily: "'Orbitron', sans-serif" }}>{m.value}</div>
-              <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>{m.label}</div>
+              <div className="text-primary" style={{ fontSize: "1rem", fontFamily: "'Orbitron', sans-serif" }}>{m.value}</div>
+              <div className="text-primary/40" style={{ fontSize: "0.62rem" }}>{m.label}</div>
             </div>
           ))}
         </div>
@@ -254,7 +254,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <div key={r.name} className="flex items-center gap-2" style={{ fontSize: "0.7rem" }}>
               <div className="w-2 h-2 rounded-full" style={{ background: r.cached ? "#00ff88" : "#ffaa00" }} />
               <span className="text-[rgba(224,240,255,0.7)] flex-1 truncate font-mono">{r.name}</span>
-              <span className="text-[rgba(0,212,255,0.5)]">{formatBytes(r.size)}</span>
+              <span className="text-primary/50">{formatBytes(r.size)}</span>
               <span className="text-[rgba(224,240,255,0.3)]">{r.loadTime}ms</span>
             </div>
           ))}
@@ -264,8 +264,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
       {/* JS Bundle Analysis */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <BarChart3 className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.perfJsBundle")}</span>
+          <BarChart3 className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.perfJsBundle")}</span>
         </div>
         {perf.jsBundles.map((b) => {
           const ratio = (b.gzipped / b.size) * 100;
@@ -273,7 +273,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <div key={b.name} className="mb-3">
               <div className="flex items-center justify-between mb-1" style={{ fontSize: "0.72rem" }}>
                 <span className="text-[rgba(224,240,255,0.7)] font-mono">{b.name}</span>
-                <span className="text-[rgba(0,212,255,0.5)]">{formatBytes(b.size)} → {formatBytes(b.gzipped)}</span>
+                <span className="text-primary/50">{formatBytes(b.size)} → {formatBytes(b.gzipped)}</span>
               </div>
               <div className="h-1.5 rounded-full bg-[rgba(0,180,255,0.1)] overflow-hidden">
                 <div
@@ -289,8 +289,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
           );
         })}
         <div className="mt-3 pt-3 border-t border-[rgba(0,180,255,0.1)]">
-          <div className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.7rem" }}>{t("security.perfLazyLoad")}</div>
-          <div className="text-[#00ff88] mt-1" style={{ fontSize: "0.85rem" }}>
+          <div className="text-primary/50" style={{ fontSize: "0.7rem" }}>{t("security.perfLazyLoad")}</div>
+          <div className="text-chart-2 mt-1" style={{ fontSize: "0.85rem" }}>
             ~{perf.lazyLoadSavings}% {t("security.perfImgOptimize")}
           </div>
         </div>
@@ -300,8 +300,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
       <GlassCard className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <MemoryStick className="w-4 h-4 text-[#00d4ff]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.memoryTitle")}</span>
+            <MemoryStick className="w-4 h-4 text-primary" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.memoryTitle")}</span>
           </div>
           <span style={{ fontSize: "0.7rem", color: riskColor(memory.leakRisk) }}>
             {t("security.memoryLeakRisk")}: {t(`security.memory${memory.leakRisk.charAt(0).toUpperCase() + memory.leakRisk.slice(1)}`)}
@@ -315,8 +315,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             { label: t("security.memoryDomNodes"), value: String(memory.domNodes) },
           ].map((m) => (
             <div key={m.label}>
-              <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>{m.label}</div>
-              <div className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{m.value}</div>
+              <div className="text-primary/40" style={{ fontSize: "0.62rem" }}>{m.label}</div>
+              <div className="text-foreground" style={{ fontSize: "0.85rem" }}>{m.value}</div>
             </div>
           ))}
         </div>
@@ -339,8 +339,8 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
       {/* Web Vitals */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Gauge className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.vitalsTitle")}</span>
+          <Gauge className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.vitalsTitle")}</span>
         </div>
         <div className="space-y-3">
           {vitals.map((v) => (
@@ -389,7 +389,7 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
 
   if (!device || !network || !browser) {
     return (
-      <div className="flex items-center justify-center py-16 text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.85rem" }}>
+      <div className="flex items-center justify-center py-16 text-primary/30" style={{ fontSize: "0.85rem" }}>
         {t("security.noScanYet")}
       </div>
     );
@@ -400,8 +400,8 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
       {/* Device */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Monitor className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.deviceTitle")}</span>
+          <Monitor className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.deviceTitle")}</span>
         </div>
         <div className="space-y-2.5">
           {[
@@ -413,8 +413,8 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
             { label: t("security.deviceGPU"), value: device.gpu },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between" style={{ fontSize: "0.72rem" }}>
-              <span className="text-[rgba(0,212,255,0.5)]">{item.label}</span>
-              <span className="text-[#e0f0ff] truncate ml-2 text-right" style={{ maxWidth: "60%" }}>{item.value}</span>
+              <span className="text-primary/50">{item.label}</span>
+              <span className="text-foreground truncate ml-2 text-right" style={{ maxWidth: "60%" }}>{item.value}</span>
             </div>
           ))}
         </div>
@@ -423,8 +423,8 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
       {/* Network */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Wifi className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.networkTitle")}</span>
+          <Wifi className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.networkTitle")}</span>
         </div>
         <div className="space-y-2.5">
           {[
@@ -435,12 +435,12 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
             {
               label: t("security.networkStability"),
               value: network.isStable ? t("security.networkStable") : t("security.networkUnstable"),
-              color: network.isStable ? "#00ff88" : "#ff3366",
+              color: network.isStable ? "var(--chart-2)" : "var(--destructive)",
             },
           ].map((item: { label: string; value: string; color?: string }) => (
             <div key={item.label} className="flex items-center justify-between" style={{ fontSize: "0.72rem" }}>
-              <span className="text-[rgba(0,212,255,0.5)]">{item.label}</span>
-              <span style={{ color: item.color || "#e0f0ff" }}>{item.value}</span>
+              <span className="text-primary/50">{item.label}</span>
+              <span style={{ color: item.color || "var(--foreground)" }}>{item.value}</span>
             </div>
           ))}
         </div>
@@ -453,7 +453,7 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
               style={{
                 width: 6,
                 height: bar * 6,
-                background: bar <= 4 ? "#00ff88" : "rgba(0,180,255,0.15)",
+                background: bar <= 4 ? "var(--chart-2)" : "rgba(0,180,255,0.15)",
               }}
             />
           ))}
@@ -464,10 +464,10 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
       <GlassCard className="p-4 lg:col-span-2 xl:col-span-1">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[#00d4ff]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.browserTitle")}</span>
+            <Globe className="w-4 h-4 text-primary" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.browserTitle")}</span>
           </div>
-          <span className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.68rem" }}>
+          <span className="text-primary/50" style={{ fontSize: "0.68rem" }}>
             {browser.name} {browser.version}
           </span>
         </div>
@@ -477,9 +477,9 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
               <span className="text-[rgba(224,240,255,0.6)]">{f.name}</span>
               <div className="flex items-center gap-1.5">
                 {f.supported ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#00ff88" }} />
+                  <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--chart-2)" }} />
                 ) : (
-                  <XCircle className="w-3.5 h-3.5" style={{ color: "#ff3366" }} />
+                  <XCircle className="w-3.5 h-3.5" style={{ color: "var(--destructive)" }} />
                 )}
                 {f.polyfillNeeded && (
                   <span className="px-1 py-0.5 rounded bg-[rgba(255,170,0,0.15)] text-[#ffaa00]" style={{ fontSize: "0.55rem" }}>
@@ -491,7 +491,7 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
           ))}
         </div>
         <div className="mt-3 text-center">
-          <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>
+          <span className="text-primary/40" style={{ fontSize: "0.62rem" }}>
             {browser.features.filter((f) => f.supported).length}/{browser.features.length} {t("security.browserFeatures")}
           </span>
         </div>
@@ -505,7 +505,7 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
 
   if (!dm) {
     return (
-      <div className="flex items-center justify-center py-16 text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.85rem" }}>
+      <div className="flex items-center justify-center py-16 text-primary/30" style={{ fontSize: "0.85rem" }}>
         {t("security.noScanYet")}
       </div>
     );
@@ -516,19 +516,19 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
       {/* Storage Overview */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <HardDrive className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.dataTotalStorage")}</span>
+          <HardDrive className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.dataTotalStorage")}</span>
         </div>
         <div className="text-center mb-3">
-          <span className="text-[#00d4ff]" style={{ fontSize: "1.5rem", fontFamily: "'Orbitron', sans-serif" }}>
+          <span className="text-primary" style={{ fontSize: "1.5rem", fontFamily: "'Orbitron', sans-serif" }}>
             {formatBytes(dm.storage.total)}
           </span>
         </div>
         <div className="space-y-2">
           {[
-            { label: "localStorage", size: dm.storage.localStorage, color: "#00d4ff" },
-            { label: "sessionStorage", size: dm.storage.sessionStorage, color: "#00ff88" },
-            { label: "IndexedDB", size: dm.storage.indexedDB, color: "#aa55ff" },
+            { label: "localStorage", size: dm.storage.localStorage, color: "var(--primary)" },
+            { label: "sessionStorage", size: dm.storage.sessionStorage, color: "var(--chart-2)" },
+            { label: "IndexedDB", size: dm.storage.indexedDB, color: "var(--chart-4)" },
             { label: "Cache API", size: dm.storage.cacheAPI, color: "#ffaa00" },
           ].map((item) => (
             <div key={item.label}>
@@ -537,7 +537,7 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
                   <div className="w-2 h-2 rounded-full" style={{ background: item.color }} />
                   <span className="text-[rgba(224,240,255,0.6)]">{item.label}</span>
                 </div>
-                <span className="text-[rgba(0,212,255,0.5)]">{formatBytes(item.size)}</span>
+                <span className="text-primary/50">{formatBytes(item.size)}</span>
               </div>
               <div className="h-1 rounded-full bg-[rgba(0,180,255,0.1)]">
                 <div
@@ -557,18 +557,18 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
       {/* Data Sync */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <RefreshCw className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.dataSyncTitle")}</span>
+          <RefreshCw className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.dataSyncTitle")}</span>
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between" style={{ fontSize: "0.75rem" }}>
-            <span className="text-[rgba(0,212,255,0.5)]">{t("security.dataSyncTabs")}</span>
-            <span style={{ color: dm.syncEnabled ? "#00ff88" : "rgba(224,240,255,0.3)" }}>
+            <span className="text-primary/50">{t("security.dataSyncTabs")}</span>
+            <span style={{ color: dm.syncEnabled ? "var(--chart-2)" : "rgba(224,240,255,0.3)" }}>
               {dm.syncEnabled ? "ON" : "OFF"}
             </span>
           </div>
           <div className="flex items-center justify-between" style={{ fontSize: "0.75rem" }}>
-            <span className="text-[rgba(0,212,255,0.5)]">{t("security.dataLastBackup")}</span>
+            <span className="text-primary/50">{t("security.dataLastBackup")}</span>
             <span className="text-[rgba(224,240,255,0.6)]">
               {dm.lastBackup ? new Date(dm.lastBackup).toLocaleDateString() : "N/A"}
             </span>
@@ -576,14 +576,14 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
           <div className="flex gap-2 mt-3">
             <button
               onClick={exportData}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[rgba(0,180,255,0.2)] bg-[rgba(0,180,255,0.05)] text-[#00d4ff] hover:bg-[rgba(0,180,255,0.1)] transition-all"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[rgba(0,180,255,0.2)] bg-[rgba(0,180,255,0.05)] text-primary hover:bg-[rgba(0,180,255,0.1)] transition-all"
               style={{ fontSize: "0.72rem" }}
             >
               <Download className="w-3.5 h-3.5" />
               {t("security.dataSyncExport")}
             </button>
             <button
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[rgba(0,180,255,0.2)] bg-[rgba(0,180,255,0.05)] text-[#00d4ff] hover:bg-[rgba(0,180,255,0.1)] transition-all"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[rgba(0,180,255,0.2)] bg-[rgba(0,180,255,0.05)] text-primary hover:bg-[rgba(0,180,255,0.1)] transition-all"
               style={{ fontSize: "0.72rem" }}
             >
               <Upload className="w-3.5 h-3.5" />
@@ -596,8 +596,8 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
       {/* Data Cleanup */}
       <GlassCard className="p-4 lg:col-span-2">
         <div className="flex items-center gap-2 mb-3">
-          <Trash2 className="w-4 h-4 text-[#00d4ff]" />
-          <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.dataCleanTitle")}</span>
+          <Trash2 className="w-4 h-4 text-primary" />
+          <span className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("security.dataCleanTitle")}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
@@ -612,15 +612,15 @@ function DataManagementTabContent({ state, t }: { state: ReturnType<typeof useSe
                 className="rounded-lg border border-[rgba(0,180,255,0.1)] bg-[rgba(0,180,255,0.03)] p-3"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <Icon className="w-3.5 h-3.5 text-[rgba(0,212,255,0.5)]" />
+                  <Icon className="w-3.5 h-3.5 text-primary/50" />
                   <span className="text-[rgba(224,240,255,0.7)]" style={{ fontSize: "0.72rem" }}>{item.label}</span>
                 </div>
-                <div className="text-[#00d4ff] mb-2" style={{ fontSize: "0.9rem", fontFamily: "'Orbitron', sans-serif" }}>
+                <div className="text-primary mb-2" style={{ fontSize: "0.9rem", fontFamily: "'Orbitron', sans-serif" }}>
                   {typeof item.count === "number" ? `${item.count} items` : item.count}
                 </div>
                 <button
                   onClick={() => cleanupData(item.key)}
-                  className="w-full py-1.5 rounded border border-[rgba(255,51,102,0.2)] bg-[rgba(255,51,102,0.05)] text-[#ff6688] hover:bg-[rgba(255,51,102,0.1)] transition-all"
+                  className="w-full py-1.5 rounded border border-destructive/20 bg-destructive/5 text-[#ff6688] hover:bg-destructive/10 transition-all"
                   style={{ fontSize: "0.68rem" }}
                 >
                   {t("security.dataCleanBtn")}
@@ -671,14 +671,14 @@ export function SecurityMonitor() {
       <GlassCard className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <ServerCog className="w-4 h-4 text-[#00ff88]" />
-            <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>网关视角（NAS · 30s 轮询）</span>
+            <ServerCog className="w-4 h-4 text-chart-2" />
+            <span className="text-foreground" style={{ fontSize: "0.85rem" }}>网关视角（NAS · 30s 轮询）</span>
           </div>
           <span
             className="px-2 py-0.5 rounded-full"
             style={{
               fontSize: "0.6rem",
-              color: gatewayHealth?.status === "healthy" ? "#00ff88" : gatewayHealth ? "#ff3366" : "rgba(0,212,255,0.35)",
+              color: gatewayHealth?.status === "healthy" ? "var(--chart-2)" : gatewayHealth ? "var(--destructive)" : "rgba(0,212,255,0.35)",
               border: `1px solid ${gatewayHealth?.status === "healthy" ? "rgba(0,255,136,0.3)" : "rgba(255,51,102,0.3)"}`,
             }}
           >
@@ -689,7 +689,7 @@ export function SecurityMonitor() {
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
               {Object.entries(gatewayHealth.services ?? {}).map(([name, sv]) => (
-                <span key={name} className="px-2 py-1 rounded-md" style={{ fontSize: "0.62rem", background: "rgba(0,20,40,0.35)", border: "1px solid rgba(0,180,255,0.08)", color: sv.status === "healthy" || sv.status === "configured" ? "#00ff88" : "#ff6464" }}>
+                <span key={name} className="px-2 py-1 rounded-md" style={{ fontSize: "0.62rem", background: "rgba(0,20,40,0.35)", border: "1px solid rgba(0,180,255,0.08)", color: sv.status === "healthy" || sv.status === "configured" ? "var(--chart-2)" : "#ff6464" }}>
                   {name}: {sv.status ?? "?"}
                 </span>
               ))}
@@ -698,18 +698,18 @@ export function SecurityMonitor() {
               <div className="grid grid-cols-3 gap-2">
                 {([["CPU", gatewayHealth.system?.cpu_percent], ["内存", gatewayHealth.system?.memory_percent], ["磁盘", gatewayHealth.system?.disk_percent]] as const).map(([label, v]) => (
                   <div key={label} className="px-2 py-1.5 rounded-md bg-[rgba(0,20,40,0.35)] border border-[rgba(0,180,255,0.06)]">
-                    <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>{label}</div>
-                    <div style={{ fontSize: "0.78rem", color: (v ?? 0) > 80 ? "#ff6464" : "#e0f0ff" }}>{typeof v === "number" ? `${v.toFixed(1)}%` : "—"}</div>
+                    <div className="text-primary/40" style={{ fontSize: "0.58rem" }}>{label}</div>
+                    <div style={{ fontSize: "0.78rem", color: (v ?? 0) > 80 ? "#ff6464" : "var(--foreground)" }}>{typeof v === "number" ? `${v.toFixed(1)}%` : "—"}</div>
                   </div>
                 ))}
               </div>
             )}
-            <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+            <div className="text-primary/30" style={{ fontSize: "0.6rem" }}>
               v{gatewayHealth.version ?? "?"} · 运行 {Math.floor((gatewayHealth.uptime_seconds ?? 0) / 3600)}h（真实 /health）
             </div>
           </div>
         ) : (
-          <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.72rem" }}>
+          <div className="text-primary/30" style={{ fontSize: "0.72rem" }}>
             网关快照不可达（/console/metrics）— 部署 console-server 后此卡呈现真实网关健康。
           </div>
         )}
@@ -717,11 +717,11 @@ export function SecurityMonitor() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-[#00d4ff] flex items-center gap-2" style={{ fontSize: "1.1rem", fontFamily: "'Orbitron', sans-serif" }}>
+          <h1 className="text-primary flex items-center gap-2" style={{ fontSize: "1.1rem", fontFamily: "'Orbitron', sans-serif" }}>
             <Shield className="w-5 h-5" />
             {t("security.title")}
           </h1>
-          <p className="text-[rgba(0,212,255,0.4)] mt-1" style={{ fontSize: "0.72rem" }}>
+          <p className="text-primary/40 mt-1" style={{ fontSize: "0.72rem" }}>
             {t("security.subtitle")}
           </p>
         </div>
@@ -732,7 +732,7 @@ export function SecurityMonitor() {
             <div className="flex items-center gap-2">
               <ScoreRing score={overallScore} size={50} />
               <div>
-                <div className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.6rem" }}>{t("security.score")}</div>
+                <div className="text-primary/50" style={{ fontSize: "0.6rem" }}>{t("security.score")}</div>
                 <div style={{ fontSize: "0.7rem", color: riskColor(overallRisk) }}>
                   {overallRisk === "safe" ? t("security.safe") : overallRisk === "warning" ? t("security.warning") : t("security.danger")}
                 </div>
@@ -749,7 +749,7 @@ export function SecurityMonitor() {
               fontSize: "0.75rem",
               borderColor: scanStatus === "scanning" ? "rgba(0,212,255,0.3)" : "rgba(0,212,255,0.4)",
               background: scanStatus === "scanning" ? "rgba(0,212,255,0.05)" : "rgba(0,212,255,0.1)",
-              color: "#00d4ff",
+              color: "var(--primary)",
               cursor: scanStatus === "scanning" ? "not-allowed" : "pointer",
             }}
           >
@@ -761,7 +761,7 @@ export function SecurityMonitor() {
 
       {/* Last scan info */}
       {lastScanTime && (
-        <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>
+        <div className="text-primary/30" style={{ fontSize: "0.62rem" }}>
           {t("security.lastScan")}: {new Date(lastScanTime).toLocaleString()}
         </div>
       )}
@@ -776,8 +776,8 @@ export function SecurityMonitor() {
             style={{
               fontSize: "0.72rem",
               background: activeTab === key ? "rgba(0,212,255,0.1)" : "transparent",
-              color: activeTab === key ? "#00d4ff" : "rgba(0,212,255,0.4)",
-              borderBottom: activeTab === key ? "2px solid #00d4ff" : "2px solid transparent",
+              color: activeTab === key ? "var(--primary)" : "rgba(0,212,255,0.4)",
+              borderBottom: activeTab === key ? "2px solid var(--primary)" : "2px solid transparent",
             }}
           >
             <Icon className="w-3.5 h-3.5" />

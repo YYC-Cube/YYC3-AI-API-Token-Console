@@ -79,11 +79,12 @@ describe("gateway-adapter: 帧翻译器", () => {
     expect(types).toContain("latency_update");
     expect(types).not.toContain("qps_update");
     expect(types).not.toContain("throughput_history");
-    // 真实化铁则: 无源 KPI 显「—」
+    // 真实化铁则: 无源 KPI 显「—」; gpuUtil 例外 (L-12a) — 由节点矩阵 gpu 聚合推导
+    // (fixture 在线节点 load 无硬件源 gpu=0 → 真实 0%, 非「—」)
     const sys = msgs.find((m) => m.type === "system_stats");
     expect(sys && sys.type === "system_stats" && sys.payload).toMatchObject({
       activeNodes: "1/2",
-      gpuUtil: "—",
+      gpuUtil: "0%",
       tokenThroughput: "—",
       storageUsed: "—",
     });

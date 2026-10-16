@@ -172,10 +172,11 @@ describe("useWebSocketData", () => {
       expect(result.current.throughputHistory[0]).toMatchObject({ qps: 50, latency: 124, tokens: 0 });
     });
 
-    it("真实化铁则: 网关帧的 system_stats 无源指标显「—」", () => {
+    it("真实化铁则: system_stats — gpuUtil 由节点聚合推导 (L-12a), 其余无源显「—」", () => {
       const { result } = renderHook(() => useWebSocketData());
       act(() => { sendMessage(instances[0]!, gwFrame(1000, 100, UPSTREAMS)); });
-      expect(result.current.gpuUtil).toBe("—");
+      // UPSTREAMS fixture 在线节点 load 无硬件源 gpu=0 → 聚合得真实 0% (非「—」)
+      expect(result.current.gpuUtil).toBe("0%");
       expect(result.current.tokenThroughput).toBe("—");
       expect(result.current.storageUsed).toBe("—");
     });
