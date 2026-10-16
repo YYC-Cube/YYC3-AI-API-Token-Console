@@ -16,6 +16,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { StrictMode } from "react";
+import type { DatabaseType } from "../types";
 
 // ── Mock 函数 (定义在 vi.mock 之前) ──
 const { mockToast } = vi.hoisted(() => ({
@@ -1190,5 +1192,296 @@ describe("useLocalDatabase 覆盖率补测", () => {
         expect.objectContaining({ password: "密码🔐", status: "disconnected" })
       );
     });
+  });
+});
+
+// ============================================================
+//  S5 分支补盲 — dbAPI 兜底 / 多连接 map 分支 / 查询空结果
+//  注: 以下分支为防御性代码, 测试环境事实不可构造, 不强行覆盖:
+//  - mockTableData 通用行生成器的 boolean 命中侧 (走通用路径的表
+//    telemetry.inference_logs / audit.operations 均无 boolean 列)
+//  - mockQueryResult `t.name.split(".")[1] ?? t.name` 兜底 (MOCK_TABLES
+//    全部带 schema 前缀, split 恒有 [1])
+//  - `rows[0] ?? {}` 兜底 (rows.length > 0 时 rows[0] 恒存在)
+// ============================================================
+
+describe("useLocalDatabase 分支补盲 (S5)", () => {
+  const idbGetAllMock = idbGetAll as unknown as ReturnType<typeof vi.fn>;
+  const idbPutMock = idbPut as unknown as ReturnType<typeof vi.fn>;
+
+  const PG_CONN = {
+    name: "Test PG",
+    type: "postgresql" as const,
+    host: "127.0.0.1",
+    port: 5432,
+    database: "test_db",
+    username: "postgres",
+    password: "secret",
+  };
+
+  /** 构造 dbAPI fetch 响应 (与既有 jsonRes 判例一致) */
+  function jsonRes(data: unknown, status = 200): Response {
+    return { ok: status >= 200 && status < 300, status, json: async () => data } as unknown as Response;
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAPIConfig.mockReturnValue({ ...DEFAULT_API_CONFIG });
+    idbGetAllMock.mockReset().mockResolvedValue([]);
+  });
+
+  /** 添加 PG + Redis 两个连接并返回 id */
+  function addTwo(result: { current: ReturnType<typeof useLocalDatabase> }): [string, string] {
+    act(() => {
+      result.current.addConnection(PG_CONN);
+      result.current.addConnection({
+        name: "Second Redis", type: "redis",
+        host: "127.0.0.1", port: 6379, database: "0", username: "", password: "",
+      });
+    });
+    return [result.current.connections[0]!.id, result.current.connections[1]!.id];
+  }
+
+  // ──────────────────────────────────────
+  //  dbAPI 配置兜底
+  // ──────────────────────────────────────
+
+  it("maxRetries 未定义时仅请求一次且无重试提示", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"));
+    mockGetAPIConfig.mockReturnValue({
+      ...DEFAULT_API_CONFIG,
+      enableBackend: true,
+      maxRetries: undefined as unknown as number,
+    });
+
+    const { result } = renderHook(() => useLocalDatabase());
+
+    await act(async () => {
+      await result.current.detectDatabases();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const infoCalls = mockToast.info.mock.calls.map((c: unknown[]) => String(c[0]));
+    expect(infoCalls.filter((msg) => msg.includes("正在重试")).length).toBe(0);
+    // 回退 Mock 检测
+    expect(result.current.connections.length).toBe(2);
+    fetchSpy.mockRestore();
+  });
+
+  it("请求超时触发 AbortController.abort 并回退 Mock 检测", async () => {
+    // fetch 挂起直到 signal 中止 → 真实走 controller.abort() 超时回调
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            reject(new DOMException("aborted", "AbortError"));
+          });
+        })
+    );
+    mockGetAPIConfig.mockReturnValue({
+      ...DEFAULT_API_CONFIG,
+      enableBackend: true,
+      timeout: 20,
+      maxRetries: 0,
+    });
+
+    const { result } = renderHook(() => useLocalDatabase());
+
+    await act(async () => {
+      await result.current.detectDatabases();
+    });
+
+    expect(result.current.connections.length).toBe(2); // AbortError → Mock 检测兜底
+    fetchSpy.mockRestore();
+  });
+
+  // ──────────────────────────────────────
+  //  detectDatabases 类型兜底
+  // ──────────────────────────────────────
+
+  it("后端检测 mysql: database/username/color 兜底值", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonRes({
+      detected: [{ type: "mysql", port: 3306, reachable: true }],
+    }));
+    mockGetAPIConfig.mockReturnValue({ ...DEFAULT_API_CONFIG, enableBackend: true });
+
+    const { result } = renderHook(() => useLocalDatabase());
+
+    await act(async () => {
+      await result.current.detectDatabases();
+    });
+
+    expect(result.current.connections.length).toBe(1);
+    const mysql = result.current.connections[0]!;
+    expect(mysql.name).toBe("Local Mysql");
+    expect(mysql.database).toBe("yyc3"); // 非 postgresql/redis → 兜底库名
+    expect(mysql.username).toBe("postgres");
+    expect(mysql.color).toBe("#4479A1");
+    fetchSpy.mockRestore();
+  });
+
+  // ──────────────────────────────────────
+  //  挂载初始化幂等 / 空密码解码
+  // ──────────────────────────────────────
+
+  it("StrictMode 双挂载: 初始化 effect 幂等仅加载一次", async () => {
+    const { result } = renderHook(() => useLocalDatabase(), { wrapper: StrictMode });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    // 第二次 effect 命中 initializedRef 早退: 每个store只拉取一次, 不重复加载
+    const connLoads = idbGetAllMock.mock.calls.filter((c) => c[0] === "dbConnections").length;
+    expect(connLoads).toBe(1);
+    expect(result.current.connections).toEqual([]);
+  });
+
+  it("加载已存连接: 空密码解码直接回空串", async () => {
+    idbGetAllMock.mockImplementation(async (store: string) => {
+      if (store === "dbConnections") {
+        return [{
+          ...PG_CONN, id: "c-empty-pw", status: "connected",
+          lastConnected: 1, createdAt: 1, color: "#fff", password: "",
+        }];
+      }
+      return [];
+    });
+
+    const { result } = renderHook(() => useLocalDatabase());
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    expect(result.current.connections[0]?.password).toBe("");
+  });
+
+  // ──────────────────────────────────────
+  //  连接管理多连接分支
+  // ──────────────────────────────────────
+
+  it("addConnection 未知类型: color 走兜底色", () => {
+    const { result } = renderHook(() => useLocalDatabase());
+
+    act(() => {
+      result.current.addConnection({ ...PG_CONN, type: "oracle" as unknown as DatabaseType });
+    });
+
+    expect(result.current.connections[0]?.color).toBe("#00d4ff");
+  });
+
+  it("updateConnection 未知 id: 状态不变且不触发持久化", () => {
+    const { result } = renderHook(() => useLocalDatabase());
+    addTwo(result);
+    const putsBefore = idbPutMock.mock.calls.length;
+
+    act(() => {
+      result.current.updateConnection("no-such-id", { name: "Ghost" });
+    });
+
+    expect(result.current.connections.map((c) => c.name)).toEqual(["Test PG", "Second Redis"]);
+    expect(idbPutMock.mock.calls.length).toBe(putsBefore); // conn 不存在 → 跳过持久化
+  });
+
+  it("connectDB Mock 模式: 第二连接状态不被波及", async () => {
+    const { result } = renderHook(() => useLocalDatabase());
+    const [pgId] = addTwo(result);
+
+    await act(async () => {
+      await result.current.connectDB(pgId);
+    });
+
+    expect(result.current.connections[0]?.status).toBe("connected");
+    expect(result.current.connections[1]?.status).toBe("disconnected");
+  });
+
+  it("disconnectDB 非活跃连接: 仅该连接断开, 表数据保留", async () => {
+    const { result } = renderHook(() => useLocalDatabase());
+    const [pgId, redisId] = addTwo(result);
+    await act(async () => {
+      await result.current.connectDB(pgId);
+    });
+    expect(result.current.tables.length).toBe(5);
+
+    await act(async () => {
+      await result.current.disconnectDB(redisId); // 非活跃 → 不清 tables
+    });
+
+    expect(result.current.connections[1]?.status).toBe("disconnected");
+    expect(result.current.connections[0]?.status).toBe("connected");
+    expect(result.current.activeConnectionId).toBe(pgId);
+    expect(result.current.tables.length).toBe(5);
+  });
+
+  it("后端连接成功: 其余连接状态不被波及", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(jsonRes({}))
+      .mockResolvedValueOnce(jsonRes([{ name: "remote_t", schema: "public", rowCount: 1, sizeBytes: 1, columns: [] }]));
+    mockGetAPIConfig.mockReturnValue({ ...DEFAULT_API_CONFIG, enableBackend: true });
+
+    const { result } = renderHook(() => useLocalDatabase());
+    const [pgId] = addTwo(result);
+
+    await act(async () => {
+      await result.current.connectDB(pgId);
+    });
+
+    expect(result.current.connections[0]?.status).toBe("connected");
+    expect(result.current.connections[1]?.status).toBe("disconnected");
+    fetchSpy.mockRestore();
+  });
+
+  // ──────────────────────────────────────
+  //  executeQuery 空结果分支
+  // ──────────────────────────────────────
+
+  it("executeQuery: 无 FROM 通用行 / LIMIT 0 空结果列兜底", async () => {
+    const { result } = renderHook(() => useLocalDatabase());
+    act(() => {
+      result.current.setActiveConnectionId("c-active");
+    });
+
+    let noFrom: { columns: string[]; rowCount: number } | undefined;
+    await act(async () => {
+      noFrom = await result.current.executeQuery("SELECT 1;") as typeof noFrom;
+    });
+    // 无 FROM → 通用行生成器
+    expect(noFrom?.rowCount).toBeGreaterThan(0);
+    expect(noFrom?.columns).toContain("id");
+
+    let zeroLimit: { columns: string[]; rows: Record<string, unknown>[] } | undefined;
+    await act(async () => {
+      zeroLimit = await result.current.executeQuery("SELECT 1 LIMIT 0;") as typeof zeroLimit;
+    });
+    expect(zeroLimit?.rows).toEqual([]);
+    expect(zeroLimit?.columns).toEqual([]); // rows[0] 不存在 → Object.keys({}) 兜底
+
+    let matchedZero: { columns: string[]; rowCount: number } | undefined;
+    await act(async () => {
+      matchedZero = await result.current.executeQuery(
+        "SELECT * FROM telemetry.inference_logs LIMIT 0;"
+      ) as typeof matchedZero;
+    });
+    expect(matchedZero?.rowCount).toBe(0);
+    expect(matchedZero?.columns).toContain("latency_ms"); // 命中表 → 表列名兜底
+  });
+
+  it("后端查询返回空 id: 历史条目 id 回落 qh- 前缀", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonRes({
+      id: "", sql: "SELECT 1;", columns: ["a"], rows: [{ a: 1 }], rowCount: 1, executionTimeMs: 2, executedAt: 1,
+    }));
+    mockGetAPIConfig.mockReturnValue({ ...DEFAULT_API_CONFIG, enableBackend: true });
+
+    const { result } = renderHook(() => useLocalDatabase());
+    act(() => {
+      result.current.setActiveConnectionId("c-active");
+    });
+
+    await act(async () => {
+      await result.current.executeQuery("SELECT 1;");
+    });
+
+    const persisted = idbPutMock.mock.calls.find((c) => c[0] === "queryHistory")?.[1] as { id: string } | undefined;
+    expect(persisted?.id).toMatch(/^qh-/); // result.id 为空 → qh- 兜底
+    fetchSpy.mockRestore();
   });
 });

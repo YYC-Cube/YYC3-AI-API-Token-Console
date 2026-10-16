@@ -603,6 +603,150 @@ describe("useModelProvider 覆盖率补测", () => {
   });
 
   // ----------------------------------------------------------
+  //  S5 分支补盲 — loadModels 三态 / updateProvider 局部同步 /
+  //  无 ollama 服务商时 fetch 地址兜底 / 只影响目标模型的更新
+  // ----------------------------------------------------------
+
+  describe("S5 分支补盲", () => {
+    const MODELS_KEY = "yyc3_configured_models";
+
+    it("loadModels: localStorage 已有合法 JSON 时恢复已配置模型", async () => {
+      localStorage.setItem(MODELS_KEY, JSON.stringify([
+        {
+          id: "m-seed",
+          providerId: "openai",
+          providerLabel: "OpenAI",
+          model: "gpt-4o",
+          apiKey: "sk-seed",
+          baseUrl: "https://api.openai.com/v1",
+          createdAt: 1,
+          lastUsed: null,
+          status: "unchecked",
+        },
+      ]));
+
+      const result = await mount();
+
+      expect(result.current.configuredModels.map((m) => m.id)).toEqual(["m-seed"]);
+      expect(result.current.configuredModels[0]?.providerLabel).toBe("OpenAI");
+    });
+
+    it("loadModels: localStorage 无数据时初始为空列表", async () => {
+      localStorage.removeItem(MODELS_KEY);
+
+      const result = await mount();
+
+      expect(result.current.configuredModels).toEqual([]);
+    });
+
+    it("loadModels: localStorage 值非法 JSON 时回退空列表", async () => {
+      localStorage.setItem(MODELS_KEY, "{broken json");
+
+      const result = await mount();
+
+      expect(result.current.configuredModels).toEqual([]);
+    });
+
+    it("updateProvider 仅改 baseUrl: label 保持, 其他 provider 的模型不受影响", async () => {
+      const result = await mount();
+      act(() => {
+        result.current.addModel("openai", "gpt-4o", "k");
+        result.current.addModel("zhipu", "glm-4-flash", "k2");
+      });
+      const zhipuBefore = result.current.configuredModels.find((m) => m.providerId === "zhipu")!;
+
+      act(() => {
+        result.current.updateProvider("openai", { baseUrl: "https://api.openai.com/v3" });
+      });
+
+      const openaiModel = result.current.configuredModels.find((m) => m.providerId === "openai")!;
+      expect(openaiModel.baseUrl).toBe("https://api.openai.com/v3");
+      expect(openaiModel.providerLabel).toBe("OpenAI"); // label 未提供 → ?? 保持
+      const zhipuModel = result.current.configuredModels.find((m) => m.providerId === "zhipu")!;
+      expect(zhipuModel.providerLabel).toBe(zhipuBefore.providerLabel);
+      expect(zhipuModel.baseUrl).toBe(zhipuBefore.baseUrl);
+    });
+
+    it("updateProvider 仅改 label: baseUrl 保持", async () => {
+      const result = await mount();
+      act(() => {
+        result.current.addModel("openai", "gpt-4o", "k");
+      });
+      const baseUrlBefore = result.current.configuredModels[0]!.baseUrl;
+
+      act(() => {
+        result.current.updateProvider("openai", { label: "OpenAI v2" });
+      });
+
+      expect(result.current.configuredModels[0]?.providerLabel).toBe("OpenAI v2");
+      expect(result.current.configuredModels[0]?.baseUrl).toBe(baseUrlBefore); // baseUrl 未提供 → ?? 保持
+    });
+
+    it("updateModel / testConnection 只影响目标模型", async () => {
+      const result = await mount();
+      act(() => {
+        result.current.addModel("openai", "gpt-4o", "k");
+        result.current.addModel("zhipu", "glm-4-flash", "k2");
+      });
+      const firstId = result.current.configuredModels[0]!.id;
+      const secondId = result.current.configuredModels[1]!.id;
+
+      act(() => {
+        result.current.updateModel(firstId, { status: "error" });
+      });
+      expect(result.current.configuredModels.find((m) => m.id === secondId)?.status).toBe("unchecked");
+
+      await act(async () => {
+        await result.current.testConnection(secondId);
+      });
+      expect(result.current.configuredModels.find((m) => m.id === secondId)?.status).toBe("active");
+      expect(result.current.configuredModels.find((m) => m.id === firstId)?.status).toBe("error");
+    });
+
+    it("importConfig 仅含 providers 时跳过模型合并", async () => {
+      const result = await mount();
+
+      let ok = false;
+      act(() => {
+        ok = result.current.importConfig(JSON.stringify({
+          providers: [makeSavedProvider({ id: "imp-only", label: "Imported Only" })],
+        }));
+      });
+
+      expect(ok).toBe(true);
+      expect(result.current.providers.find((p) => p.id === "imp-only")?.label).toBe("Imported Only");
+      expect(result.current.configuredModels).toEqual([]);
+    });
+
+    it("无 ollama 服务商时 fetchOllamaModels 走默认地址兜底", async () => {
+      // 种入自定义 (非内置) ollama 条目 → 合并时不再补入内置 → 可被删除
+      localStorage.setItem(PROVIDERS_KEY, JSON.stringify([
+        makeSavedProvider({ id: "ollama", label: "My Ollama", isLocal: true, requiresApiKey: false, isBuiltin: false }),
+      ]));
+
+      const result = await mount();
+      expect(result.current.providers.find((p) => p.id === "ollama")?.isBuiltin).toBe(false);
+
+      act(() => {
+        result.current.removeProvider("ollama");
+      });
+      expect(result.current.providers.find((p) => p.id === "ollama")).toBeUndefined();
+
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ models: [OM("llama3:8b")] }) });
+      await act(async () => {
+        await result.current.fetchOllamaModels();
+      });
+
+      // 服务商缺省 → provider.baseUrl 兜底与字面量兜底均不可用, 仅 tags 地址可达
+      const mountCallCount = 1; // 挂载 effect 已消耗一次 (reject)
+      expect(fetchMock).toHaveBeenCalledTimes(mountCallCount + 1);
+      expect(String(fetchMock.mock.calls[mountCallCount]?.[0])).toContain("tags");
+      expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["llama3:8b"]);
+      expect(result.current.ollamaError).toBeNull();
+    });
+  });
+
+  // ----------------------------------------------------------
   //  schema 兜底
   // ----------------------------------------------------------
 

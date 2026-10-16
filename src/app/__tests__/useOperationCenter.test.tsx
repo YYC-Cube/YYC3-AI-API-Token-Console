@@ -14,6 +14,7 @@
 import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { toast } from "sonner";
 import { useOperationCenter } from "../hooks/useOperationCenter";
 
 vi.mock("sonner", () => ({
@@ -194,5 +195,83 @@ describe("useOperationCenter", () => {
       });
       expect(result.current.logs.every((l) => l.category === "node")).toBe(true);
     });
+  });
+});
+
+// ============================================================
+//  S5 分支补盲 — 未知 id 早退 / 失败路径 + 3s 重置定时器
+//  注: generateMockLogs 中 `statuses[i % statuses.length] ?? "success"`
+//  的 nullish 兜底分支运行时不可构造 (取模后索引恒在数组界内), 属防御性代码。
+// ============================================================
+
+describe("useOperationCenter 分支补盲 (S5)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("executeAction 未知 id 应直接返回且无副作用", async () => {
+    const { result } = renderHook(() => useOperationCenter());
+    const logsBefore = result.current.allLogs.length;
+    const statusBefore = result.current.allActions.map((a) => a.status);
+
+    await act(async () => {
+      await result.current.executeAction("qa-nonexistent");
+    });
+
+    // 未命中操作: 不进入执行态, 不写日志, 状态零变化, 无 toast
+    expect(result.current.isExecuting).toBeNull();
+    expect(result.current.allLogs.length).toBe(logsBefore);
+    expect(result.current.allActions.map((a) => a.status)).toEqual(statusBefore);
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalled();
+    expect(vi.mocked(toast.error)).not.toHaveBeenCalled();
+  });
+
+  it("runTemplate 未知模板 id 应直接返回且无 toast", async () => {
+    const { result } = renderHook(() => useOperationCenter());
+    const logsBefore = result.current.allLogs.length;
+
+    await act(async () => {
+      await result.current.runTemplate("tpl-nonexistent");
+    });
+
+    expect(vi.mocked(toast.info)).not.toHaveBeenCalled();
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalled();
+    expect(result.current.allLogs.length).toBe(logsBefore);
+  });
+
+  it("executeAction 失败路径: failed 状态 + error toast + 3s 后重置 pending", async () => {
+    vi.useFakeTimers();
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.01);
+    try {
+      const { result } = renderHook(() => useOperationCenter());
+
+      let exec: Promise<void> = Promise.resolve();
+      act(() => {
+        exec = result.current.executeAction("qa1");
+      });
+
+      // 执行期 1500 + random*2000 = 1520ms → 冲刷至执行完成
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1600);
+        await exec;
+      });
+
+      expect(result.current.allActions.find((a) => a.id === "qa1")?.status).toBe("failed");
+      expect(result.current.isExecuting).toBeNull();
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith(
+        "重启节点 执行失败",
+        { description: "请检查日志获取详情" }
+      );
+      expect(vi.mocked(toast.success)).not.toHaveBeenCalled();
+
+      // 3s 后状态重置定时器触发 → 回到 pending
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
+      });
+      expect(result.current.allActions.find((a) => a.id === "qa1")?.status).toBe("pending");
+    } finally {
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });

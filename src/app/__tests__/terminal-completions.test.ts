@@ -11,13 +11,27 @@
  * - 大小写不敏感匹配 / 去重截断
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   getSmartCompletions, recordCommand, loadCommandHistory, getCommandStats,
   resetTerminalCompletionData, TERMINAL_ROUTES, BASE_COMMANDS,
 } from "../lib/terminal-completions";
 import { nodeStore } from "../lib/nodes";
+import { LOCALSTORAGE_KEYS } from "../lib/yyc3-storage";
 import routesSource from "../routes.ts?raw";
+
+// collectEnvKeys catch 降级臂注入开关 (vi.mock 工厂提升前读取, 故用 vi.hoisted)
+const envFailure = vi.hoisted(() => ({ throwOnRead: false }));
+vi.mock("../lib/env-config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/env-config")>();
+  return {
+    ...actual,
+    getEnvConfig: () => {
+      if (envFailure.throwOnRead) throw new Error("env-config unavailable (mock)");
+      return actual.getEnvConfig();
+    },
+  };
+});
 
 // unit-node 项目无 localStorage (jsdom 才有) — 引擎持久化层依赖, 注入内存 stub
 const memStore = new Map<string, string>();
@@ -258,6 +272,109 @@ describe("terminal-completions 补全引擎", () => {
       const values = items.map((i) => i.value);
       expect(new Set(values).size).toBe(values.length);
       expect(items.length).toBeLessThanOrEqual(12);
+    });
+  });
+
+  // ============================================================
+  // S5 关键路径补测: 降级臂 / 淘汰臂 / 平局臂 / 限定臂
+  // ============================================================
+  describe("S5 补测: 动态源降级 (catch 臂)", () => {
+    afterEach(() => {
+      envFailure.throwOnRead = false;
+      vi.restoreAllMocks();
+    });
+
+    it("collectNodeIds 降级: nodeStore.getAll 抛错时不外抛且参数位为空", () => {
+      vi.spyOn(nodeStore, "getAll").mockImplementation(() => {
+        throw new Error("node store unavailable (mock)");
+      });
+      // "gpu" 前缀在正常态可命中真实节点 (见上方多设备协同用例) → 降级后为空即证明走 catch 臂
+      expect(() => getSmartCompletions("cpim node gpu")).not.toThrow();
+      expect(getSmartCompletions("cpim node gpu")).toEqual([]);
+    });
+
+    it("collectEnvKeys 降级: getEnvConfig 抛错时不外抛且变量名为空", () => {
+      envFailure.throwOnRead = true;
+      // "SYSTEM" 前缀正常态命中 SYSTEM_NAME (见 env 补全用例) → 降级后为空即证明走 catch 臂
+      expect(() => getSmartCompletions("env get SYSTEM")).not.toThrow();
+      expect(getSmartCompletions("env get SYSTEM")).toEqual([]);
+      expect(getSmartCompletions("env set SYSTEM")).toEqual([]);
+    });
+
+    it("动态源显式空数组与未注入等价 (空态)", () => {
+      expect(getSmartCompletions("cpim model deploy glm", { models: [] })).toEqual([]);
+      expect(getSmartCompletions("family chat 千", { familyMembers: [] })).toEqual([]);
+    });
+  });
+
+  describe("S5 补测: cpim 子命令回落与限定臂", () => {
+    it("cpim node 二段裸输入回落 node 子命令表 (prevWords<3 臂)", () => {
+      // prefix "node" 与表内 restart/--all/--force 均不匹配, 但回落路径本身被覆盖
+      expect(getSmartCompletions("cpim node").map((i) => i.value)).toEqual([]);
+    });
+
+    it("cpim model 二段补全子命令 (prevWords===2 参数位臂)", () => {
+      expect(getSmartCompletions("cpim model l").map((i) => i.value)).toEqual(["list"]);
+    });
+
+    it("cpim model 裸输入不进 deploy 参数位 (deploy 门槛与短路臂)", () => {
+      expect(getSmartCompletions("cpim model").map((i) => i.value)).toEqual([]);
+    });
+
+    it("cpim model list 三段非 deploy 参数回落 model 子命令表 (deploy 限定臂)", () => {
+      expect(getSmartCompletions("cpim model list x").map((i) => i.value)).toEqual([]);
+    });
+
+    it("cpim alerts 三段无补全 (node/model 之外子命令回落臂)", () => {
+      expect(getSmartCompletions("cpim alerts x").map((i) => i.value)).toEqual([]);
+    });
+  });
+
+  describe("S5 补测: env / family 限定臂", () => {
+    it("env set 参数位补全变量名 (get/set 双臂之 set)", () => {
+      const keys = getSmartCompletions("env set SYSTEM").map((i) => i.value);
+      expect(keys).toContain("SYSTEM_NAME");
+      expect(keys.every((k) => k === k.toUpperCase())).toBe(true);
+    });
+
+    it("env list 三段无变量名补全 (仅 get/set 限定臂)", () => {
+      expect(getSmartCompletions("env list x")).toEqual([]);
+    });
+
+    it("family list 三段无补全 (仅 chat 限定臂)", () => {
+      expect(getSmartCompletions("family list x")).toEqual([]);
+    });
+  });
+
+  describe("S5 补测: 频率排序平局与持久化淘汰", () => {
+    it("同频命令平分时按 value 字典序排序 (byFrequencyThenValue 平分臂 + 缺频兜底臂)", () => {
+      // 仅注入频率表 (beforeEach 已清空历史, 避免历史置顶干扰排序断言);
+      // cd 缺频 → stats[...] ?? 0 兜底臂; cat/clear/cpim 同频 → localeCompare 平分臂
+      localStorage.setItem(
+        LOCALSTORAGE_KEYS.terminalCmdStats,
+        JSON.stringify({ cat: 2, clear: 2, cpim: 2 })
+      );
+      const values = getSmartCompletions("c").map((i) => i.value);
+      expect(values).toEqual(["cat", "clear", "cpim", "cd"]);
+    });
+
+    it("频率表超 200 key 时淘汰最低频尾部 (含脏 null 值容错)", () => {
+      // 预置 200 个持久化 key (含 2 个 null 脏值, 模拟历史脏数据), 新命令触发淘汰
+      const seeded: Record<string, number | null> = {};
+      for (let i = 0; i < 198; i++) seeded[`legacy-${String(i).padStart(3, "0")}`] = 1;
+      seeded["legacy-null-a"] = null;
+      seeded["legacy-null-b"] = null;
+      localStorage.setItem(LOCALSTORAGE_KEYS.terminalCmdStats, JSON.stringify(seeded));
+
+      recordCommand("brand-new-cmd");
+
+      const stats = getCommandStats();
+      const keys = Object.keys(stats);
+      expect(keys.length).toBe(200);
+      expect(stats["brand-new-cmd"]).toBe(1);
+      // null 脏值经 ?? 0 归零频排序最前 → 稳定排序下插入序第一个被淘汰
+      expect(stats["legacy-null-a"]).toBeUndefined();
+      expect(stats["legacy-null-b"]).toBeNull();
     });
   });
 });

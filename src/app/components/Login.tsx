@@ -60,6 +60,10 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
   };
 
   const handleGhostLogin = useCallback(() => {
+    // 测试注 (S5 补测): `!onGhostLogin` 短路分支在 UI 层不可构造 ——
+    // Ghost 按钮仅在 onGhostLogin 存在时渲染 (见下方 `{onGhostLogin && ...}`),
+    // 因此 handleGhostLogin 被调用时 onGhostLogin 恒为真, 该分支无可达测试路径
+    // (防御性代码; ghostActivating 分支已由 Login.test.tsx 双击防抖用例覆盖)
     if (!onGhostLogin || ghostActivating) return;
     setGhostActivating(true);
     setError("");
