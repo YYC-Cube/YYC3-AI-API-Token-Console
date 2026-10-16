@@ -58,7 +58,8 @@ export function useInstallPrompt() {
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) return false;
 
-    deferredPrompt.prompt();
+    // prompt() 仅触发弹窗展示信号, 实际结果由下方 userChoice 决定 — fire-and-forget
+    void deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
 
     if (outcome === "accepted") {

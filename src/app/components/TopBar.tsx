@@ -433,7 +433,7 @@ export function TopBar({
                   ].map((item) => (
                     <button
                       key={item.path}
-                      onClick={() => { navigate(item.path); setUserMenuOpen(false); }}
+                      onClick={() => { void navigate(item.path); setUserMenuOpen(false); }}
                       className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[rgba(0,212,255,0.55)] hover:text-[#00d4ff] hover:yyc3-brand-bg-soft transition-all"
                       style={{ fontSize: "0.72rem" }}
                     >
@@ -578,7 +578,7 @@ export function TopBar({
                                   <button
                                     key={item.path}
                                     onClick={() => {
-                                      navigate(item.path);
+                                      void navigate(item.path);
                                       onToggleMobileMenu();
                                     }}
                                     className={`

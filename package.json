@@ -51,6 +51,8 @@
     "guardrail-probe": "node scripts/guardrail-probe.mjs",
     "size:check": "node scripts/check-size.mjs",
     "color:check": "node scripts/check-color-budget.mjs",
+    "dup:check": "node scripts/check-dup-budget.mjs",
+    "lint:fp": "eslint -c eslint.fp.config.js src --max-warnings 0",
     "nav:bench": "node scripts/nav-token-bench.mjs"
   },
   "dependencies": {
@@ -128,6 +130,7 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.26",
     "globals": "15.15.0",
+    "jscpd": "5.4.1",
     "jsdom": "28.1.0",
     "knip": "6.37.0",
     "rollup-plugin-visualizer": "7.1.1",

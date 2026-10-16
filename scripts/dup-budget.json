@@ -1,0 +1,7 @@
+{
+  "minTokens": 70,
+  "baselineClones": 106,
+  "baselineDupLines": 1571,
+  "lockedAt": "2026-10-16",
+  "note": "重复基线只减不增 (scripts/check-dup-budget.mjs 口径); 下调须附抽象批说明"
+}

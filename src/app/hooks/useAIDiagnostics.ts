@@ -220,7 +220,7 @@ export function useAIDiagnostics(opts: DiagnosticsOptions = {}) {
       prependHistory(
         { id: sessionId, time: Date.now(), patterns: patterns.length, actions: actions.length },
         10,
-      );
+      ).catch(() => { /* IndexedDB 写入降级: 内存历史已生效 */ });
       setStatus("complete");
     }, 1800);
   }, [opts, prependHistory]);

@@ -48,6 +48,8 @@ export function usePersistedList<T extends { id: string }>(
         }
         setLoaded(true);
       }
+    }).catch(() => {
+      // IndexedDB 读取失败: 保留 initialData 兜底 (loaded 保持 false, 行为与原浮空态一致)
     });
     return () => { cancelled = true; };
   }, [store]);
@@ -56,7 +58,7 @@ export function usePersistedList<T extends { id: string }>(
   useEffect(() => {
     const unsubscribe = onStorageChange((event) => {
       if (event.store === storeRef.current) {
-        idbGetAll<T>(storeRef.current).then(setItems);
+        idbGetAll<T>(storeRef.current).then(setItems).catch(() => { /* 读取失败: 保留当前内存数据 */ });
       }
     });
     return unsubscribe;

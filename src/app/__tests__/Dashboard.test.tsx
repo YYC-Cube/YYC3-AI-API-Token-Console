@@ -387,52 +387,52 @@ describe("Dashboard", () => {
       });
     }
 
-    it("左滑应切换到下一 tab (150ms 动画后)", () => {
+    it("左滑应切换到下一 tab (150ms 动画后)", async () => {
       vi.useFakeTimers();
       try {
         const { container } = renderMobile();
         expectActiveDot(container, 0);
-        act(() => swipeRef.current.onSwipedLeft!());
-        act(() => vi.advanceTimersByTime(150));
+        await act(() => swipeRef.current.onSwipedLeft!());
+        await act(async () => { vi.advanceTimersByTime(150); });
         expectActiveDot(container, 1);
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it("右滑应切换到上一 tab", () => {
+    it("右滑应切换到上一 tab", async () => {
       vi.useFakeTimers();
       try {
         const { container } = renderMobile();
         fireEvent.click(screen.getByText("monitor.performanceTab"));
         expectActiveDot(container, 1);
-        act(() => swipeRef.current.onSwipedRight!());
-        act(() => vi.advanceTimersByTime(150));
+        await act(() => swipeRef.current.onSwipedRight!());
+        await act(async () => { vi.advanceTimersByTime(150); });
         expectActiveDot(container, 0);
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it("第一个 tab 右滑不切换 (边界)", () => {
+    it("第一个 tab 右滑不切换 (边界)", async () => {
       vi.useFakeTimers();
       try {
         const { container } = renderMobile();
-        act(() => swipeRef.current.onSwipedRight!());
-        act(() => vi.advanceTimersByTime(150));
+        await act(() => swipeRef.current.onSwipedRight!());
+        await act(async () => { vi.advanceTimersByTime(150); });
         expectActiveDot(container, 0);
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it("最后一个 tab 左滑不切换 (边界)", () => {
+    it("最后一个 tab 左滑不切换 (边界)", async () => {
       vi.useFakeTimers();
       try {
         const { container } = renderMobile();
         fireEvent.click(screen.getByText("monitor.predictionTab"));
-        act(() => swipeRef.current.onSwipedLeft!());
-        act(() => vi.advanceTimersByTime(150));
+        await act(() => swipeRef.current.onSwipedLeft!());
+        await act(async () => { vi.advanceTimersByTime(150); });
         expectActiveDot(container, 2);
       } finally {
         vi.useRealTimers();

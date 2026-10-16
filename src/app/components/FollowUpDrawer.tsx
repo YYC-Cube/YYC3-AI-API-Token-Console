@@ -216,7 +216,7 @@ export function FollowUpDrawer({
               key={tab.key}
               onClick={() => {
                 setActiveTab(tab.key);
-                if (tab.key === "ai" && aiSuggestions.length === 0) loadAiSuggestions();
+                if (tab.key === "ai" && aiSuggestions.length === 0) void loadAiSuggestions();
               }}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === tab.key

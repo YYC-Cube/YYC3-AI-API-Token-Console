@@ -65,8 +65,16 @@ const UI_ECOSYSTEM_WHITELIST = [
   "tw-animate-css",
 ];
 
+/** 工具链二进制白名单 (S8 缺口落地, 2026-10-16): 经 scripts/*.mjs 以
+ *  node_modules/.bin 形态间接调用的门禁工具, knip 脚本内二进制解析盲区
+ *  (同类: @ast-grep/cli 历史上计入 unused 基线, 属同一盲区 — 后续可一并迁入)。
+ *  证据: scripts/check-dup-budget.mjs 经 node_modules/.bin/jscpd 消费 (pnpm dup:check)。 */
+const TOOLCHAIN_BINARIES_WHITELIST = [
+  "jscpd", // 重复代码基线门禁 (dup:check)
+];
+
 const config: KnipConfig = {
-  ignoreDependencies: UI_ECOSYSTEM_WHITELIST,
+  ignoreDependencies: [...UI_ECOSYSTEM_WHITELIST, ...TOOLCHAIN_BINARIES_WHITELIST],
   entry: [
     "src/main.tsx",
     "src/app/App.tsx",

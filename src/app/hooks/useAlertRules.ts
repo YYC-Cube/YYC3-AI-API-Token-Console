@@ -318,26 +318,27 @@ export function useAlertRules(opts: AlertRulesOptions = {}) {
   const toggleRule = useCallback((ruleId: string) => {
     const rule = rules.find((r) => r.id === ruleId);
     if (rule) {
-      upsertRule({ ...rule, enabled: !rule.enabled });
+      // 持久化失败静默降级: 内存态已同步生效
+      upsertRule({ ...rule, enabled: !rule.enabled }).catch(() => { /* IndexedDB 写入降级 */ });
     }
   }, [rules, upsertRule]);
 
   const deleteRule = useCallback((ruleId: string) => {
-    removeRule(ruleId);
+    removeRule(ruleId).catch(() => { /* IndexedDB 删除降级 */ });
     if (selectedRule?.id === ruleId) setSelectedRule(null);
   }, [selectedRule, removeRule]);
 
   const acknowledgeEvent = useCallback((eventId: string) => {
     const event = events.find((e) => e.id === eventId);
     if (event) {
-      upsertEvent({ ...event, acknowledged: true });
+      upsertEvent({ ...event, acknowledged: true }).catch(() => { /* IndexedDB 写入降级 */ });
     }
   }, [events, upsertEvent]);
 
   const resolveEvent = useCallback((eventId: string) => {
     const event = events.find((e) => e.id === eventId);
     if (event) {
-      upsertEvent({ ...event, resolved: true, acknowledged: true });
+      upsertEvent({ ...event, resolved: true, acknowledged: true }).catch(() => { /* IndexedDB 写入降级 */ });
     }
   }, [events, upsertEvent]);
 
@@ -349,7 +350,7 @@ export function useAlertRules(opts: AlertRulesOptions = {}) {
       lastTriggered: null,
       triggerCount: 0,
     };
-    upsertRule(newRule);
+    upsertRule(newRule).catch(() => { /* IndexedDB 写入降级 */ });
     setIsCreating(false);
   }, [upsertRule]);
 
@@ -357,7 +358,7 @@ export function useAlertRules(opts: AlertRulesOptions = {}) {
   const updateRule = useCallback((ruleId: string, updates: Partial<Omit<AlertRule, "id" | "createdAt" | "lastTriggered" | "triggerCount">>) => {
     const rule = rules.find((r) => r.id === ruleId);
     if (rule) {
-      upsertRule({ ...rule, ...updates });
+      upsertRule({ ...rule, ...updates }).catch(() => { /* IndexedDB 写入降级 */ });
     }
     setEditingRule(null);
   }, [rules, upsertRule]);

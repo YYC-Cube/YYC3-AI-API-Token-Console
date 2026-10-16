@@ -371,14 +371,14 @@ export function useLocalDatabase() {
           status: "disconnected" as DBConnectionStatus, // 重启后重置状态
         })));
       }
-    });
+    }).catch(() => { /* IndexedDB 读取失败: 保持内存初始态 */ });
 
     // 加载查询历史
     idbGetAll<QueryResult & { id: string }>("queryHistory").then((saved) => {
       if (saved.length > 0) {
         setQueryHistory(saved.sort((a, b) => b.executedAt - a.executedAt).slice(0, 100));
       }
-    });
+    }).catch(() => { /* IndexedDB 读取失败: 保持内存初始态 */ });
   }, []);
 
   // ── 持久化连接到 IndexedDB ──
@@ -424,7 +424,7 @@ export function useLocalDatabase() {
       }));
       setConnections(prev => {
         const all = [...prev, ...newConns];
-        persistAllConnections(all);
+        persistAllConnections(all).catch(() => { /* IndexedDB 写入降级: 内存态已生效 */ });
         return all;
       });
       toast.success(`检测到 ${detected.length} 个数据库服务`);
@@ -452,7 +452,7 @@ export function useLocalDatabase() {
       const existing = new Set(prev.map(c => `${c.type}:${c.host}:${c.port}`));
       const newOnes = mockDetected.filter(d => !existing.has(`${d.type}:${d.host}:${d.port}`));
       const updated = [...prev, ...newOnes];
-      persistAllConnections(updated);
+      persistAllConnections(updated).catch(() => { /* IndexedDB 写入降级: 内存态已生效 */ });
       return updated;
     });
 
@@ -504,7 +504,7 @@ export function useLocalDatabase() {
       color: DB_COLORS[conn.type] || "#00d4ff",
     };
     setConnections(prev => [...prev, newConn]);
-    persistConnection(newConn);
+    persistConnection(newConn).catch(() => { /* IndexedDB 写入降级: 内存态已生效 */ });
     toast.success(`连接已添加: ${conn.name}`);
     return newConn;
   }, [persistConnection]);
@@ -514,7 +514,7 @@ export function useLocalDatabase() {
     setConnections(prev => {
       const updated = prev.map(c => c.id === id ? { ...c, ...updates } : c);
       const conn = updated.find(c => c.id === id);
-      if (conn) persistConnection(conn);
+      if (conn) persistConnection(conn).catch(() => { /* IndexedDB 写入降级: 内存态已生效 */ });
       return updated;
     });
   }, [persistConnection]);
@@ -556,7 +556,7 @@ export function useLocalDatabase() {
       if (tablesRes.ok && tablesRes.data) {
         setTables(tablesRes.data);
       }
-      persistConnection({ ...conn, lastConnected: Date.now() });
+      persistConnection({ ...conn, lastConnected: Date.now() }).catch(() => { /* IndexedDB 写入降级 */ });
       toast.success(`已连接: ${conn.name}`);
       return;
     }
@@ -572,7 +572,7 @@ export function useLocalDatabase() {
     });
     setActiveConnectionId(id);
     setTables(MOCK_TABLES);
-    persistConnection({ ...conn, lastConnected: Date.now() });
+    persistConnection({ ...conn, lastConnected: Date.now() }).catch(() => { /* IndexedDB 写入降级 */ });
     toast.success(`已连接: ${conn.name} (模拟模式)`);
   }, [connections, persistConnection]);
 
@@ -648,7 +648,7 @@ export function useLocalDatabase() {
     // 持久化查询历史
     const historyItem = { ...result, id: result.id || `qh-${Date.now()}` };
     setQueryHistory(prev => [historyItem, ...prev].slice(0, 100));
-    idbPut("queryHistory", historyItem);
+    idbPut("queryHistory", historyItem).catch(() => { /* IndexedDB 写入降级: 内存历史已生效 */ });
 
     if (result.error) {
       toast.error(`查询错误: ${result.error}`);

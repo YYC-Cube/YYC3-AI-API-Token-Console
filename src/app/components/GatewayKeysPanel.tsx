@@ -94,7 +94,7 @@ export function GatewayKeysPanel() {
 
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   const create = async () => {
     if (!form.name.trim()) return;
@@ -188,7 +188,7 @@ export function GatewayKeysPanel() {
             </code>
             <button
               className={btnGhost}
-              onClick={() => { navigator.clipboard.writeText(createdPlain); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+              onClick={() => { navigator.clipboard.writeText(createdPlain).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
             >
               {copied ? <CheckCircle className="w-3 h-3 text-[#00ff88]" /> : <Copy className="w-3 h-3" />} 复制
             </button>

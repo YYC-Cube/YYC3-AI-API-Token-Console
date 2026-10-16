@@ -298,7 +298,8 @@ export function useModelProvider() {
 
   // ========== 初始化时自动获取 Ollama 模型 ==========
   useEffect(() => {
-    fetchOllamaModels();
+    // fetchOllamaModels 内部 try/catch 自兜底 (失败回退 Mock) — fire-and-forget
+    void fetchOllamaModels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

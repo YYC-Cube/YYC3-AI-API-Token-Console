@@ -153,7 +153,7 @@ export default function App() {
           "",
           window.location.origin + "/" + (qs ? "?" + qs : "")
         );
-        router.navigate(fallback);
+        void router.navigate(fallback);
       }
     } catch {
       /* URL 解析异常时忽略, 正常进入首页 */
@@ -223,6 +223,8 @@ export default function App() {
       setUserEmail(session?.user?.email ?? "admin@cloudpivot.local");
       setUserRole(session?.user?.role ?? "admin");
       setIsGhost(isGhostMode());
+    }).catch(() => {
+      // 会话服务不可用: 保持未登录默认态 (demo 会话兜底语义不变)
     });
     setAuthenticated(true);
   }, []);

@@ -315,32 +315,32 @@ describe("Layout", () => {
   });
 
   describe("全局快捷键联动", () => {
-    it("onSearch 应打开命令面板", () => {
+    it("onSearch 应打开命令面板", async () => {
       render(<Layout />);
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "false");
-      act(() => shortcutConfigs[shortcutConfigs.length - 1].onSearch());
+      await act(() => shortcutConfigs[shortcutConfigs.length - 1].onSearch());
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "true");
     });
 
-    it("onEscape 应关闭已打开的命令面板与终端", () => {
+    it("onEscape 应关闭已打开的命令面板与终端", async () => {
       render(<Layout />);
-      act(() => {
-        shortcutConfigs[shortcutConfigs.length - 1].onSearch();
-        shortcutConfigs[shortcutConfigs.length - 1].onToggleTerminal();
+      await act(() => {
+        void shortcutConfigs[shortcutConfigs.length - 1].onSearch();
+        void shortcutConfigs[shortcutConfigs.length - 1].onToggleTerminal();
       });
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "true");
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "true");
-      act(() => shortcutConfigs[shortcutConfigs.length - 1].onEscape());
+      await act(() => shortcutConfigs[shortcutConfigs.length - 1].onEscape());
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "false");
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "false");
     });
 
-    it("onToggleTerminal 应切换终端开关", () => {
+    it("onToggleTerminal 应切换终端开关", async () => {
       render(<Layout />);
       const cfg = shortcutConfigs[shortcutConfigs.length - 1];
-      act(() => cfg.onToggleTerminal());
+      await act(() => cfg.onToggleTerminal());
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "true");
-      act(() => cfg.onToggleTerminal());
+      await act(() => cfg.onToggleTerminal());
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "false");
     });
   });
@@ -375,17 +375,17 @@ describe("Layout", () => {
   });
 
   describe("浮层关闭回调", () => {
-    it("CommandPalette onClose 应关闭面板", () => {
+    it("CommandPalette onClose 应关闭面板", async () => {
       render(<Layout />);
-      act(() => shortcutConfigs[shortcutConfigs.length - 1].onSearch());
+      await act(() => shortcutConfigs[shortcutConfigs.length - 1].onSearch());
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "true");
       fireEvent.click(screen.getByTestId("command-palette-close"));
       expect(screen.getByTestId("command-palette")).toHaveAttribute("data-open", "false");
     });
 
-    it("IntegratedTerminal onClose 应关闭终端", () => {
+    it("IntegratedTerminal onClose 应关闭终端", async () => {
       render(<Layout />);
-      act(() => shortcutConfigs[shortcutConfigs.length - 1].onToggleTerminal());
+      await act(() => shortcutConfigs[shortcutConfigs.length - 1].onToggleTerminal());
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "true");
       fireEvent.click(screen.getByTestId("integrated-terminal-close"));
       expect(screen.getByTestId("integrated-terminal")).toHaveAttribute("data-open", "false");
@@ -403,7 +403,7 @@ describe("Layout", () => {
       routerState.suspendOutlet = true;
       render(<Layout />);
       expect(screen.getByText("Loading module...")).toBeInTheDocument();
-      act(() => routerState.resolveOutlet!());
+      await act(() => routerState.resolveOutlet!());
       await waitFor(() => expect(screen.getByTestId("outlet")).toBeInTheDocument());
     });
   });

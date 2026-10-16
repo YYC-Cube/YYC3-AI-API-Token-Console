@@ -70,6 +70,8 @@ export function EnvironmentDetectionPanel() {
   const copyText = (text: string) => {
     navigator.clipboard?.writeText(text).then(() => {
       toast.success("已复制到剪贴板", { style: toastStyle, duration: 1500 });
+    }).catch(() => {
+      // 剪贴板权限拒绝: 不弹成功提示即可, 无进一步可操作项
     });
   };
 

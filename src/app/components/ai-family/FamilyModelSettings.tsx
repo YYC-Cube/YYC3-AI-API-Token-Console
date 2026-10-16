@@ -772,7 +772,8 @@ export function FamilyModelSettings() {
                 <button
                   onClick={async () => {
                     for (const m of FAMILY_MEMBERS) {
-                      handleTestConnection(m.id);
+                      // 保持 200ms 间隔逐个发起 (并行诊断), 不串行等待 — handleTestConnection 内部自管 testing→success/error 状态
+                      void handleTestConnection(m.id);
                       await new Promise(r => setTimeout(r, 200));
                     }
                   }}

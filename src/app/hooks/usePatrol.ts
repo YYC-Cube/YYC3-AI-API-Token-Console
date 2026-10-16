@@ -308,7 +308,7 @@ export function usePatrol(options: { onCritical?: (alert: AlertData) => void } =
       setCurrentResult(result);
       setPatrolStatus("completed");
       setProgress(100);
-      prependHistory(result);
+      prependHistory(result).catch(() => { /* IndexedDB 写入降级: 内存结果已生效 */ });
 
       // P1 告警真实化: 巡查阈值判定 → 全局告警流 (WebSocketContext.pushLocalAlert 消费)
       if (realChecks && result.criticalCount > 0) {
@@ -382,7 +382,8 @@ export function usePatrol(options: { onCritical?: (alert: AlertData) => void } =
   useEffect(() => {
     if (schedule.enabled) {
       autoTimerRef.current = setInterval(() => {
-        runPatrol("auto");
+        // 周期触发保持非阻塞; 单轮失败静默, 等待下轮定时器重试
+        runPatrol("auto").catch(() => undefined);
       }, schedule.interval * 60 * 1000);
     }
     return () => {

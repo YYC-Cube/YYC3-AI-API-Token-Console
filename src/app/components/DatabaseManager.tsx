@@ -104,7 +104,8 @@ export function DatabaseManager() {
   }, [formData, db]);
 
   const copyToClipboard = useCallback((text: string) => {
-    navigator.clipboard.writeText(text);
+    // 剪贴板权限拒绝不可操作且无错误位可展示, 静默忽略 (与 AIAssistant 同型)
+    navigator.clipboard.writeText(text).catch(() => {});
   }, []);
 
   const tabs = [
@@ -393,7 +394,8 @@ export function DatabaseManager() {
                       const isExpanding = expandedTable !== table.name;
                       setExpandedTable(isExpanding ? table.name : null);
                       db.setSelectedTable(isExpanding ? table : null);
-                      if (isExpanding) db.loadTableData(table.name);
+                      // fire-and-forget: loadTableData (useLocalDatabase) 内部无 reject 路径, 加载态由 tableDataLoading 呈现
+                      if (isExpanding) void db.loadTableData(table.name);
                     }}
                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[rgba(0,40,80,0.2)] transition-all text-left group"
                   >
@@ -474,9 +476,9 @@ export function DatabaseManager() {
                           }}
                           onExecuteSQL={async (sql) => {
                             const result = await executeInlineSQL(sql);
-                            // 提交成功后刷新表数据
+                            // 提交成功后刷新表数据 (后台刷新, 不阻塞当前 SQL 结果返回)
                             if (result.ok) {
-                              db.loadTableData(table.name);
+                              void db.loadTableData(table.name);
                             }
                             return result;
                           }}

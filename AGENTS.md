@@ -51,6 +51,9 @@ components → hooks → lib → types
 - 违反分层 → CI 阻断（例外清单只减不增，见 `eslint.config.js` boundaries 段）
 - 域目录契约（六域治理, 2026-10-16）: 域目录（ai-family / ide / service-test / design-system 等）同属 components 层, 互引被层级契约允许; **跨域复用逻辑必须下沉 hooks/lib/types**（contracts）, 禁止域间复制粘贴实现; 网络请求统一走 `lib/http.ts`（fetchWithTimeout）或既有 lib 封装, 禁止组件/hooks 直连裸 fetch
 - 硬编码色值基线只减不增: `pnpm color:check`（存量 6080 冻结, 增量必须走 Design Tokens; 迁移批落地后人工下调 `scripts/color-budget.json`）
+- 跨域重复基线只减不增: `pnpm dup:check`（jscpd 5.4.1, clones 106/dupLines 1571 冻结 @ min-tokens 70; 收缩后人工下调 `scripts/dup-budget.json`）
+- 悬空 Promise 零容忍: `pnpm lint:fp`（type-aware 专项 `eslint.fp.config.js`, no-floating-promises; 修复形态 await/.catch/void 前缀——void 仅当被调方自带错误处理）
+- 函数体量冻结线 800 行: eslint `max-lines-per-function`（skipBlankLines/skipComments 口径; 存量王 NetworkConfig 753, 300-700 区间存量走拆分批收缩）
 
 ## 目录导读
 

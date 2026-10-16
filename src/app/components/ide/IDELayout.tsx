@@ -79,7 +79,8 @@ export function IDELayout() {
   }, [layoutMode]);
 
   const handleBack = useCallback(() => {
-    navigate(-1);
+    // react-router 7 navigate 可返回 Promise (viewTransition); 此处同步后退, 显式忽略
+    void navigate(-1);
   }, [navigate]);
 
   const handleFullscreen = useCallback(() => {

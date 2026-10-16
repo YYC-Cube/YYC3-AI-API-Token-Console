@@ -53,7 +53,8 @@ export function useNetworkConfig() {
 
   // 启动时自动检测 (批9: effect 移至 detectNetwork 定义后 — 修复 deps 引用的 TDZ 风险并补齐依赖)
   useEffect(() => {
-    detectNetwork();
+    // detectNetwork 内部 try/catch 自兜底 — fire-and-forget
+    void detectNetwork();
   }, [detectNetwork]);
 
   /** 更新配置字段 */

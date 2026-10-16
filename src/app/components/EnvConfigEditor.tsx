@@ -135,7 +135,8 @@ function FieldRow({ field, value, onSave }: {
   };
 
   const copyValue = () => {
-    navigator.clipboard.writeText(String(value));
+    // 剪贴板权限拒绝不可操作, 静默忽略 — 成功提示按既有交互即时弹出
+    navigator.clipboard.writeText(String(value)).catch(() => {});
     toast.success(`已复制: ${field.key}`);
   };
 

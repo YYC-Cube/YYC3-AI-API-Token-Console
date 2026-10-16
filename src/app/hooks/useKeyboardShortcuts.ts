@@ -100,27 +100,28 @@ export function useKeyboardShortcuts(config: ShortcutConfig = {}) {
         switch (key) {
           case "A":
             e.preventDefault();
-            navigate("/follow-up");
+            // 事件处理器内导航 — fire-and-forget, 路由错误由 router errorElement 兜底
+            void navigate("/follow-up");
             showToast("⚠️ 告警 → 一键跟进");
             return;
           case "P":
             e.preventDefault();
-            navigate("/patrol");
+            void navigate("/patrol");
             showToast("🛡 巡查面板");
             return;
           case "O":
             e.preventDefault();
-            navigate("/operations");
+            void navigate("/operations");
             showToast("⚙️ 操作中心");
             return;
           case "L":
             e.preventDefault();
-            navigate("/terminal");
+            void navigate("/terminal");
             showToast("📋 终端日志");
             return;
           case "F":
             e.preventDefault();
-            navigate("/files");
+            void navigate("/files");
             showToast("📁 文件管理");
             return;
         }

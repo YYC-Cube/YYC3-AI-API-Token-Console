@@ -76,7 +76,8 @@ export function AddModelModal({
   useEffect(() => {
     setSelectedModel("");
     if (selectedProviderId === "ollama") {
-      onFetchOllama(ollamaUrl);
+      // fire-and-forget: fetchOllamaModels (useModelProvider) 内部 try/catch, 失败走 ollamaError + Mock 回退
+      void onFetchOllama(ollamaUrl);
     }
     // 仅在切换 provider 时重置/拉取 — onFetchOllama 身份随 providers 变化, 加入 deps 会在无关变更时误清已选模型
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -196,13 +196,15 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(inputValue);
+      // fire-and-forget: sendMessage 内部仅模拟延迟, 不会 reject, UI 由 isTyping 状态驱动
+      void sendMessage(inputValue);
     }
   };
 
   const executeCommand = (cmd: SystemCommand) => {
     setActiveTab("chat");
-    sendMessage(cmd.action);
+    // fire-and-forget: 同 handleKeyDown, mock 流程无 reject 路径
+    void sendMessage(cmd.action);
   };
 
   const applyPreset = (preset: PromptPreset) => {

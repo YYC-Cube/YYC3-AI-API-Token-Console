@@ -97,7 +97,8 @@ export function useOfflineMode() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      syncOfflineData();
+      // syncOfflineData 内部 try/catch/finally 自兜底 — fire-and-forget
+      void syncOfflineData();
     };
 
     const handleOffline = () => {

@@ -171,7 +171,8 @@ export function SDKChatPanel() {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      // fire-and-forget: sendMessageStream (useBigModelSDK) 内部 catch → setError+错误消息入会话, 流态由 streaming 驱动
+      void handleSend();
     }
   }, [handleSend]);
 

@@ -242,13 +242,13 @@ export function useOperationCenter() {
       steps,
       createdAt: Date.now(),
     };
-    upsertTemplate(newTpl);
+    upsertTemplate(newTpl).catch(() => { /* IndexedDB 写入降级: 内存态已生效 */ });
     toast.success(`模板「${name}」已创建`);
   }, [upsertTemplate]);
 
   // Delete template
   const deleteTemplate = useCallback((templateId: string) => {
-    removeTemplate(templateId);
+    removeTemplate(templateId).catch(() => { /* IndexedDB 删除降级: 内存态已生效 */ });
     toast.info("模板已删除");
   }, [removeTemplate]);
 

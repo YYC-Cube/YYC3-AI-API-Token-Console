@@ -107,9 +107,10 @@ export function usePWAManager() {
 
     const sync = () => {
       if (cancelled) return;
-      detectSWStatus().then(setSWStatus);
-      detectSWVersion().then(setSWVersion);
-      readCacheEntries().then(setCacheEntries);
+      // 三个探测均为尽力而为: 失败保留初始占位 (idle / "—" / []) — 静默降级
+      detectSWStatus().then(setSWStatus).catch(() => undefined);
+      detectSWVersion().then(setSWVersion).catch(() => undefined);
+      readCacheEntries().then(setCacheEntries).catch(() => undefined);
     };
     sync();
 

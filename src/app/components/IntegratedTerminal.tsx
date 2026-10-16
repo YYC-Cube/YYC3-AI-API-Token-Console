@@ -96,7 +96,8 @@ function TerminalTabPane({
 
   const handleNavigate = useCallback(
     (path: string) => {
-      navigate(path);
+      // react-router 7 navigate 可返回 Promise (viewTransition); 此处同步导航, 显式忽略
+      void navigate(path);
     },
     [navigate]
   );

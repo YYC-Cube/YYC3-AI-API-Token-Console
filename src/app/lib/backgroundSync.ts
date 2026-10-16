@@ -52,8 +52,8 @@ export function addToSyncQueue(item: Omit<SyncItem, "id" | "timestamp" | "retrie
   queue.push(syncItem);
   saveSyncQueue(queue);
 
-  // 尝试注册后台同步
-  registerBackgroundSync();
+  // 尝试注册后台同步 (registerBackgroundSync 内部 try/catch 自兜底)
+  void registerBackgroundSync();
   return syncItem;
 }
 

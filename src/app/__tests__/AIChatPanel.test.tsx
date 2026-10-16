@@ -94,14 +94,14 @@ describe("AIChatPanel", () => {
       expect(screen.queryByText(/收到！正在分析/)).not.toBeInTheDocument();
     });
 
-    it("Enter 发送用户消息并清空输入", () => {
+    it("Enter 发送用户消息并清空输入", async () => {
       renderPanel();
       const textarea = screen.getByPlaceholderText("向 AI 提问...") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "请解释这段代码" } });
       fireEvent.keyDown(textarea, { key: "Enter" });
       expect(screen.getByText("请解释这段代码")).toBeInTheDocument();
       expect(textarea.value).toBe("");
-      act(() => vi.advanceTimersByTime(2500));
+      await act(async () => { vi.advanceTimersByTime(2500); });
       expect(screen.getByText(/React 函数组件/)).toBeInTheDocument();
     });
 
@@ -115,13 +115,13 @@ describe("AIChatPanel", () => {
       expect(textarea.value).toBe("草稿内容");
     });
 
-    it("点击发送按钮发送并收到 AI 回复", () => {
+    it("点击发送按钮发送并收到 AI 回复", async () => {
       renderPanel();
       const textarea = screen.getByPlaceholderText("向 AI 提问...") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "请为这段代码生成单元测试" } });
       const [, sendBtn] = getInputAreaButtons(textarea);
       fireEvent.click(sendBtn!);
-      act(() => vi.advanceTimersByTime(2500));
+      await act(async () => { vi.advanceTimersByTime(2500); });
       expect(screen.getByText(/Vitest 单元测试/)).toBeInTheDocument();
     });
 
@@ -131,12 +131,12 @@ describe("AIChatPanel", () => {
       expect(screen.getByText("请解释这段代码的功能和逻辑")).toBeInTheDocument();
     });
 
-    it("非预设问题走通用回复", () => {
+    it("非预设问题走通用回复", async () => {
       renderPanel();
       const textarea = screen.getByPlaceholderText("向 AI 提问...") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "你好呀" } });
       fireEvent.keyDown(textarea, { key: "Enter" });
-      act(() => vi.advanceTimersByTime(2500));
+      await act(async () => { vi.advanceTimersByTime(2500); });
       expect(screen.getByText(/收到！正在分析你的需求/)).toBeInTheDocument();
     });
   });

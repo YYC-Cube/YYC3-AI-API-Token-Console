@@ -1,5 +1,5 @@
 /**
- * useBigModelSDK.test.tsx
+ * useBigModelSDK-behavior.test.tsx
  * =========================
  * useBigModelSDK Hook - BigModel SDK 桥接层行为测试
  *
@@ -12,6 +12,8 @@
  * - abort / resetStats / usageStats 持久化
  *
  * Mock 契约: fetch 经 vi.stubGlobal 注入; Mock 模式延时经 vi.useFakeTimers 推进
+ * 文件名判例 (S8 缺口落地, 2026-10-16): 原名 useBigModelSDK.test.tsx 与同名 .ts 并存时,
+ * TS 程序按模块优先级去重 (.ts 压掉 .tsx) 致本文件长期游离于 tsc 之外 — 改名消歧后恢复类型检查
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -118,7 +120,7 @@ describe("useBigModelSDK", () => {
       act(() => {
         result.current.createSession("m-openai");
       });
-      expect(result.current.sessions[0].title).toContain("Chat");
+      expect(result.current.sessions[0]!.title).toContain("Chat");
     });
 
     it("createSession 应持久化到 localStorage", () => {
@@ -142,7 +144,7 @@ describe("useBigModelSDK", () => {
       localStorage.setItem("yyc3_chat_sessions", JSON.stringify(seeded));
       const { result } = renderHook(() => useBigModelSDK());
       expect(result.current.sessions.length).toBe(1);
-      expect(result.current.sessions[0].id).toBe("s-seed");
+      expect(result.current.sessions[0]!.id).toBe("s-seed");
     });
 
     it("deleteSession 删除活跃会话后 activeSessionId 应置空", () => {
@@ -247,8 +249,8 @@ describe("useBigModelSDK", () => {
       // 会话内追加 user + assistant 两条消息
       const updated = result.current.sessions.find((s) => s.id === session!.id)!;
       expect(updated.messages.length).toBe(2);
-      expect(updated.messages[0].role).toBe("user");
-      expect(updated.messages[1].role).toBe("assistant");
+      expect(updated.messages[0]!.role).toBe("user");
+      expect(updated.messages[1]!.role).toBe("assistant");
     });
 
     it("OpenAI 真实调用应构建 Bearer 请求并解析响应", async () => {
@@ -413,7 +415,7 @@ describe("useBigModelSDK", () => {
         response = await result.current.sendMessageStream(ollamaModel, "hi");
       });
 
-      expect(fetchMock.mock.calls[0][0]).toBe(getOllamaChatUrl());
+      expect(fetchMock.mock.calls[0]![0]).toBe(getOllamaChatUrl());
       expect(response!.content).toBe("你好");
     });
 
@@ -508,7 +510,7 @@ describe("useBigModelSDK", () => {
         res = await result.current.testConnection(ollamaModel);
       });
 
-      expect(fetchMock.mock.calls[0][0]).toBe(getOllamaUrl("tags"));
+      expect(fetchMock.mock.calls[0]![0]).toBe(getOllamaUrl("tags"));
       expect(res!.success).toBe(true);
     });
 

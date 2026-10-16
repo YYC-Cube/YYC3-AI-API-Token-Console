@@ -133,6 +133,8 @@ export function InlineEditableTable({
           .slice(0, 20);
         setCommittedHistory(filtered);
       }
+    }).catch(() => {
+      // IndexedDB 读取失败视为无持久化历史, 保持内存态空列表
     });
   }, [historyLoaded, tableName]);
 
@@ -317,7 +319,8 @@ export function InlineEditableTable({
         rolledBack: false,
       };
       setCommittedHistory(prev => [committed, ...prev].slice(0, 20));
-      persistCommit(committed);
+      // 持久化为尽力而为: 失败仅影响跨会话 Undo 历史, 不打断已成功的提交流程
+      persistCommit(committed).catch(() => {});
 
       const deleteCount = successfulChanges.filter(c => c.type === "delete").length;
       const updateCount = successfulChanges.filter(c => c.type === "update").length;
@@ -387,7 +390,8 @@ export function InlineEditableTable({
       setCommittedHistory(prev =>
         prev.map(c => c.id === commitId ? updated : c)
       );
-      persistCommitUpdate(updated);
+      // 同 persistCommit: 回滚态持久化失败不影响本次会话的 Undo 结果
+      persistCommitUpdate(updated).catch(() => {});
       toast.success(`已回滚 ${successCount} 项变更`);
     } else {
       toast.error(`回滚部分失败: ${successCount} 成功, ${failCount} 失败`);
@@ -425,7 +429,8 @@ export function InlineEditableTable({
         setCommittedHistory(prev =>
           prev.map(c => c.id === commitId ? updated : c)
         );
-        persistCommitUpdate(updated);
+        // 同 persistCommit: 持久化失败不影响本次会话的回滚结果
+        persistCommitUpdate(updated).catch(() => {});
 
         const label = change.type === "delete"
           ? `INSERT ${(change.oldValue as Record<string, unknown>)?.[primaryKey] ?? "?"}`

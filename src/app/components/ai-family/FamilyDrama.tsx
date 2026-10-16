@@ -158,7 +158,8 @@ export function FamilyDrama() {
       const m = await fetchGatewayHealth();
       if (alive) setGwMetrics(m);
     };
-    fetchMetrics();
+    // fetchGatewayHealth 内部 catch → 失败返回 null, 面板按无指标渲染
+    void fetchMetrics();
     const iv = setInterval(fetchMetrics, 30_000);
     return () => { alive = false; clearInterval(iv); };
   }, []);

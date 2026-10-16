@@ -48,6 +48,13 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       // 空块降级为警告（空 catch 为合法静默容错模式）
       "no-empty": ["warn", { allowEmptyCatch: true }],
+      // 函数体量冻结线 (S8 缺口落地, 2026-10-16): 实测存量王 NetworkConfig 753 行
+      // (skipBlankLines/skipComments 口径), 800 = 零命中冻结值 — 新函数不得越线;
+      // 45+ 组件处于 300-700 区间属已知存量, 收缩走拆分批 (AGENTS 门禁段留档)
+      "max-lines-per-function": [
+        "error",
+        { max: 800, skipBlankLines: true, skipComments: true },
+      ],
     },
   },
 

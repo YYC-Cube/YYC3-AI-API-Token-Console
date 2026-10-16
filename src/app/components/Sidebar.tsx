@@ -245,9 +245,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 {/* ── 分类按钮 ── */}
                 <button
                   onClick={() => {
-                    // 点击分类：导航到第一个子项
+                    // 点击分类：导航到第一个子项 (react-router 7 navigate 可能返回 Promise, 显式忽略)
                     const firstChild = cat.children[0];
-                    if (firstChild) navigate(firstChild.path);
+                    if (firstChild) void navigate(firstChild.path);
                   }}
                   className="w-full relative group"
                   style={{ padding: collapsed ? "8px 0" : "6px 10px" }}

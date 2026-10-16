@@ -371,7 +371,7 @@ export function useReportExporter() {
       prependReport(
         { id: data.id, type: data.type, time: data.generatedAt, range: timeRange },
         10,
-      );
+      ).catch(() => { /* IndexedDB 写入降级: 内存报告已生效 */ });
       setIsGenerating(false);
     })();
   }, [reportType, timeRange, prependReport]);

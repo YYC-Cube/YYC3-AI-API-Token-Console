@@ -128,6 +128,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     navigator.clipboard.writeText(report).then(() => {
       this.setState({ copied: true });
       setTimeout(() => this.setState({ copied: false }), 2000);
+    }).catch(() => {
+      // 剪贴板权限拒绝时维持未复制状态, 不额外打扰用户
     });
   };
 
