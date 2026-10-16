@@ -7,6 +7,9 @@
 /** 系统角色 */
 export type UserRole = "admin" | "developer";
 
+/** 服务商标识 — 领域中性定义 (S3 拆环: 原 ai-provider 定义, ui-shared/ai-provider 双向引用成环; 下沉 core 后 ai-provider 重导出保持消费面不变) */
+export type ModelProviderId = string;
+
 /** 认证用户 */
 export interface AppUser {
   id: string;

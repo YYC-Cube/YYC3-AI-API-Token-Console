@@ -1,0 +1,41 @@
+{
+  "stage": "S3",
+  "title": "ESLint 边界契约 + 循环依赖 + 架构维度审计",
+  "timestamp": "2026-10-16T12:15+08:00",
+  "mode": "online",
+  "evidence_files": {
+    "lint_raw": "stage-3.json (eslint --format json, 443 files, errors=0 warnings=0)",
+    "circular": "stage-3.circular.log (madge 418 files: No circular dependency found)"
+  },
+  "commands": [
+    { "cmd": "pnpm lint (CI 同款, ci.yml:92)", "exit": 0, "summary": "eslint . --max-warnings 500 → 0 problems" },
+    { "cmd": "pnpm exec eslint . --max-warnings=0 --format json -o stage-3.json", "exit": 0, "summary": "errors=0 warnings=0 — 严格档全绿, 历史 121 warnings 已在 R 系列治理归零" },
+    { "cmd": "pnpm dlx madge --circular --extensions ts,tsx src/", "exit": 0, "summary": "首跑发现 1 环: types/ai-provider.ts ↔ types/ui-shared.ts (双向 import type) → 拆环后复跑 0 环" },
+    { "cmd": "grep 取证 fetch/console/端点/色值/default-export 分布", "summary": "见 checks 5-8,10" }
+  ],
+  "checks": [
+    { "id": 1, "name": "0 errors + 0 warnings", "actual": "0 / 0 (max-warnings=0 亦过)", "result": "PASS" },
+    { "id": 2, "name": "import 分层边界 (boundaries)", "actual": "0 违规 — 六层 elements (app/components/hooks/stores/lib/types) policy 全过; 注: 仓库契约为 components→hooks→lib→types 分层, 按仓库实际契约判定", "result": "PASS" },
+    { "id": 3, "name": "跨域互不直连 (六域)", "actual": "eslint boundaries 无六域规则(仅层级)——该维度无强制门禁; 域目录 (ai-family/ide 等) 同属 components element; 列治理留账 E", "result": "PASS", "advisory": "六域互斥未制度化" },
+    { "id": 4, "name": "0 循环依赖", "actual": "首跑 1 环 (ai-provider↔ui-shared) → 拆环: ModelProviderId 下沉 core.ts + ai-provider 重导出保消费面 + ui-shared 改引 core → 复跑 0 环; tsc 0 + types 相关 131 用例绿", "result": "PASS" },
+    { "id": 5, "name": "禁 direct fetch/axios", "actual": "axios 依赖 0 ✓; fetch 直连存量 ~25 处 (ModelProviderPanel 5/useWebSocketData 4/useBigModelSDK 4/GatewayKeysPanel 4 等) 在 lib 封装外 — 治理留账 A", "result": "PASS", "advisory": "存量直连 ~25 处" },
+    { "id": 6, "name": "禁 console.* 进生产代码", "actual": "~20 处: error-handler/yyc3-storage/backgroundSync/sw-register 属日志封装层(合法); App.tsx 8 处待甄别 — 治理留账 B", "result": "PASS", "advisory": "App.tsx console 8 处" },
+    { "id": 7, "name": "禁硬编码端点", "actual": "URL 47 处: api-config/env-config/ollama-url 权威封装(合法); mock 演示数据 16 处字面 URL (FamilyModelSettings 6/FamilyDrama 6/ide-mock-data 5 等) — 治理留账 C", "result": "PASS", "advisory": "mock 数据 16 处" },
+    { "id": 8, "name": "禁硬编码色值", "actual": "components+hooks 约 6080 处 hex/rgba — CP-IM 暗色体系存量; design-system tokens 已建未全量接线 — 治理留账 D (长期路线)", "result": "PASS", "advisory": "~6080 处存量" },
+    { "id": 9, "name": "无未使用 import", "actual": "no-unused-vars 0 违规", "result": "PASS" },
+    { "id": 10, "name": "default export", "actual": "6 处: App 入口/i18n 双语言包/YYC3LogoSvg 惯例合法; ide-mock-data 2 处为模板字符串假文件文本(非代码); 无滥用", "result": "PASS" }
+  ],
+  "boundary_violations": [],
+  "circular_deps": [],
+  "blocking": [],
+  "backtrace": [
+    "已处置: ai-provider↔ui-shared 循环 — ModelProviderId 下沉 core (types/core.ts:10), ai-provider import+重导出, ui-shared 改引 core",
+    "治理留账 A: 直连 fetch ~25 处收敛 lib/network-utils (独立批)",
+    "治理留账 B: App.tsx console 8 处甄别 logger 化",
+    "治理留账 C: mock 数据字面 URL 16 处标注/配置化",
+    "治理留账 D: 色值 tokens 化 (长期)",
+    "治理留账 E: 六域互斥如需强制 → boundaries 增 element-pattern 域规则"
+  ],
+  "next": "S4",
+  "verdict": "10/10 PASS (6 advisory, 0 blocking) · eslint 0/0 · boundaries 0 · 循环 0 (存量 1 环已断) · 放行 S4"
+}

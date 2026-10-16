@@ -3,8 +3,8 @@
  * Facade+Siblings 拆分产物 (§6.6, 2026-09-20): 自 types/index.ts 迁入,
  * 经 index.ts Facade 重导出, 消费方 import 路径不变。
  */
-import type { ModelProviderId } from "./ai-provider";
-import type { BaseSeverity } from "./core";
+// S3 拆环: ModelProviderId 改从 core 引入 (原 ./ai-provider 与该文件互引成环)
+import type { BaseSeverity, ModelProviderId } from "./core";
 
 /**
  * ============================================================

@@ -11,8 +11,9 @@ import type { ChatMessage } from "./ui-shared";
  * ============================================================
  */
 
-/** 服务商标识 — 改为 string 以支持自定义服务商 */
-export type ModelProviderId = string;
+// S3 拆环: ModelProviderId 定义下沉 core.ts (本文件曾与 ui-shared 互引成环); 重导出保持消费面不变
+import type { ModelProviderId } from "./core";
+export type { ModelProviderId };
 
 /** 服务商定义 */
 export interface ModelProviderDef {
