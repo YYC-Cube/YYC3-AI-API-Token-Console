@@ -6,6 +6,26 @@
 
 ---
 
+## 批次 R11（已完成 · 2026-10-16）: 15 阶段全链审计 + 留账清偿 + 缓办推进
+
+**范围**: S1-S15 全链闭环审计（两次 BLOCKED→修复复跑: S1 环境 prometheus / S2 双旗标 764→0）+ S3 六留账闭环 + S7/S8 缺口三门禁落地（lint:fp/dup:check/函数冻结线）+ 缓办推进（0% 覆盖清零 / 色值首片 / boot 三环校验）。提交链 136fbec→e6f9fb1 约 30 笔（另后端 037dac3）。
+
+### 关键交付
+
+- **门禁增强**: noUncheckedIndexedAccess+exactOptionalPropertyTypes 全仓固化 (S2); eslint.fp.config.js 悬空 Promise 专项 78→0; color:check (6080→6011 首降) + dup:check (生产码口径 15/237) + max-lines-per-function 800 三基线门禁; guardrail-probe 5→15 探针 (7 规则×双语言, 两 warning 级升 error)
+- **鉴权增强**: jti 吊销 (logout 后旧 Cookie 401 NAS 实测) + console-audit.log 登录审计 JSONL; NAS ops.mjs boot 三环校验 (cron→resurrect→dump)
+- **覆盖跃升**: branches 80.29→**86.22** / lines 95.19 (+341 用例, 0% 文件清零); e2e 7/7; 15/15 探针
+- **盲区修复**: useBigModelSDK.test.tsx 同名 .ts/.tsx 并存被 TS 程序去重 (游离 tsc 外, 改名现形 6 处 TS2532); gitleaks 豁免条目④路径漂移 (归档迁移); 后端 compose prometheus 三重漂移对齐
+
+### 剩余缓办
+
+见 `docs/audit/20261016T2200-backlog/deferred-items.json`（DEF-01~06, 均附硬理由与重启条件; 核心两项: 色值存量 6011 分批 / @reboot 自然重启终验）。
+
+---
+
+
+---
+
 ## 批次 R10（已完成 · 2026-10-16）: 「打不开」事件闭环 — 重启自愈 + 运维交互台
 
 **范围**: 用户报障 `http://192.168.3.45:3210/console 打不开`。链式诊断（证据链 `docs/audit/20261016T0832-nas-console-incident/stage-1~4.json`）→ 修复 → 运维脚本固化。
