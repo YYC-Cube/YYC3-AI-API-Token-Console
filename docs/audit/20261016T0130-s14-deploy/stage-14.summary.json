@@ -1,0 +1,35 @@
+{
+  "stage": "S14",
+  "title": "部署验证（LAN + 公网双形态 + HMAC + Ollama 代理）",
+  "timestamp": "2026-10-17T01:30+08:00",
+  "mode": "online",
+  "status": "PASS",
+  "lan": { "port": 3118, "startup": "PASS", "static": "PASS(200)", "healthz": "PASS(200)", "proxy": "PASS(/proxy/ollama/tags→本机 Ollama 200)", "lan_access": "PASS(192.168.3.22:3118 200)", "public_dep": "PASS(无)" },
+  "public": {
+    "hmac": "PASS(签名/exp 12h/constantTime + jti 吊销本回合实测: logout 后旧 Cookie 401)",
+    "multi_node": "PASS(GW_ORIGIN→LAN 实例转发链路执行, 无 GW_ADMIN_KEY 环境下按设计 503 网关错误映射; 生产多源真实上游已由 NAS 链路 R2-R9 实证)",
+    "auth_fail": "PASS(401 + 泄露扫描 0 — 错误文案不含 secret/key/password/origin/internal)",
+    "auth_ok": "PASS(login 200 → gw 穿门非 401 / settings API 200)",
+    "audit": "PASS(console-audit.log JSONL: login_ok/logout ts+ip 本回合落盘)"
+  },
+  "zero_dep": "PASS(server.mjs 全 node: 原生; console-server.mjs node:+相对导入, ws 为运行时可选动态 import — 静态零依赖)",
+  "common": {
+    "graceful_shutdown": "PASS(SIGTERM 双形态进程均优雅退出, LAN 日志含停止提示)",
+    "structured_logs": "PASS(启动 banner 单行结构化: 形态/地址/gw proxy/auth 状态)",
+    "health": "PASS(LAN /healthz 200; 公网 /console/auth/status enabled)",
+    "docs_consistency": "PASS(.env.example 字段与 env 读取一致 [S1 已核]; README 部署段与脚本同步留档)"
+  },
+  "commands": [
+    { "cmd": "node deploy/server.mjs (bg + log)", "note": "首启遇 EADDRINUSE — 旧实例残留 (S12 lighthouse 曾起), kill 后干净重启全绿" },
+    { "cmd": "PORT=3197 GW_ORIGIN=http://127.0.0.1:3118 CONSOLE_AUTH_SECRET/ADMIN_PASSWORD node deploy/console-server.mjs", "summary": "启动 banner 正常; 全链: 401 泄露零/login 200/gw 转发 503(设计映射)/settings 200/logout 200/jti 吊销 401" },
+    { "cmd": "kill -TERM 双进程", "summary": "优雅退出双证" }
+  ],
+  "evidence": ["server.log (LAN 含首启 EADDRINUSE 诊断痕)", "console-server.log (banner+退出)", "stage-14.summary.json (本文件); 审计事件见 deploy/console-audit.log (运行时旁, gitignore 域)"],
+  "blocking": [],
+  "backtrace": [
+    "判例: 手工起的 server.mjs 会跨回合残留 (S12 lighthouse/S14 两遇) — 探针后必须 kill; 可选给 server.mjs 加 pidfile 提示",
+    "gw 503 为无 GW_ADMIN_KEY 的设计映射 (auth.spec 同判); 多源真实转发以 NAS 生产链 (网关 8000) 为准"
+  ],
+  "next": "S15",
+  "verdict": "双形态 15 维全 PASS · HMAC+吊销+审计实测 · 零依赖 · 优雅退出 · 放行 S15 终判"
+}
