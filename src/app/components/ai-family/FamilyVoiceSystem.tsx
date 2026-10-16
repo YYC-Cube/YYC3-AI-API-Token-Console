@@ -159,7 +159,7 @@ function VoiceCard({
   const rgb = hexToRgb(member.color);
 
   return (
-    <GlassCard className="p-0 overflow-hidden" glowColor={isPlaying ? `rgba(${rgb},0.2)` : undefined}>
+    <GlassCard className="p-0 overflow-hidden" {...(isPlaying ? { glowColor: `rgba(${rgb},0.2)` } : {})}>
       {/* Header */}
       <div className="flex items-center gap-3 p-3">
         <div
@@ -259,7 +259,7 @@ function VoiceCard({
                 onClick={() => {
                   const text = label === "问候语" ? member.greeting
                     : label === "关爱播报" ? member.careMessage
-                      : (AI_RESPONSES[member.id]?.[Math.floor(Math.random() * AI_RESPONSES[member.id].length)] || member.quote);
+                      : (AI_RESPONSES[member.id]?.[Math.floor(Math.random() * (AI_RESPONSES[member.id]?.length ?? 0))] || member.quote);
                   speak(text, profile);
                 }}
                 className="px-2 py-1 rounded bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-white/60 hover:bg-white/[0.08] transition-all"
@@ -329,8 +329,8 @@ function VoiceConversationPanel({
       let interim = "";
       let final = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
+        const t = event.results[i]?.[0].transcript ?? "";
+        if (event.results[i]?.isFinal) {
           final += t;
         } else {
           interim += t;
@@ -383,7 +383,7 @@ function VoiceConversationPanel({
 
     // Pick a random AI response
     const responses = AI_RESPONSES[member.id] || [member.greeting];
-    const aiText = responses[Math.floor(Math.random() * responses.length)];
+    const aiText = responses[Math.floor(Math.random() * responses.length)] ?? "";
 
     // Simulate thinking delay
     setTimeout(() => {
@@ -576,7 +576,7 @@ export function FamilyVoiceSystem() {
   }, []);
 
   const handlePlay = useCallback((member: FamilyMember) => {
-    const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0];
+    const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0]!;  // 字面量表直取
     setPlayingMemberId(member.id);
     speak(member.greeting, profile, () => setPlayingMemberId(null));
   }, [profiles]);
@@ -588,7 +588,7 @@ export function FamilyVoiceSystem() {
 
   const handleCarePlay = useCallback(() => {
     const care = getHourlyCare();
-    const profile = profiles.find(p => p.memberId === care.member.id) || DEFAULT_VOICE_PROFILES[0];
+    const profile = profiles.find(p => p.memberId === care.member.id) || DEFAULT_VOICE_PROFILES[0]!;  // 字面量表直取
     setPlayingMemberId(care.member.id);
     speak(care.message, profile, () => setPlayingMemberId(null));
   }, [profiles]);
@@ -596,7 +596,7 @@ export function FamilyVoiceSystem() {
   // Broadcast all (sequential)
   const handleBroadcastAll = useCallback(async () => {
     for (const member of FAMILY_MEMBERS) {
-      const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0];
+      const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0]!;  // 字面量表直取
       setPlayingMemberId(member.id);
       await new Promise<void>(resolve => {
         speak(`${member.shortName}：${member.careMessage}`, profile, resolve);
@@ -701,8 +701,8 @@ export function FamilyVoiceSystem() {
           <FadeIn delay={0.05}>
             <div className="mb-6">
               <VoiceConversationPanel
-                member={FAMILY_MEMBERS.find(m => m.id === conversationMemberId) || FAMILY_MEMBERS[0]}
-                profile={profiles.find(p => p.memberId === conversationMemberId) || DEFAULT_VOICE_PROFILES[0]}
+                member={FAMILY_MEMBERS.find(m => m.id === conversationMemberId) || FAMILY_MEMBERS[0]!}
+                profile={profiles.find(p => p.memberId === conversationMemberId) || DEFAULT_VOICE_PROFILES[0]!}
                 conversations={conversations}
                 onClose={() => setConversationMemberId(null)}
                 onNewConversation={handleNewConversation}
@@ -714,7 +714,7 @@ export function FamilyVoiceSystem() {
         {/* Voice cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {FAMILY_MEMBERS.map((member, i) => {
-            const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[i];
+            const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[i]!;  // 索引与 8 位成员一一对齐
             return (
               <VoiceCard
                 key={member.id}

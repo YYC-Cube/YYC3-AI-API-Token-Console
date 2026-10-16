@@ -260,7 +260,7 @@ describe("ModelProviderPanel 扩展覆盖", () => {
   it("展开后点击编辑应打开编辑弹窗 (内置服务商)", () => {
     renderPanel();
     fireEvent.click(screen.getByText("展开"));
-    fireEvent.click(screen.getAllByTitle("编辑服务商")[0]);
+    fireEvent.click(screen.getAllByTitle("编辑服务商")[0]!);
     expect(screen.getByText("编辑服务商")).toBeInTheDocument();
     expect(screen.getByText("内置服务商名称不可修改")).toBeInTheDocument();
   });
@@ -268,7 +268,7 @@ describe("ModelProviderPanel 扩展覆盖", () => {
   it("推送到网关应走 fetch 并显示同步结果", async () => {
     renderPanel();
     fireEvent.click(screen.getByText("展开"));
-    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]);
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
     // 默认 adminKey="proxy" → 走 POST 分支, mocked fetch 返回 ok
     expect(
       await screen.findByText(/已同步到网关：console-zhipu/, {}, { timeout: 3000 })

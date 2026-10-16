@@ -464,7 +464,7 @@ export function DatabaseManager() {
                         </div>
                       ) : db.tableData.length > 0 ? (
                         <InlineEditableTable
-                          columns={Object.keys(db.tableData[0])}
+                          columns={Object.keys(db.tableData[0] ?? {})}
                           rows={db.tableData}
                           tableName={table.name}
                           primaryKey={table.columns.find(c => c.isPrimaryKey)?.name || "id"}

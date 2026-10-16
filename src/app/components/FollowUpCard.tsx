@@ -84,7 +84,7 @@ export function FollowUpCard({
   return (
     <GlassCard
       className="overflow-hidden"
-      glowColor={item.severity === "critical" ? "rgba(255,51,102,0.08)" : undefined}
+      {...(item.severity === "critical" ? { glowColor: "rgba(255,51,102,0.08)" } : {})}
     >
       {/* Severity strip */}
       <div
@@ -207,9 +207,9 @@ export function FollowUpCard({
         {/* Quick Actions - always visible */}
         <QuickActionGroup
           compact
-          onViewDetail={onOpenDrawer ? () => onOpenDrawer(item) : undefined}
-          onQuickFix={onQuickFix ? () => onQuickFix(item) : undefined}
-          onMarkResolved={onMarkResolved ? () => onMarkResolved(item) : undefined}
+          {...(onOpenDrawer ? { onViewDetail: () => onOpenDrawer(item) } : {})}
+          {...(onQuickFix ? { onQuickFix: () => onQuickFix(item) } : {})}
+          {...(onMarkResolved ? { onMarkResolved: () => onMarkResolved(item) } : {})}
         />
 
         {/* Expanded: Operation Chain */}

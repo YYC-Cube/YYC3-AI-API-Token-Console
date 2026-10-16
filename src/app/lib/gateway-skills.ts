@@ -288,8 +288,8 @@ export async function runGatewaySkill(
     }
     const r = await fetch(url, {
       method: skill.method,
-      headers,
-      body,
+      ...(headers !== undefined && { headers }),
+      ...(body !== undefined && { body }),
       signal: AbortSignal.timeout(30_000),
     });
     if (!r.ok) {

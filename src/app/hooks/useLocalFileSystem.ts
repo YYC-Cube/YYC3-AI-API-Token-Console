@@ -155,8 +155,9 @@ function findItem(tree: FileItem[], id: string): FileItem | null {
 
 function removeItem(tree: FileItem[], id: string): boolean {
   for (let i = 0; i < tree.length; i++) {
-    if (tree[i].id === id) { tree.splice(i, 1); return true; }
-    if (tree[i].children && removeItem(tree[i].children!, id)) return true;
+    const item = tree[i];
+    if (item?.id === id) { tree.splice(i, 1); return true; }
+    if (item?.children && removeItem(item.children, id)) return true;
   }
   return false;
 }
@@ -186,12 +187,12 @@ function generateMockLogs(count: number = 50): LogEntry[] {
   ];
 
   return Array.from({ length: count }, (_, i) => {
-    const m = messages[i % messages.length];
+    const m = messages[i % messages.length]!;
     return {
       id: `log-${i}`,
       timestamp: now - i * 120000 - Math.random() * 60000,
       level: m.level,
-      source: sources[i % sources.length],
+      source: sources[i % sources.length] ?? "",
       message: m.msg,
     };
   });

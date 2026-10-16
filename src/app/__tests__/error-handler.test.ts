@@ -168,8 +168,8 @@ describe("error-handler", () => {
       captureError(new Error("second"), { silent: true });
 
       const log = getErrorLog();
-      expect(log[0].message).toBe("second");
-      expect(log[1].message).toBe("first");
+      expect(log[0]!.message).toBe("second");
+      expect(log[1]!.message).toBe("first");
     });
 
     it("clearErrorLog 应清空日志", () => {
@@ -223,6 +223,14 @@ describe("error-handler", () => {
       expect(error).not.toBeNull();
       expect(error!.message).toBe("async error");
     });
+
+    it("失败且携带 source 时应传播到 AppError.source", async () => {
+      const [, error] = await trySafe(async () => {
+        throw new Error("async with source");
+      }, "useWebSocketData");
+      expect(error).not.toBeNull();
+      expect(error!.source).toBe("useWebSocketData");
+    });
   });
 
   describe("trySafeSync", () => {
@@ -238,6 +246,14 @@ describe("error-handler", () => {
       });
       expect(data).toBeNull();
       expect(error!.message).toBe("sync error");
+    });
+
+    it("失败且携带 source 时应传播到 AppError.source", () => {
+      const [, error] = trySafeSync(() => {
+        throw new Error("sync with source");
+      }, "useTerminal");
+      expect(error).not.toBeNull();
+      expect(error!.source).toBe("useTerminal");
     });
   });
 
@@ -389,7 +405,7 @@ describe("error-handler", () => {
 
       const log = getErrorLog();
       expect(log).toHaveLength(1);
-      expect(log[0].message).toBe("quota test");
+      expect(log[0]!.message).toBe("quota test");
     });
 
     it("localStorage 完全不可写时静默失败", () => {
@@ -546,7 +562,16 @@ describe("error-handler", () => {
 
       const log = getErrorLog();
       expect(log).toHaveLength(1);
-      expect(log[0].message).toBe("plain failure");
+      expect(log[0]!.message).toBe("plain failure");
+    });
+
+    it("空事件(error/message/filename 全缺)不崩溃且按 UNKNOWN 记录", () => {
+      clearErrorLog();
+      handlers["error"]!({ lineno: 0, colno: 0 });
+
+      const log = getErrorLog();
+      expect(log).toHaveLength(1);
+      expect(log[0]!.category).toBe("RUNTIME");
     });
 
     it("Figma 平台错误被过滤，不写入日志", () => {
@@ -596,7 +621,7 @@ describe("error-handler", () => {
 
       const log = getErrorLog();
       expect(log).toHaveLength(1);
-      expect(log[0].message).toBe("未知错误");
+      expect(log[0]!.message).toBe("未知错误");
     });
   });
 });

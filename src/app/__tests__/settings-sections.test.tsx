@@ -142,8 +142,8 @@ describe("settings/shared", () => {
         "general", "network", "cluster", "model", "storage", "websocket",
         "ai", "pwa", "security", "notification", "env", "advanced",
       ]);
-      expect(settingsSections[0].labelKey).toBe("settings.general");
-      expect(settingsSections[11].labelKey).toBe("settings.advanced");
+      expect(settingsSections[0]?.labelKey).toBe("settings.general");
+      expect(settingsSections[11]?.labelKey).toBe("settings.advanced");
     });
 
     it("每个分区都有图标组件", () => {
@@ -206,7 +206,7 @@ describe("settings/shared", () => {
       const input = screen.getByDisplayValue("s3cret");
       expect(input).toHaveAttribute("type", "password");
       // 点击可见性切换按钮 (行内第二个按钮)
-      const eyeBtn = container.querySelectorAll("button")[1];
+      const eyeBtn = container.querySelectorAll("button")[1]!;
       fireEvent.click(eyeBtn);
       expect(screen.getByDisplayValue("s3cret")).toHaveAttribute("type", "text");
     });
@@ -550,8 +550,8 @@ describe("sections-admin", () => {
       const p = makeProps();
       render(<NotificationSection {...p} />);
       const sliders = screen.getAllByRole("slider");
-      fireEvent.change(sliders[0], { target: { value: "95" } });
-      fireEvent.change(sliders[1], { target: { value: "75" } });
+      fireEvent.change(sliders[0]!, { target: { value: "95" } });
+      fireEvent.change(sliders[1]!, { target: { value: "75" } });
       expect(p.updateValue).toHaveBeenCalledWith("alertGpuThreshold", "95");
       expect(p.updateValue).toHaveBeenCalledWith("alertTempThreshold", "75");
     });
@@ -654,7 +654,7 @@ describe("settings 扩展覆盖", () => {
       );
       const row = rowOf("数据库密码");
       fireEvent.click(row.querySelector("button")!);
-      const eyeBtn = container.querySelectorAll("button")[1];
+      const eyeBtn = container.querySelectorAll("button")[1]!;
       fireEvent.click(eyeBtn); // 显示明文
       expect(screen.getByDisplayValue("s3cret")).toHaveAttribute("type", "text");
       fireEvent.click(eyeBtn); // 再次隐藏

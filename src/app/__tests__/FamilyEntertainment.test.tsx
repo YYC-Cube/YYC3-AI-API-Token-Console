@@ -34,7 +34,7 @@ describe("ai-family/FamilyEntertainment", () => {
     renderPage();
     expect(screen.getByText("文娱中心")).toBeInTheDocument();
     expect(screen.getByText("琴棋书画 · 对弈切磋 · 才艺鉴赏 · 家人广播")).toBeInTheDocument();
-    const care = FAMILY_MEMBERS[new Date().getHours() % FAMILY_MEMBERS.length];
+    const care = FAMILY_MEMBERS[new Date().getHours() % FAMILY_MEMBERS.length]!;
     expect(screen.getByText(care.careMessage)).toBeInTheDocument();
     expect(screen.getByText("五子棋")).toBeInTheDocument();
     expect(screen.getByText("与万物对弈，策略博弈")).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe("ai-family/FamilyEntertainment", () => {
     expect(cells).toHaveLength(81);
 
     // 玩家落子 (黑)
-    fireEvent.click(cells[0]);
+    fireEvent.click(cells[0]!);
     expect(cells[0]).toBeDisabled();
     expect(board.querySelectorAll("button > div")).toHaveLength(1);
     expect(screen.getByText("思考中...")).toBeInTheDocument(); // aiThinking
@@ -77,7 +77,7 @@ describe("ai-family/FamilyEntertainment", () => {
     fireEvent.click(screen.getByText("五子棋"));
     const board = document.querySelector("div.inline-grid") as HTMLElement;
     const cells = within(board).getAllByRole("button");
-    fireEvent.click(cells[10]);
+    fireEvent.click(cells[10]!);
     expect(cells[10]).toBeDisabled();
     expect(board.querySelectorAll("button > div")).toHaveLength(1);
   });
@@ -88,7 +88,7 @@ describe("ai-family/FamilyEntertainment", () => {
     renderPage();
     fireEvent.click(screen.getByText("五子棋"));
     const board = document.querySelector("div.inline-grid") as HTMLElement;
-    fireEvent.click(within(board).getAllByRole("button")[5]);
+    fireEvent.click(within(board).getAllByRole("button")[5]!);
     act(() => { vi.advanceTimersByTime(1_100); }); // 等 AI 落子完成
     expect(screen.getByTitle("重新开始")).toBeInTheDocument();
     fireEvent.click(screen.getByTitle("重新开始"));
@@ -117,6 +117,6 @@ describe("ai-family/FamilyEntertainment", () => {
       expect(screen.getByText(m.name)).toBeInTheDocument();
     }
     // personality 渲染带 "—— " 前缀, 用正则匹配
-    expect(screen.getByText(new RegExp(FAMILY_MEMBERS[0].personality))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(FAMILY_MEMBERS[0]!.personality))).toBeInTheDocument();
   });
 });

@@ -54,7 +54,7 @@ describe("Security Monitor 类型定义", () => {
       recommendations: ["test"],
       score: 85,
     };
-    expect(csp.directives[0].status).toBe("pass");
+    expect(csp.directives[0]!.status).toBe("pass");
     expect(csp.score).toBe(85);
   });
 

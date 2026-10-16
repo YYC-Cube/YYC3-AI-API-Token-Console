@@ -216,7 +216,7 @@ describe("AlertRulesPanel 扩展覆盖", () => {
     renderWithProviders(<AlertRulesPanel />);
     // 默认启用的规则 title 为 禁用
     expect(screen.getAllByTitle("禁用").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByTitle("禁用")[0]);
+    fireEvent.click(screen.getAllByTitle("禁用")[0]!);
     // 切换后出现 启用 title
     expect(screen.getAllByTitle("启用").length).toBeGreaterThan(0);
   });
@@ -227,7 +227,7 @@ describe("AlertRulesPanel 扩展覆盖", () => {
       .getByTestId("edit-rule-rule-001")
       .parentElement!;
     const buttons = within(actions).queryAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]); // 删除按钮 (无 title, 最后一个)
+    fireEvent.click(buttons[buttons.length - 1]!); // 删除按钮 (无 title, 最后一个)
     expect(screen.queryByText("GPU 利用率过高")).not.toBeInTheDocument();
   });
 
@@ -238,7 +238,7 @@ describe("AlertRulesPanel 扩展覆盖", () => {
     expect(screen.getByText("升级策略")).toBeInTheDocument();
     expect(screen.getByText("目标节点")).toBeInTheDocument();
     // 抽屉头部关闭按钮
-    const drawerName = screen.getAllByText("GPU 利用率过高")[1];
+    const drawerName = screen.getAllByText("GPU 利用率过高")[1]!;
     fireEvent.click(drawerName.closest("div.justify-between")!.querySelector("button")!);
     expect(screen.queryByText("阈值配置")).not.toBeInTheDocument();
   });
@@ -248,7 +248,7 @@ describe("AlertRulesPanel 扩展覆盖", () => {
     fireEvent.click(screen.getByText("告警事件"));
     const before = screen.getAllByText("确认").length;
     expect(before).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByText("确认")[0]);
+    fireEvent.click(screen.getAllByText("确认")[0]!);
     expect(screen.getAllByText("确认").length).toBe(before - 1);
   });
 
@@ -257,7 +257,7 @@ describe("AlertRulesPanel 扩展覆盖", () => {
     fireEvent.click(screen.getByText("告警事件"));
     const before = screen.getAllByText("解决").length;
     expect(before).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByText("解决")[0]);
+    fireEvent.click(screen.getAllByText("解决")[0]!);
     expect(screen.getAllByText("解决").length).toBe(before - 1);
   });
 

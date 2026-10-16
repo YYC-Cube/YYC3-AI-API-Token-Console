@@ -83,7 +83,7 @@ describe("ai-family/FamilyCommCenter", () => {
 
   it("成员过滤: 仅保留与该家人相关的消息 (含 @全家 广播)", () => {
     render(<FamilyCommCenter />);
-    fireEvent.click(screen.getAllByText("千行")[0]); // 筛选按钮 (消息气泡发送者名同文本)
+    fireEvent.click(screen.getAllByText("千行")[0]!); // 筛选按钮 (消息气泡发送者名同文本)
     // msg-003 (from 千行) + msg-004 (to 千行) + 5 条 @全家 广播
     expect(screen.getByText("共 7 条")).toBeInTheDocument();
     expect(screen.getByText(/刚写了一首关于春天的小诗/)).toBeInTheDocument();
@@ -185,8 +185,8 @@ describe("ai-family/FamilyCommCenter", () => {
     render(<FamilyCommCenter />);
     const selects = document.querySelectorAll("select");
     expect(selects).toHaveLength(2); // sendAs / sendTo
-    fireEvent.change(selects[0], { target: { value: "sentinel" } });
-    fireEvent.change(selects[1], { target: { value: "master" } });
+    fireEvent.change(selects[0]!, { target: { value: "sentinel" } });
+    fireEvent.change(selects[1]!, { target: { value: "master" } });
     fireEvent.change(screen.getByPlaceholderText("输入消息..."), { target: { value: "点对点" } });
     fireEvent.click(document.querySelector("button svg.lucide-send")!.closest("button") as HTMLButtonElement);
     // 点对点回复仅来自 master

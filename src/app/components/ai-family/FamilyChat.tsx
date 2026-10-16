@@ -109,12 +109,12 @@ export function FamilyChat() {
       const withUser = [...prev, userMsg];
       // P2: 异步真实回复在 setState 外发起 (闭包捕获 withUser 作对话上下文)
       const responderId = activeChannel === "family-group"
-        ? FAMILY_MEMBERS[Math.floor(Math.random() * FAMILY_MEMBERS.length)].id
+        ? FAMILY_MEMBERS[Math.floor(Math.random() * FAMILY_MEMBERS.length)]?.id ?? "meta-oracle"
         : activeChannel;
       void (async () => {
         const real = await fetchMemberReply(responderId, withUser);
-        const responses = AI_RESPONSES[responderId] || AI_RESPONSES["meta-oracle"];
-        const responseText = real ?? responses[Math.floor(Math.random() * responses.length)];
+        const responses = AI_RESPONSES[responderId] || AI_RESPONSES["meta-oracle"]!;
+        const responseText = real ?? responses[Math.floor(Math.random() * responses.length)] ?? "";
         const replyTime = new Date();
         const replyTimeStr = `${replyTime.getHours().toString().padStart(2, "0")}:${replyTime.getMinutes().toString().padStart(2, "0")}`;
         setMessages(cur => [...cur, {

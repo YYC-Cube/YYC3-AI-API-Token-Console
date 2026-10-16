@@ -114,7 +114,7 @@ export function getErrorStats(): ErrorStats {
     byCategory,
     bySeverity,
     unresolvedCount,
-    lastErrorTime: log.length > 0 ? log[0].timestamp : null,
+    lastErrorTime: log.length > 0 ? log[0]?.timestamp ?? null : null,
   };
 }
 
@@ -182,14 +182,15 @@ export function captureError(
 ): AppError {
   const auto = categorizeError(error);
 
+  const stack = extractStack(error);
   const appError: AppError = {
     id: generateErrorId(),
     category: options.category || auto.category,
     severity: options.severity || auto.severity,
     message: extractMessage(error),
-    stack: extractStack(error),
-    source: options.source,
-    userAction: options.userAction,
+    ...(stack !== undefined && { stack }),
+    ...(options.source !== undefined && { source: options.source }),
+    ...(options.userAction !== undefined && { userAction: options.userAction }),
     timestamp: Date.now(),
     resolved: false,
   };
@@ -285,7 +286,7 @@ export async function trySafe<T>(
     const result = await fn();
     return [result, null];
   } catch (err) {
-    const appError = captureError(err, { source });
+    const appError = captureError(err, { ...(source !== undefined && { source }) });
     return [null, appError];
   }
 }
@@ -301,7 +302,7 @@ export function trySafeSync<T>(
     const result = fn();
     return [result, null];
   } catch (err) {
-    const appError = captureError(err, { source });
+    const appError = captureError(err, { ...(source !== undefined && { source }) });
     return [null, appError];
   }
 }

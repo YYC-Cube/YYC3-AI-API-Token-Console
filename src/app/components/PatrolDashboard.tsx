@@ -39,7 +39,7 @@ export function PatrolDashboard() {
     updateInterval,
     viewReport,
     closeReport,
-  } = usePatrol({ onCritical: wsData?.pushLocalAlert });
+  } = usePatrol({ ...(wsData ? { onCritical: wsData.pushLocalAlert } : {}) });
 
   const [showScheduler, setShowScheduler] = React.useState(false);
 

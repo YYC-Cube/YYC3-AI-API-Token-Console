@@ -177,7 +177,7 @@ export function getMember(id: string): FamilyMember | undefined {
 export function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return "0,212,255";
-  return `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`;
+  return `${parseInt(result[1]!, 16)},${parseInt(result[2]!, 16)},${parseInt(result[3]!, 16)}`;
 }
 
 export function getGreeting(now: Date): { text: string; emoji: string } {
@@ -195,7 +195,7 @@ export function getGreeting(now: Date): { text: string; emoji: string } {
 export function getHourlyCare(): { member: FamilyMember; message: string } {
   const h = new Date().getHours();
   const idx = h % FAMILY_MEMBERS.length;
-  const m = FAMILY_MEMBERS[idx];
+  const m = FAMILY_MEMBERS[idx]!;  // 模取值恒在字面量表内
   return { member: m, message: m.careMessage };
 }
 
@@ -255,7 +255,7 @@ export interface BroadcastSegment {
 
 export function getTodayReporter(): FamilyMember {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  return FAMILY_MEMBERS[dayOfYear % FAMILY_MEMBERS.length];
+  return FAMILY_MEMBERS[dayOfYear % FAMILY_MEMBERS.length]!;  // 模取值恒在字面量表内
 }
 
 export function generateDailyBroadcast(): DailyBroadcast {
@@ -316,7 +316,7 @@ export function generateDailyBroadcast(): DailyBroadcast {
     id: `broadcast-${Date.now()}`,
     date: today,
     reporter,
-    headline: headlines[reporter.id] || headlines["navigator"],
+    headline: headlines[reporter.id] || headlines["navigator"]!,  // 有限键 Record 直取
     segments,
   };
 }
@@ -524,7 +524,7 @@ export function buildMemberSystemPrompt(memberId: string): string {
 export function memberModelId(memberId: string): string {
   return (
     DEFAULT_MODEL_ASSIGNMENTS.find((a) => a.memberId === memberId)?.modelId
-    ?? DEFAULT_MODEL_ASSIGNMENTS[1].modelId
+    ?? DEFAULT_MODEL_ASSIGNMENTS[1]!.modelId  // 字面量表直取 (thinker 回退)
   );
 }
 

@@ -144,7 +144,7 @@ describe("network-utils", () => {
         expect.any(String)
       );
 
-      const saved = JSON.parse(localStorageMock.setItem.mock.calls[0][1]);
+      const saved = JSON.parse(localStorageMock.setItem.mock.calls[0]![1]);
       expect(saved.serverAddress).toBe("172.16.0.100");
     });
   });
@@ -423,7 +423,7 @@ describe("network-utils", () => {
       vi.stubGlobal("RTCPeerConnection", undefined);
       vi.stubGlobal("navigator", { onLine: false });
       const list = await getNetworkInterfaces();
-      expect(list[0].status).toBe("inactive");
+      expect(list[0]?.status).toBe("inactive");
       vi.unstubAllGlobals();
     });
 
@@ -449,8 +449,8 @@ describe("network-utils", () => {
       vi.stubGlobal("RTCPeerConnection", undefined);
       vi.stubGlobal("navigator", { onLine: true, connection: { type: "wifi" } });
       const list = await getNetworkInterfaces();
-      expect(list[0].name).toBe("wlan0");
-      expect(list[0].type).toBe("WiFi");
+      expect(list[0]?.name).toBe("wlan0");
+      expect(list[0]?.type).toBe("WiFi");
       vi.unstubAllGlobals();
     });
 
@@ -461,8 +461,8 @@ describe("network-utils", () => {
         connection: { effectiveType: "3g", type: "cellular" },
       });
       const list = await getNetworkInterfaces();
-      expect(list[0].name).toBe("en0");
-      expect(list[0].type).toBe("有线以太网");
+      expect(list[0]?.name).toBe("en0");
+      expect(list[0]?.type).toBe("有线以太网");
       vi.unstubAllGlobals();
     });
   });

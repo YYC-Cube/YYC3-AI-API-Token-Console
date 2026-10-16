@@ -135,13 +135,13 @@ describe("useOperationCenter", () => {
         result.current.addTemplate("测试模板", "测试用", "system", ["步骤1", "步骤2"]);
       });
       expect(result.current.templates.length).toBe(before + 1);
-      expect(result.current.templates[result.current.templates.length - 1].name).toBe("测试模板");
+      expect(result.current.templates[result.current.templates.length - 1]!.name).toBe("测试模板");
     });
 
     it("deleteTemplate 应移除模板", () => {
       const { result } = renderHook(() => useOperationCenter());
       const before = result.current.templates.length;
-      const targetId = result.current.templates[0].id;
+      const targetId = result.current.templates[0]!.id;
       act(() => {
         result.current.deleteTemplate(targetId);
       });
@@ -151,7 +151,7 @@ describe("useOperationCenter", () => {
 
     it("runTemplate 应更新 lastUsed", async () => {
       const { result } = renderHook(() => useOperationCenter());
-      const tpl = result.current.templates[0];
+      const tpl = result.current.templates[0]!;
 
       await act(async () => {
         await result.current.runTemplate(tpl.id);

@@ -15,7 +15,9 @@ export interface IDEFile {
   modified?: string;
 }
 
-export interface ChatMessage {
+// S2 类型收敛: IDE 域聊天消息与 ui-shared.ChatMessage 同名异构(timestamp string vs number),
+// 域名限定消歧 — 共享契约见 src/app/types/ui-shared.ts
+export interface IdeChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
@@ -85,12 +87,4 @@ export interface EditorDiagnostic {
   severity: "error" | "warning" | "info" | "hint";
   message: string;
   source: string;
-}
-
-export interface QuickAction {
-  id: string;
-  icon: string;
-  label: string;
-  description: string;
-  color: string;
 }

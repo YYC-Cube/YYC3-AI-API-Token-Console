@@ -311,7 +311,7 @@ export function SQLEditor({
         extensions={extensions}
         readOnly={readOnly}
         height={height}
-        placeholder={placeholder}
+        {...(placeholder !== undefined ? { placeholder } : {})}
         basicSetup={{
           lineNumbers: true,
           highlightActiveLine: true,

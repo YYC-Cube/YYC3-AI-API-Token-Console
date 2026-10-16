@@ -187,7 +187,7 @@ describe("usePatrol", () => {
   describe("报告查看", () => {
     it("viewReport 应设置 selectedReport", () => {
       const { result } = renderHook(() => usePatrol());
-      const report = result.current.history[0];
+      const report = result.current.history[0]!;
       act(() => {
         result.current.viewReport(report);
       });
@@ -197,7 +197,7 @@ describe("usePatrol", () => {
     it("closeReport 应清除 selectedReport", () => {
       const { result } = renderHook(() => usePatrol());
       act(() => {
-        result.current.viewReport(result.current.history[0]);
+        result.current.viewReport(result.current.history[0]!);
       });
       act(() => {
         result.current.closeReport();
@@ -232,7 +232,7 @@ describe("usePatrol 巡查真实化", () => {
     expect(r?.checks.some((c) => c.label === "节点在线率")).toBe(false); // 模板同类被剔除
     // 1/2 在线 = 50% → critical → 告警投递
     expect(onCritical).toHaveBeenCalledTimes(1);
-    expect(onCritical.mock.calls[0][0]).toMatchObject({ level: "critical", source: "patrol" });
+    expect(onCritical.mock.calls[0]![0]).toMatchObject({ level: "critical", source: "patrol" });
     vi.unstubAllGlobals();
   });
 

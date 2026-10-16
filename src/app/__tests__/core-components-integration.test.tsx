@@ -284,7 +284,7 @@ describe("createLocalStore 集成测试", () => {
     const store = createLocalStore<TestItem>("test_store", defaults, "t");
     const items = store.getAll();
     expect(items).toHaveLength(3);
-    expect(items[0].name).toBe("Alpha");
+    expect(items[0]?.name).toBe("Alpha");
     // 验证 localStorage 已写入
     const raw = localStorage.getItem("test_store");
     expect(raw).toBeTruthy();
@@ -337,7 +337,7 @@ describe("createLocalStore 集成测试", () => {
     const count = store.removeBatch(["t-1", "t-3"]);
     expect(count).toBe(2);
     expect(store.count()).toBe(1);
-    expect(store.getAll()[0].name).toBe("Beta");
+    expect(store.getAll()[0]?.name).toBe("Beta");
   });
 
   it("reset 应恢复默认值", () => {
@@ -368,7 +368,7 @@ describe("createLocalStore 集成测试", () => {
     ]);
     expect(store.importData(importJson)).toBe(true);
     expect(store.count()).toBe(1);
-    expect(store.getAll()[0].name).toBe("Imported");
+    expect(store.getAll()[0]?.name).toBe("Imported");
   });
 
   it("importData 非法 JSON 应返回 false", () => {
@@ -398,7 +398,7 @@ describe("createLocalStore 集成测试", () => {
     // 重置
     store.reset();
     expect(store.count()).toBe(3);
-    expect(store.getAll()[0].name).toBe("Alpha");
+    expect(store.getAll()[0]?.name).toBe("Alpha");
   });
 });
 
@@ -437,7 +437,7 @@ describe("Dashboard stores 集成测试", () => {
     it(`${name} 的 reset() 应恢复默认`, () => {
       store.reset();
       if (defaultCount > 0) {
-        const first = store.getAll()[0];
+        const first = store.getAll()[0]!;
         store.remove(first.id);
         expect(store.count()).toBe(defaultCount - 1);
         store.reset();
@@ -475,11 +475,11 @@ describe("Dashboard stores 集成测试", () => {
     
     // 模拟连接
     const networks = wifiNetworkStore.getAll();
-    wifiNetworkStore.update(networks[0].id, { connected: true, lastConnectedAt: Date.now() });
+    wifiNetworkStore.update(networks[0]!.id, { connected: true, lastConnectedAt: Date.now() });
     expect(wifiNetworkStore.getAll().filter(n => n.connected)).toHaveLength(1);
-    
+
     // 模拟断开
-    wifiNetworkStore.update(networks[0].id, { connected: false });
+    wifiNetworkStore.update(networks[0]!.id, { connected: false });
     expect(wifiNetworkStore.getAll().filter(n => n.connected)).toHaveLength(0);
   });
 });

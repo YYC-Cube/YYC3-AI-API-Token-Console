@@ -169,7 +169,7 @@ interface FileTreeNodeProps {
   file: IDEFile;
   depth: number;
   onFileSelect: (fileId: string, filename: string) => void;
-  activeFileId?: string;
+  activeFileId?: string | undefined;
   searchFilter: string;
   expandedFolders: Set<string>;
   toggleFolder: (id: string) => void;

@@ -192,6 +192,7 @@ export function InlineEditableTable({
     if (!editingCell) return;
 
     const row = rows[editingCell.rowIndex];
+    if (!row) return;
     const oldValue = row[editingCell.column];
     const newValue = editingCell.value;
 
@@ -363,7 +364,7 @@ export function InlineEditableTable({
     for (let i = commit.changes.length - 1; i >= 0; i--) {
       if (alreadyRolledBack.has(i)) continue;
       const change = commit.changes[i];
-      if (!change.rollbackSQL) continue;
+      if (!change || !change.rollbackSQL) continue;
       try {
         const result = await onExecuteSQL(change.rollbackSQL);
         if (result.ok) {

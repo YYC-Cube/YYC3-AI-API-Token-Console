@@ -82,12 +82,12 @@ describe("ai-family/FamilyMusic", () => {
     const heartBtns = () =>
       screen.getAllByRole("button").filter(b => b.querySelector("svg.lucide-heart"));
     const fillOf = (i: number) =>
-      (heartBtns()[i].querySelector("svg") as SVGElement).style.fill;
+      (heartBtns()[i]!.querySelector("svg") as SVGElement).style.fill;
     expect(fillOf(0)).toBe("rgb(255, 105, 180)"); // jsdom 归一化 #FF69B4
     expect(fillOf(1)).toBe("none");
-    fireEvent.click(heartBtns()[0]);
+    fireEvent.click(heartBtns()[0]!);
     expect(fillOf(0)).toBe("none");
-    fireEvent.click(heartBtns()[1]);
+    fireEvent.click(heartBtns()[1]!);
     expect(fillOf(1)).toBe("rgb(255, 105, 180)");
   });
 

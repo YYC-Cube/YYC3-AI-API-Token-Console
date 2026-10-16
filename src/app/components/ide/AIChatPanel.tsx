@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
 import { MOCK_CHAT_HISTORY } from "./ide-mock-data";
-import type { ChatMessage } from "./ide-types";
+import type { IdeChatMessage } from "./ide-types";
 
 // AI Quick Actions for code assistance
 const AI_QUICK_ACTIONS = [
@@ -48,7 +48,7 @@ function generateMockResponse(prompt: string): string {
 
 export function AIChatPanel() {
   const { t } = useI18n();
-  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CHAT_HISTORY);
+  const [messages, setMessages] = useState<IdeChatMessage[]>(MOCK_CHAT_HISTORY);
   const [input, setInput] = useState("");
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -63,7 +63,7 @@ export function AIChatPanel() {
     const text = content || input.trim();
     if (!text) return;
 
-    const userMsg: ChatMessage = {
+    const userMsg: IdeChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
       content: text,
@@ -75,7 +75,7 @@ export function AIChatPanel() {
 
     // Simulate AI response with context-aware mock
     setTimeout(() => {
-      const aiMsg: ChatMessage = {
+      const aiMsg: IdeChatMessage = {
         id: `msg-${Date.now()}-ai`,
         role: "assistant",
         content: generateMockResponse(text),

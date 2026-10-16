@@ -199,7 +199,7 @@ describe("useSettingsStore", () => {
 
     it("收到 settings_update 消息应同步状态", () => {
       const { result } = renderHook(() => useSettingsStore());
-      const handler = mockChannel.addEventListener.mock.calls[0][1] as MessageHandler;
+      const handler = mockChannel.addEventListener.mock.calls[0]![1] as MessageHandler;
       const incoming: SettingsState = {
         toggles: { ...result.current.settings, auditLog: false },
         values: { ...result.current.values, cacheSize: "1024" },
@@ -213,7 +213,7 @@ describe("useSettingsStore", () => {
 
     it("非 settings_update 消息应被忽略", () => {
       const { result } = renderHook(() => useSettingsStore());
-      const handler = mockChannel.addEventListener.mock.calls[0][1] as MessageHandler;
+      const handler = mockChannel.addEventListener.mock.calls[0]![1] as MessageHandler;
       act(() => {
         handler({ data: { type: "other_event", state: null } });
       });

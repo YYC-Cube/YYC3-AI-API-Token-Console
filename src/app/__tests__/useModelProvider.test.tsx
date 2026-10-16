@@ -98,8 +98,8 @@ describe("useModelProvider", () => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
       });
       expect(result.current.configuredModels.length).toBe(1);
-      expect(result.current.configuredModels[0].model).toBe("gpt-4o");
-      expect(result.current.configuredModels[0].providerId).toBe("openai");
+      expect(result.current.configuredModels[0]?.model).toBe("gpt-4o");
+      expect(result.current.configuredModels[0]?.providerId).toBe("openai");
     });
 
     it("removeModel 应删除一个模型", () => {
@@ -107,7 +107,7 @@ describe("useModelProvider", () => {
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
       });
-      const id = result.current.configuredModels[0].id;
+      const id = result.current.configuredModels[0]!.id;
       act(() => {
         result.current.removeModel(id);
       });
@@ -119,11 +119,11 @@ describe("useModelProvider", () => {
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
       });
-      const id = result.current.configuredModels[0].id;
+      const id = result.current.configuredModels[0]!.id;
       await act(async () => {
         await result.current.testConnection(id);
       });
-      expect(result.current.configuredModels[0].status).toBe("active");
+      expect(result.current.configuredModels[0]?.status).toBe("active");
     });
 
     it("modalOpen 控制应正常工作", () => {
@@ -183,7 +183,7 @@ describe("useModelProvider 覆盖率补测", () => {
     isLocal: false,
   };
 
-  function makeSavedProvider(overrides: Partial<ModelProviderDef> = {}): ModelProviderDef {
+  function makeSavedProvider(overrides: { [K in keyof ModelProviderDef]?: ModelProviderDef[K] | undefined } = {}) {
     return {
       id: "saved-custom",
       label: "Saved Custom",
@@ -288,8 +288,8 @@ describe("useModelProvider 覆盖率补测", () => {
       const provider = result.current.providers.find((p) => p.id === "openai");
       expect(provider?.label).toBe("OpenAI v2");
       expect(provider?.updatedAt).toBeDefined();
-      expect(result.current.configuredModels[0].providerLabel).toBe("OpenAI v2");
-      expect(result.current.configuredModels[0].baseUrl).toBe("https://api.openai.com/v2");
+      expect(result.current.configuredModels[0]?.providerLabel).toBe("OpenAI v2");
+      expect(result.current.configuredModels[0]?.baseUrl).toBe("https://api.openai.com/v2");
     });
 
     it("updateProvider 仅更新 models 时不同步已配置模型", async () => {
@@ -297,14 +297,14 @@ describe("useModelProvider 覆盖率补测", () => {
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-x");
       });
-      const labelBefore = result.current.configuredModels[0].providerLabel;
+      const labelBefore = result.current.configuredModels[0]?.providerLabel;
 
       act(() => {
         result.current.updateProvider("openai", { models: ["gpt-4o", "new-model"] });
       });
 
       expect(result.current.providers.find((p) => p.id === "openai")?.models).toContain("new-model");
-      expect(result.current.configuredModels[0].providerLabel).toBe(labelBefore);
+      expect(result.current.configuredModels[0]?.providerLabel).toBe(labelBefore);
     });
 
     it("removeProvider 内置不可删, 自定义删除并级联删模型", async () => {
@@ -325,7 +325,7 @@ describe("useModelProvider 覆盖率补测", () => {
       });
       expect(result.current.providers.find((p) => p.id === "openai")).toBeDefined();
       expect(result.current.configuredModels.length).toBe(1);
-      expect(result.current.configuredModels[0].providerId).toBe(customId);
+      expect(result.current.configuredModels[0]?.providerId).toBe(customId);
 
       // 自定义删除 → 级联删除其模型 (openai 的模型已在上一部级联清理)
       act(() => {
@@ -515,14 +515,14 @@ describe("useModelProvider 覆盖率补测", () => {
       act(() => {
         result.current.addModel("openai", "gpt-4o", "k");
       });
-      const id = result.current.configuredModels[0].id;
+      const id = result.current.configuredModels[0]!.id;
 
       act(() => {
         result.current.updateModel(id, { status: "error", apiKey: "k2" });
       });
 
-      expect(result.current.configuredModels[0].status).toBe("error");
-      expect(result.current.configuredModels[0].apiKey).toBe("k2");
+      expect(result.current.configuredModels[0]?.status).toBe("error");
+      expect(result.current.configuredModels[0]?.apiKey).toBe("k2");
       expect(result.current.stats.active).toBe(0);
     });
   });
@@ -561,7 +561,7 @@ describe("useModelProvider 覆盖率补测", () => {
       act(() => {
         result.current.addModel("openai", "gpt-4o", "k");
       });
-      const existingModelId = result.current.configuredModels[0].id;
+      const existingModelId = result.current.configuredModels[0]!.id;
 
       const incoming = JSON.stringify({
         providers: [

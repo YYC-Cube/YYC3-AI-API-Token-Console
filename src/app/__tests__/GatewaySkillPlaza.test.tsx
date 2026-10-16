@@ -37,7 +37,7 @@ describe("GatewaySkillPlaza", () => {
     expect(screen.getByText("缓存统计")).toBeInTheDocument();
     expect(screen.getByText("图片 OCR")).toBeInTheDocument();
     expect(screen.getByText("MCP 工具发现")).toBeInTheDocument();
-    for (const [cat] of [["缓存"], ["路由"], ["注册中心"], ["账单"], ["日志"], ["告警"], ["观测"]]) {
+    for (const cat of ["缓存", "路由", "注册中心", "账单", "日志", "告警", "观测"]) {
       expect(screen.getAllByText(cat).length).toBeGreaterThan(0);
     }
   });
@@ -47,7 +47,7 @@ describe("GatewaySkillPlaza", () => {
       ok: true, summary: "命中率 42.0% · 条目 87", detail: '{"hit_rate":0.42}',
     });
     openPlaza();
-    fireEvent.click(screen.getAllByText("执行")[0]);
+    fireEvent.click(screen.getAllByText("执行")[0]!);
     await waitFor(() => expect(screen.getByText(/✓ 命中率 42.0%/)).toBeInTheDocument());
     expect(spy).toHaveBeenCalledWith("cache-stats", {});
     fireEvent.click(screen.getByText("JSON 详情"));
@@ -58,7 +58,7 @@ describe("GatewaySkillPlaza", () => {
     vi.spyOn(skills, "runGatewaySkill").mockResolvedValue({ ok: false, summary: "HTTP 401（console 形态请先登录）" });
     openPlaza();
     const idx = skills.GATEWAY_SKILLS.findIndex((s) => s.id === "cache-stats");
-    fireEvent.click(screen.getAllByText("执行")[idx]);
+    fireEvent.click(screen.getAllByText("执行")[idx]!);
     await waitFor(() => expect(screen.getByText(/✗ HTTP 401/)).toBeInTheDocument());
   });
 
@@ -83,7 +83,7 @@ describe("GatewaySkillPlaza", () => {
     );
     openPlaza();
     const idx = skills.GATEWAY_SKILLS.findIndex((s) => s.id === "cache-stats");
-    fireEvent.click(screen.getAllByText("执行")[idx]);
+    fireEvent.click(screen.getAllByText("执行")[idx]!);
     await waitFor(() => expect(screen.getAllByText("执行中").length).toBeGreaterThan(0));
     resolveRun({ ok: true, summary: "done" });
     await waitFor(() => expect(screen.getByText(/✓ done/)).toBeInTheDocument());

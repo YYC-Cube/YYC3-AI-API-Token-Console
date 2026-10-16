@@ -44,7 +44,7 @@ describe("components/AIFamilyCenterPage", () => {
 
   it("应渲染整点关爱横幅与欢迎区", () => {
     renderCenter();
-    const care = FAMILY_MEMBERS[new Date().getHours() % FAMILY_MEMBERS.length];
+    const care = FAMILY_MEMBERS[new Date().getHours() % FAMILY_MEMBERS.length]!;
     expect(screen.getByText(care.careMessage)).toBeInTheDocument();
     expect(screen.getByText("欢迎来到 AI Family 中心")).toBeInTheDocument();
     expect(screen.getByText(/这里不是冷冰冰的文档/)).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("components/AIFamilyCenterPage", () => {
     expect(screen.queryByText("性格特质")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("言启·千行"));
     expect(screen.getByText("性格特质")).toBeInTheDocument();
-    expect(screen.getByText(FAMILY_MEMBERS[0].personality)).toBeInTheDocument();
+    expect(screen.getByText(FAMILY_MEMBERS[0]!.personality)).toBeInTheDocument();
     expect(screen.getByText("兴趣爱好")).toBeInTheDocument();
     expect(screen.getByText("读诗")).toBeInTheDocument();
     expect(screen.getByText("专业技能")).toBeInTheDocument();

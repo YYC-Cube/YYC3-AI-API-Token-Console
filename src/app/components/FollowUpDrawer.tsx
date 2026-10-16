@@ -245,8 +245,8 @@ export function FollowUpDrawer({
                   onViewDetail={() => setActiveTab("chain")}
                   onViewHistory={() => setActiveTab("metrics")}
                   onViewRelated={() => setActiveTab("chain")}
-                  onQuickFix={onQuickFix ? () => onQuickFix(item) : undefined}
-                  onMarkResolved={onMarkResolved ? () => onMarkResolved(item) : undefined}
+                  {...(onQuickFix ? { onQuickFix: () => onQuickFix(item) } : {})}
+                  {...(onMarkResolved ? { onMarkResolved: () => onMarkResolved(item) } : {})}
                 />
               </div>
 

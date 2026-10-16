@@ -34,8 +34,8 @@ describe("device-inventory: upstreamNodesFromRouterStats", () => {
     });
     expect(nodes).toHaveLength(3);
     expect(nodes[0]).toMatchObject({ id: "vllm-flagship", status: "active", kind: "upstream", tasks: 40 });
-    expect(nodes[1].status).toBe("error");
-    expect(nodes[2].status).toBe("warning");
+    expect(nodes[1]!.status).toBe("error");
+    expect(nodes[2]!.status).toBe("warning");
   });
 
   it("非对象/缺 upstream_pool → 空数组（降级不抛错）", () => {
@@ -98,7 +98,7 @@ describe("device-inventory: agentNodesFromA2A", () => {
       ],
     });
     expect(nodes[0]).toMatchObject({ id: "yuanqi-tianshu-001", status: "active", kind: "agent", tasks: 2, model: "元启·天枢" });
-    expect(nodes[1].status).toBe("inactive");
+    expect(nodes[1]!.status).toBe("inactive");
   });
 });
 

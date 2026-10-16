@@ -150,13 +150,13 @@ describe("settings/ModelManagementSection", () => {
   it("编辑需二次确认, 确认后表单预填并支持保存更新", () => {
     render(<ModelManagementSection {...makeProps()} />);
     // 进入确认态 (多行取第一行: LLaMA-70B)
-    fireEvent.click(screen.getAllByTitle("编辑")[0]);
+    fireEvent.click(screen.getAllByTitle("编辑")[0]!);
     expect(screen.getByText("确认编辑?")).toBeInTheDocument();
     // 取消回到普通态
-    fireEvent.click(screen.getAllByTitle("取消")[0]);
+    fireEvent.click(screen.getAllByTitle("取消")[0]!);
     expect(screen.queryByText("确认编辑?")).not.toBeInTheDocument();
     // 再次进入并确认
-    fireEvent.click(screen.getAllByTitle("编辑")[0]);
+    fireEvent.click(screen.getAllByTitle("编辑")[0]!);
     fireEvent.click(screen.getByTitle("确认编辑"));
     // 表单预填
     expect(screen.getByText("编辑: LLaMA-70B")).toBeInTheDocument();
@@ -185,7 +185,7 @@ describe("settings/ModelManagementSection", () => {
 
   it("删除需二次确认, 确认后调用 remove 并刷新", () => {
     render(<ModelManagementSection {...makeProps()} />);
-    fireEvent.click(screen.getAllByTitle("删除")[0]);
+    fireEvent.click(screen.getAllByTitle("删除")[0]!);
     // 普通删除按钮被确认按钮替换
     expect(screen.getAllByTitle("删除")).toHaveLength(1);
     fireEvent.click(screen.getByTitle("确认删除"));
@@ -201,8 +201,8 @@ describe("settings/ModelManagementSection", () => {
 
   it("删除取消应回到普通态", () => {
     render(<ModelManagementSection {...makeProps()} />);
-    fireEvent.click(screen.getAllByTitle("删除")[0]);
-    fireEvent.click(screen.getAllByTitle("取消")[0]);
+    fireEvent.click(screen.getAllByTitle("删除")[0]!);
+    fireEvent.click(screen.getAllByTitle("取消")[0]!);
     expect(screen.getAllByTitle("删除")).toHaveLength(2);
     expect(screen.getByText("LLaMA-70B")).toBeInTheDocument();
   });

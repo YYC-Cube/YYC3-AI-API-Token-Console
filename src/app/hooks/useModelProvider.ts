@@ -356,7 +356,7 @@ export function useModelProvider() {
       model,
       apiKey,
       baseUrl: customBaseUrl || provider.baseUrl,
-      proxyUrl: proxyUrl || undefined,
+      ...(proxyUrl && { proxyUrl }),
       createdAt: Date.now(),
       lastUsed: null,
       status: "unchecked",

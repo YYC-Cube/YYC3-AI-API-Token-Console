@@ -40,7 +40,7 @@ describe("createLocalStore — 通用 CRUD 工厂", () => {
   it("初始数据加载默认值", () => {
     const items = store.getAll();
     expect(items).toHaveLength(2);
-    expect(items[0].name).toBe("Alpha");
+    expect(items[0]?.name).toBe("Alpha");
   });
 
   it("add: 添加新条目", () => {
@@ -70,7 +70,7 @@ describe("createLocalStore — 通用 CRUD 工厂", () => {
     store.update("t-1", { name: "Changed" });
     const reset = store.reset();
     expect(reset).toHaveLength(2);
-    expect(reset[0].name).toBe("Alpha");
+    expect(reset[0]?.name).toBe("Alpha");
   });
 
   it("exportData / importData round-trip", () => {
@@ -111,7 +111,7 @@ describe("dashboard-stores — 节点 Store", () => {
     expect(nodes[0]).toHaveProperty("model");
     expect(nodes[0]).toHaveProperty("gpu");
 
-    const updated = nodeStore.update(nodes[0].id, { model: "UserModel-7B" });
+    const updated = nodeStore.update(nodes[0]!.id, { model: "UserModel-7B" });
     expect(updated?.model).toBe("UserModel-7B");
   });
 
@@ -317,11 +317,11 @@ describe("杜绝硬编码 — 重置验证", () => {
 
     const nodes = nodeStore.getAll();
     if (nodes.length > 0) {
-      nodeStore.update(nodes[0].id, { model: "SHOULD_NOT_PERSIST" });
-      expect(nodeStore.getById(nodes[0].id)?.model).toBe("SHOULD_NOT_PERSIST");
+      nodeStore.update(nodes[0]!.id, { model: "SHOULD_NOT_PERSIST" });
+      expect(nodeStore.getById(nodes[0]!.id)?.model).toBe("SHOULD_NOT_PERSIST");
 
       nodeStore.reset();
-      expect(nodeStore.getById(nodes[0].id)?.model).not.toBe("SHOULD_NOT_PERSIST");
+      expect(nodeStore.getById(nodes[0]!.id)?.model).not.toBe("SHOULD_NOT_PERSIST");
     }
   });
 

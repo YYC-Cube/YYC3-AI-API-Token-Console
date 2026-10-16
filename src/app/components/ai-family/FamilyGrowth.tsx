@@ -118,7 +118,7 @@ export function FamilyGrowth() {
               <div className="space-y-3">
                 {sortedMembers.map((m, i) => {
                   const Icon = m.icon;
-                  const maxContrib = sortedMembers[0].contribution;
+                  const maxContrib = sortedMembers[0]?.contribution ?? m.contribution;  // sortedMembers 非空，兜底仅类型收窄
                   const width = (m.contribution / maxContrib) * 100;
                   const medals = ["#FFD700", "#C0C0C0", "#CD7F32"];
                   return (

@@ -96,7 +96,7 @@ describe("useFollowUp", () => {
         result.current.setFilterSeverity("critical");
       });
       expect(result.current.items.length).toBe(1);
-      expect(result.current.items[0].severity).toBe("critical");
+      expect(result.current.items[0]!.severity).toBe("critical");
     });
 
     it("按 severity=warning 筛选应返回 2 项", () => {
@@ -145,7 +145,7 @@ describe("useFollowUp", () => {
   describe("抽屉操作", () => {
     it("openDrawer 应打开抽屉并设置 item", () => {
       const { result } = renderHook(() => useFollowUp());
-      const item = result.current.allItems[0];
+      const item = result.current.allItems[0]!;
       act(() => {
         result.current.openDrawer(item);
       });
@@ -156,7 +156,7 @@ describe("useFollowUp", () => {
     it("closeDrawer 应关闭抽屉", () => {
       const { result } = renderHook(() => useFollowUp());
       act(() => {
-        result.current.openDrawer(result.current.allItems[0]);
+        result.current.openDrawer(result.current.allItems[0]!);
       });
       act(() => {
         result.current.closeDrawer();

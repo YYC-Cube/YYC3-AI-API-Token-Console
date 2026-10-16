@@ -240,8 +240,8 @@ describe("useHostFileSystem", () => {
       expect(toast.success).toHaveBeenCalledWith("已打开目录: proj");
 
       expect(result.current.entries.length).toBe(5);
-      expect(result.current.entries[0].kind).toBe("directory");
-      expect(result.current.entries[0].name).toBe("src");
+      expect(result.current.entries[0]?.kind).toBe("directory");
+      expect(result.current.entries[0]?.name).toBe("src");
       expect(result.current.stats.dirs).toBe(1);
       expect(result.current.stats.files).toBe(4);
       expect(result.current.stats.totalSize).toBeGreaterThan(0);
@@ -284,7 +284,7 @@ describe("useHostFileSystem", () => {
       expect(result.current.currentPath).toEqual(["src"]);
       expect(result.current.breadcrumbs).toEqual(["proj", "src"]);
       expect(result.current.entries.length).toBe(1);
-      expect(result.current.entries[0].name).toBe("main.ts");
+      expect(result.current.entries[0]?.name).toBe("main.ts");
       expect(result.current.selectedEntry).toBeNull();
     });
 
@@ -379,13 +379,13 @@ describe("useHostFileSystem", () => {
         await result.current.navigateToBreadcrumb(1);
       });
       expect(result.current.currentPath).toEqual(["src"]);
-      expect(result.current.entries[0].name).toBe("main.ts");
+      expect(result.current.entries[0]?.name).toBe("main.ts");
     });
 
     it("navigateToBreadcrumb 解析失败应提示", async () => {
       const { result } = await openWithTree();
       await act(async () => {
-        await result.current.navigateToDir(result.current.entries[0]);
+        await result.current.navigateToDir(result.current.entries[0]!);
       });
       const rootHandle = result.current.rootHandle as unknown as MockDirHandle;
       rootHandle.getDirectoryHandle.mockRejectedValue(new Error("stale handle"));
@@ -411,7 +411,7 @@ describe("useHostFileSystem", () => {
       expect(result.current.editingDirty).toBe(false);
       expect(result.current.selectedEntry?.name).toBe("a.ts");
       expect(result.current.recentFiles.length).toBe(1);
-      expect(result.current.recentFiles[0].path).toBe("proj/a.ts");
+      expect(result.current.recentFiles[0]?.path).toBe("proj/a.ts");
       const persisted = JSON.parse(localStorage.getItem("yyc3_recent_files") ?? "[]");
       expect(persisted.length).toBe(1);
     });
@@ -493,14 +493,14 @@ describe("useHostFileSystem", () => {
         await result.current.saveFile();
       });
       expect(handle.createWritable).toHaveBeenCalledTimes(1);
-      const writable = (await handle.createWritable.mock.results[0].value) as MockWritable;
+      const writable = (await handle.createWritable.mock.results[0]?.value) as MockWritable;
       expect(writable.write).toHaveBeenCalledWith("export const A = 2;");
       expect(toast.success).toHaveBeenCalledWith("已保存: a.ts");
       expect(result.current.editingDirty).toBe(false);
 
       // 版本快照 (IndexedDB 缺失时降级为内存态)
       expect(result.current.versions.length).toBe(1);
-      expect(result.current.versions[0].filePath).toBe("proj/a.ts");
+      expect(result.current.versions[0]?.filePath).toBe("proj/a.ts");
       expect(result.current.currentFileVersions.length).toBe(1);
     });
 
@@ -563,7 +563,7 @@ describe("useHostFileSystem", () => {
         await result.current.saveFile();
       });
       expect(result.current.versions.length).toBe(1);
-      const versionId = result.current.versions[0].id;
+      const versionId = result.current.versions[0]!.id;
       await act(async () => {
         await result.current.deleteVersion(versionId);
       });
@@ -587,7 +587,7 @@ describe("useHostFileSystem", () => {
       });
       expect(rootHandle.getFileHandle).toHaveBeenCalledWith("new.ts", { create: true });
       expect(newHandle.createWritable).toHaveBeenCalledTimes(1);
-      const writable = (await newHandle.createWritable.mock.results[0].value) as MockWritable;
+      const writable = (await newHandle.createWritable.mock.results[0]?.value) as MockWritable;
       expect(writable.write).toHaveBeenCalledWith("hello");
       expect(toast.success).toHaveBeenCalledWith("已创建: new.ts");
     });
@@ -800,8 +800,8 @@ describe("useHostFileSystem", () => {
         await result.current.searchFiles("main");
       });
       expect(result.current.searchResults.length).toBe(1);
-      expect(result.current.searchResults[0].name).toBe("main.ts");
-      expect(result.current.searchResults[0].path).toBe("proj/src/main.ts");
+      expect(result.current.searchResults[0]?.name).toBe("main.ts");
+      expect(result.current.searchResults[0]?.path).toBe("proj/src/main.ts");
       expect(result.current.searchQuery).toBe("main");
       expect(result.current.searching).toBe(false);
     });

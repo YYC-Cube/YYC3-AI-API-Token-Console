@@ -70,7 +70,7 @@ describe("ai-family/FamilyActivityCenter", () => {
       expect(screen.getByText("五子棋循环赛·第二轮")).toBeInTheDocument();
       expect(screen.getByText("灵韵的即兴画展")).toBeInTheDocument();
 
-      fireEvent.click(screen.getAllByText("对弈竞技")[0]); // 筛选按钮 (同文本还有活动徽标)
+      fireEvent.click(screen.getAllByText("对弈竞技")[0]!); // 筛选按钮 (同文本还有活动徽标)
       expect(screen.getByText("成语接龙大赛")).toBeInTheDocument();
       expect(screen.queryByText("灵韵的即兴画展")).not.toBeInTheDocument();
 

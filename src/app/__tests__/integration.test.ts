@@ -166,7 +166,7 @@ describe("Integration Tests", () => {
 
       const log = getErrorLog();
       expect(log.length).toBe(2);
-      expect(log[0].message).toBe("test error 2");
+      expect(log[0]!.message).toBe("test error 2");
     });
 
     it("trySafe 失败应自动记录到日志", async () => {
@@ -181,7 +181,7 @@ describe("Integration Tests", () => {
 
       const log = getErrorLog();
       expect(log.length).toBe(1);
-      expect(log[0].source).toBe("IntegrationTest");
+      expect(log[0]!.source).toBe("IntegrationTest");
     });
 
     it("trySafe 成功不应记录日志", async () => {

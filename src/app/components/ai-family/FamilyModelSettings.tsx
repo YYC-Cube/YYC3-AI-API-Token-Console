@@ -160,7 +160,7 @@ const DIAG_STEPS: DiagStep[] = [
       if (isLocal) return { ok: true, detail: "本地模型无需 API Key" };
       const hasKey = !!keys[a.providerId];
       return hasKey
-        ? { ok: true, detail: `${a.providerId} API Key 已配置 (${keys[a.providerId].slice(0, 6)}...)` }
+        ? { ok: true, detail: `${a.providerId} API Key 已配置 (${keys[a.providerId]?.slice(0, 6)}...)` }
         : { ok: false, detail: `缺少 ${a.providerId} API Key` };
     },
   },
@@ -211,7 +211,7 @@ function MemberModelCard({
   assignment: MemberModelAssignment;
   voiceProfile: VoiceProfile;
   apiKeys: Record<string, string>;
-  diagResult?: DiagResult;
+  diagResult?: DiagResult | undefined;
   onChangeModel: (providerId: string, modelId: string) => void;
   onTestConnection: () => void;
   onSpeak: () => void;
@@ -232,7 +232,7 @@ function MemberModelCard({
     <FadeIn delay={0.05}>
       <GlassCard
         className="p-0 overflow-hidden"
-        glowColor={expanded ? `rgba(${rgb},0.15)` : undefined}
+        {...(expanded ? { glowColor: `rgba(${rgb},0.15)` } : {})}
       >
         {/* Header */}
         <button
@@ -511,7 +511,7 @@ export function FamilyModelSettings() {
       // Show current step
       setDiagnostics(prev => ({
         ...prev,
-        [memberId]: { ...prev[memberId], message: `${step.label}...`, details: [...details] },
+        [memberId]: { ...prev[memberId], memberId, status: prev[memberId]?.status ?? "testing", message: `${step.label}...`, details: [...details] },
       }));
 
       await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
@@ -535,7 +535,7 @@ export function FamilyModelSettings() {
 
       if (result.detail.includes("ms")) {
         const match = result.detail.match(/\((\d+)ms\)/);
-        if (match) totalLatency = parseInt(match[1]);
+        if (match) totalLatency = parseInt(match[1]!);
       }
     }
 
@@ -544,10 +544,10 @@ export function FamilyModelSettings() {
       [memberId]: {
         memberId,
         status: allOk ? "success" : "error",
-        latency: allOk ? totalLatency || Math.round(100 + Math.random() * 200) : undefined,
+        ...(allOk ? { latency: totalLatency || Math.round(100 + Math.random() * 200) } : {}),
         message: allOk ? "全部通过" : "诊断失败",
         details,
-        repairHint,
+        ...(repairHint !== undefined ? { repairHint } : {}),
         timestamp: new Date().toISOString(),
       },
     }));

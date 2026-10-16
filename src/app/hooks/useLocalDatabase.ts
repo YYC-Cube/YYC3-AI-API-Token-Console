@@ -276,14 +276,14 @@ function mockQueryResult(sql: string): QueryResult {
     const fromMatch = trimmed.match(/from\s+([a-zA-Z_.]+)/);
     const tableName = fromMatch?.[1] || "";
     const limitMatch = trimmed.match(/limit\s+(\d+)/);
-    const limit = limitMatch ? parseInt(limitMatch[1]) : 10;
+    const limit = limitMatch ? parseInt(limitMatch[1]!) : 10;
 
-    const matchedTable = MOCK_TABLES.find(t => t.name === tableName || tableName.includes(t.name.split(".")[1]));
-    
+    const matchedTable = MOCK_TABLES.find(t => t.name === tableName || tableName.includes(t.name.split(".")[1] ?? t.name));
+
     if (matchedTable) {
       const rows = mockTableData(matchedTable.name, limit);
       return {
-        id, sql, columns: rows.length > 0 ? Object.keys(rows[0]) : matchedTable.columns.map(c => c.name),
+        id, sql, columns: rows.length > 0 ? Object.keys(rows[0] ?? {}) : matchedTable.columns.map(c => c.name),
         rows, rowCount: rows.length,
         executionTimeMs: 8 + Math.random() * 45, executedAt,
       };
@@ -305,7 +305,7 @@ function mockQueryResult(sql: string): QueryResult {
       latency_ms: Math.floor(20 + Math.random() * 80),
       created_at: new Date(Date.now() - i * 86400000).toISOString(),
     }));
-    return { id, sql, columns: Object.keys(rows[0]), rows, rowCount: rows.length, executionTimeMs: 8 + Math.random() * 45, executedAt };
+    return { id, sql, columns: Object.keys(rows[0] ?? {}), rows, rowCount: rows.length, executionTimeMs: 8 + Math.random() * 45, executedAt };
   }
 
   // INSERT / UPDATE / DELETE

@@ -185,7 +185,7 @@ describe("FollowUpDrawer", () => {
       );
       // Footer close button
       const closeButtons = screen.getAllByText("关闭");
-      fireEvent.click(closeButtons[0]);
+      fireEvent.click(closeButtons[0]!);
       expect(onClose).toHaveBeenCalled();
     });
 

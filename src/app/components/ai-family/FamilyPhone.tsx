@@ -106,7 +106,7 @@ export function FamilyPhone() {
     const t = setInterval(() => {
       setChatMessages(prev => {
         if (prev.length >= 6) return prev;
-        return [...prev, phrases[Math.min(prev.length, phrases.length - 1)]];
+        return [...prev, phrases[Math.min(prev.length, phrases.length - 1)] ?? ""];
       });
     }, 5000 + Math.random() * 3000);
     return () => clearInterval(t);

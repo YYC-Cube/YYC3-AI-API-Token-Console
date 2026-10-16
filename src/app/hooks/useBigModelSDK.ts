@@ -171,7 +171,7 @@ function buildRequestBody(
 // Mock 流式响应模拟
 // ============================================================
 
-const MOCK_RESPONSES: Record<string, string> = {
+const MOCK_RESPONSES: Record<"default" | "status" | "error", string> = {
   default: "你好！我是 YYC3 CloudPivot Intelli-Matrix 的 AI 助手。当前处于 Mock 模式，如需真实 API 调用请先在「模型管理」中配置有效的 API Key。\n\n我可以协助你进行：\n- 系统状态分析\n- 异常模式识别\n- 操作建议推荐\n- Text-to-SQL 查询\n\n请问有什么可以帮助你的？",
   status: "**系统状态概览 (Mock)**\n\n| 指标 | 值 | 状态 |\n|------|-----|------|\n| 活跃节点 | 12/13 | ✅ 正常 |\n| GPU 利用率 | 78.5% | ⚠️ 偏高 |\n| Token 吞吐 | 2,847/s | ✅ 正常 |\n| 存储占用 | 85.8% | ⚠️ 接近阈值 |\n\n建议关注 NAS-Storage-01 存储容量。",
   error: "**检测到以下异常模式 (Mock)**\n\n1. 🔴 GPU-A100-03 推理延迟 2,450ms > 2,000ms 阈值\n2. ⚠️ 显存使用率 89% 接近 OOM\n3. ⚠️ NAS 存储 85.8% 预计 7 天达警戒线\n\n**推荐操作**: 将 LLaMA-70B 迁移到 GPU-A100-07（当前负载 15%）",

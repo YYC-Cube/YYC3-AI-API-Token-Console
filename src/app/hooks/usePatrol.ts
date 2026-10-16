@@ -141,8 +141,8 @@ function generateChecks(): PatrolCheckItem[] {
       label: t.label,
       status: gen.status,
       value: gen.value,
-      threshold: gen.threshold,
-      detail: gen.detail,
+      ...(gen.threshold !== undefined && { threshold: gen.threshold }),
+      ...(gen.detail !== undefined && { detail: gen.detail }),
     });
   });
 

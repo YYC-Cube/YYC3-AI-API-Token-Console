@@ -91,7 +91,7 @@ function useGatewayLive(): GatewayLive & { refresh: () => void } {  const [live,
             name: String(u.name ?? "?"),
             base_url: String(u.base_url ?? ""),
             models: (u.models as string[]) ?? [],
-            breaker_state: u.breaker_state as string | undefined,
+            ...(u.breaker_state !== undefined ? { breaker_state: u.breaker_state as string } : {}),
           }));
           setLive((p) => ({ ...p, upstreams: next.upstreams, routerStats: d }));
         })

@@ -16,7 +16,7 @@ import type { OpenTab } from "./ide-types";
 import { getLanguageLabel } from "../CodeEditor";
 
 interface IDEStatusBarProps {
-  activeTab?: OpenTab;
+  activeTab?: OpenTab | undefined;
   totalErrors: number;
   totalWarnings: number;
   isOnline: boolean;
@@ -24,7 +24,7 @@ interface IDEStatusBarProps {
 
 export function IDEStatusBar({ activeTab, totalErrors, totalWarnings, isOnline }: IDEStatusBarProps) {
   const { t } = useI18n();
-  const currentBranch = MOCK_GIT_BRANCHES.find((b) => b.current) ?? MOCK_GIT_BRANCHES[0];
+  const currentBranch = MOCK_GIT_BRANCHES.find((b) => b.current) ?? MOCK_GIT_BRANCHES[0]!;
 
   // Calculate cursor position from content (mock: end of file)
   const lines = activeTab ? activeTab.content.split("\n").length : 0;

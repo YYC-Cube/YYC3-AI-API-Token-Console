@@ -90,7 +90,7 @@ describe("AIChatPanel", () => {
       const textarea = screen.getByPlaceholderText("向 AI 提问...");
       const [_, sendBtn] = getInputAreaButtons(textarea);
       expect(sendBtn).toBeDisabled();
-      fireEvent.click(sendBtn);
+      fireEvent.click(sendBtn!);
       expect(screen.queryByText(/收到！正在分析/)).not.toBeInTheDocument();
     });
 
@@ -120,7 +120,7 @@ describe("AIChatPanel", () => {
       const textarea = screen.getByPlaceholderText("向 AI 提问...") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "请为这段代码生成单元测试" } });
       const [, sendBtn] = getInputAreaButtons(textarea);
-      fireEvent.click(sendBtn);
+      fireEvent.click(sendBtn!);
       act(() => vi.advanceTimersByTime(2500));
       expect(screen.getByText(/Vitest 单元测试/)).toBeInTheDocument();
     });
@@ -167,7 +167,7 @@ describe("AIChatPanel", () => {
       vi.spyOn(navigator.clipboard, "writeText").mockImplementation(writeText);
       renderPanel();
       const copyBtn = screen.getAllByTitle("Copy")[0];
-      fireEvent.click(copyBtn);
+      fireEvent.click(copyBtn!);
       expect(writeText).toHaveBeenCalledWith(expect.stringContaining("NodeStatusCard"));
     });
   });

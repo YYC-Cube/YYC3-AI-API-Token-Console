@@ -215,7 +215,7 @@ describe("console-relay 契约 E2E（integration · 真实进程）", { timeout:
     // ④ masked close 帧 → 中继回 close
     const mask = [0x11, 0x22, 0x33, 0x44];
     const closePayload = Buffer.from([0x03, 0xe8]);
-    const masked = Buffer.from(closePayload.map((b, i) => b ^ mask[i & 3]));
+    const masked = Buffer.from(closePayload.map((b, i) => b ^ mask[i & 3]!));
     socket.write(Buffer.concat([Buffer.from([0x88, 0x80 | closePayload.length]), Buffer.from(mask), masked]));
     await Promise.race([closedPromise, new Promise((r) => setTimeout(r, 3000))]);
     expect(frameReceived.some((f) => f.opcode === 0x8)).toBe(true);

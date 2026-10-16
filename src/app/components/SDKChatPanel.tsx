@@ -135,7 +135,7 @@ export function SDKChatPanel() {
   // 自动选择第一个模型
   useEffect(() => {
     if (!selectedModelId && configuredModels.length > 0) {
-      setSelectedModelId(configuredModels[0].id);
+      setSelectedModelId(configuredModels[0]!.id); // length > 0 已由上方守卫保证
     }
   }, [configuredModels, selectedModelId]);
 

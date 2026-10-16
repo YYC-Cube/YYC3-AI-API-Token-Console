@@ -20,7 +20,7 @@ import { FamilyPageHeader } from "./FamilyPageHeader";
 import {
   FAMILY_MEMBERS, DEEP_BG, MEDALS, MEMBER_MEDALS, FAMILY_ACTIVITIES,
   SAMPLE_MEMORIES, generateDailyBroadcast, getMember,
-  type FamilyMember, type Medal,
+  type FamilyMember, type GrowthMemory, type Medal,
 } from "./shared";
 
 /* ═══════════════════════════════════════
@@ -35,7 +35,7 @@ const ACTIVITY_META: Record<string, { color: string; icon: React.ElementType; la
   celebration: { color: "#FF69B4", icon: Heart,      label: "欢聚时刻" },
 };
 
-const TIER_COLORS: Record<string, { bg: string; border: string; label: string }> = {
+const TIER_COLORS: Record<Medal["tier"], { bg: string; border: string; label: string }> = {
   diamond: { bg: "rgba(0,212,255,0.08)",   border: "rgba(0,212,255,0.35)",   label: "钻石" },
   gold:    { bg: "rgba(255,215,0,0.08)",   border: "rgba(255,215,0,0.35)",   label: "金" },
   silver:  { bg: "rgba(192,192,192,0.08)", border: "rgba(192,192,192,0.35)", label: "银" },
@@ -50,7 +50,7 @@ const SEG_COLORS: Record<string, string> = {
   penalty: "#FF69B4", talent: "#FF7043", mood: "#BF00FF", memory: "#00BFFF",
 };
 
-const MEMORY_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+const MEMORY_TYPE_LABELS: Record<GrowthMemory["type"], { label: string; color: string }> = {
   diary:       { label: "日记",   color: "#FFD700" },
   milestone:   { label: "里程碑", color: "#00FF88" },
   mood:        { label: "心情",   color: "#FF69B4" },
@@ -212,8 +212,7 @@ function ScoreboardTab() {
               <GlassCard
                 key={m.id}
                 className={`p-4 text-center ${isFirst ? "ring-1 ring-[rgba(255,215,0,0.2)]" : ""}`}
-                style={isFirst ? { transform: "translateY(-8px)" } : undefined}
-                glowColor={isFirst ? "rgba(255,215,0,0.06)" : undefined}
+                {...(isFirst ? { style: { transform: "translateY(-8px)" }, glowColor: "rgba(255,215,0,0.06)" } : {})}
               >
                 <span style={{ fontSize: "1.5rem" }}>{medalEmojis[rank]}</span>
                 <div

@@ -158,8 +158,8 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
         signal: s.signal,
         security: s.security,
         connected: prev?.connected ?? false,
-        password: prev?.password,
-        lastConnectedAt: prev?.lastConnectedAt,
+        ...(prev?.password !== undefined ? { password: prev.password } : {}),
+        ...(prev?.lastConnectedAt !== undefined ? { lastConnectedAt: prev.lastConnectedAt } : {}),
       });
     }
     refreshWifiFromStore();
@@ -179,9 +179,10 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
     }
     const target = all.find(n => n.ssid === ssid);
     if (target) {
+      const nextPassword = wifiPassword || target.password;
       wifiNetworkStore.update(target.id, {
         connected: true,
-        password: wifiPassword || target.password,
+        ...(nextPassword !== undefined ? { password: nextPassword } : {}),
         lastConnectedAt: Date.now(),
       });
     }

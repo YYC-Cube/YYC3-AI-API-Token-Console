@@ -94,7 +94,7 @@ describe("useAIDiagnostics", () => {
     });
 
     expect(result.current.history.length).toBe(initialHistoryCount + 1);
-    expect(result.current.history[0].id).toContain("diag-");
+    expect(result.current.history[0]?.id).toContain("diag-");
   });
 
   it("should switch active view", () => {
@@ -126,7 +126,7 @@ describe("useAIDiagnostics", () => {
       vi.advanceTimersByTime(3000);
     });
 
-    const actionId = result.current.session!.actions[0].id;
+    const actionId = result.current.session!.actions[0]!.id;
 
     act(() => {
       result.current.executeAction(actionId);
@@ -222,7 +222,7 @@ describe("useAIDiagnostics", () => {
       vi.advanceTimersByTime(3000);
     });
 
-    const pattern = result.current.session!.patterns[0];
+    const pattern = result.current.session!.patterns[0]!;
     expect(pattern.id).toBeTruthy();
     expect(["recurring", "gradual", "spike", "correlation", "seasonal"]).toContain(pattern.type);
     expect(pattern.title).toBeTruthy();
@@ -241,7 +241,7 @@ describe("useAIDiagnostics", () => {
       vi.advanceTimersByTime(3000);
     });
 
-    const forecast = result.current.session!.forecasts[0];
+    const forecast = result.current.session!.forecasts[0]!;
     expect(forecast.metric).toBeTruthy();
     expect(typeof forecast.currentValue).toBe("number");
     expect(typeof forecast.predictedValue).toBe("number");

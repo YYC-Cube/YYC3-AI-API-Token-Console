@@ -98,7 +98,7 @@ class LazyErrorBoundary extends React.Component<
 function resolveSubpage(pathname: string, paramSubpage?: string): string {
   if (paramSubpage && VALID_KEYS.includes(paramSubpage)) return paramSubpage;
   const match = pathname.match(/\/ai-family-(\w+)/);
-  if (match && VALID_KEYS.includes(match[1])) return match[1];
+  if (match && VALID_KEYS.includes(match[1] ?? "")) return match[1] ?? "home";
   return "home";
 }
 
@@ -107,9 +107,9 @@ const lazyCache: Record<string, React.LazyExoticComponent<React.ComponentType>> 
 
 function getLazyComponent(key: string): React.LazyExoticComponent<React.ComponentType> {
   if (!lazyCache[key]) {
-    lazyCache[key] = React.lazy(lazyMap[key]);
+    lazyCache[key] = React.lazy(lazyMap[key]!);  // key 经 VALID_KEYS 校验，有限键 Record 直取
   }
-  return lazyCache[key];
+  return lazyCache[key]!;
 }
 
 // ═══ 主组件 ═══

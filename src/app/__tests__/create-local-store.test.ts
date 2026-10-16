@@ -55,7 +55,7 @@ describe("createLocalStore", () => {
     it("should return defaults on first call", () => {
       const items = s.getAll();
       expect(items).toHaveLength(3);
-      expect(items[0].name).toBe("Alpha");
+      expect(items[0]!.name).toBe("Alpha");
     });
 
     it("should return a copy, not reference", () => {
@@ -104,7 +104,7 @@ describe("createLocalStore", () => {
 
     it("should persist after add", () => {
       s.add({ name: "New", value: 50 });
-      const stored = JSON.parse(store["test_store"]);
+      const stored = JSON.parse(store["test_store"]!);
       expect(stored).toHaveLength(4);
     });
   });
@@ -124,7 +124,7 @@ describe("createLocalStore", () => {
 
     it("should persist after update", () => {
       s.update("t-1", { value: 999 });
-      const stored = JSON.parse(store["test_store"]);
+      const stored = JSON.parse(store["test_store"]!);
       expect(stored.find((i: TestItem) => i.id === "t-1").value).toBe(999);
     });
   });
@@ -163,7 +163,7 @@ describe("createLocalStore", () => {
       s.remove("t-1");
       const items = s.reset();
       expect(items).toHaveLength(3);
-      expect(items[0].name).toBe("Alpha");
+      expect(items[0]!.name).toBe("Alpha");
     });
   });
 

@@ -30,8 +30,8 @@ describe("useAlertRules", () => {
 
   it("should toggle a rule enabled/disabled", () => {
     const { result } = renderHook(() => useAlertRules());
-    const ruleId = result.current.rules[0].id;
-    const wasBefore = result.current.rules[0].enabled;
+    const ruleId = result.current.rules[0]!.id;
+    const wasBefore = result.current.rules[0]?.enabled;
 
     act(() => {
       result.current.toggleRule(ruleId);
@@ -44,7 +44,7 @@ describe("useAlertRules", () => {
   it("should delete a rule", () => {
     const { result } = renderHook(() => useAlertRules());
     const initialCount = result.current.rules.length;
-    const ruleId = result.current.rules[0].id;
+    const ruleId = result.current.rules[0]!.id;
 
     act(() => {
       result.current.deleteRule(ruleId);
@@ -59,12 +59,12 @@ describe("useAlertRules", () => {
     const rule = result.current.rules[0];
 
     act(() => {
-      result.current.setSelectedRule(rule);
+      result.current.setSelectedRule(rule ?? null);
     });
-    expect(result.current.selectedRule?.id).toBe(rule.id);
+    expect(result.current.selectedRule?.id).toBe(rule?.id);
 
     act(() => {
-      result.current.deleteRule(rule.id);
+      result.current.deleteRule(rule!.id);
     });
     expect(result.current.selectedRule).toBeNull();
   });
@@ -147,7 +147,7 @@ describe("useAlertRules", () => {
     const rule = result.current.rules[0];
 
     act(() => {
-      result.current.setSelectedRule(rule);
+      result.current.setSelectedRule(rule ?? null);
     });
     expect(result.current.selectedRule).toEqual(rule);
 
@@ -178,9 +178,9 @@ describe("useAlertRules", () => {
 
     const rule = result.current.rules[0];
     act(() => {
-      result.current.setEditingRule(rule);
+      result.current.setEditingRule(rule ?? null);
     });
-    expect(result.current.editingRule?.id).toBe(rule.id);
+    expect(result.current.editingRule?.id).toBe(rule?.id);
 
     act(() => {
       result.current.setEditingRule(null);
@@ -190,8 +190,8 @@ describe("useAlertRules", () => {
 
   it("should update an existing rule", () => {
     const { result } = renderHook(() => useAlertRules());
-    const ruleId = result.current.rules[0].id;
-    const originalName = result.current.rules[0].name;
+    const ruleId = result.current.rules[0]!.id;
+    const originalName = result.current.rules[0]?.name;
 
     act(() => {
       result.current.updateRule(ruleId, { name: "Updated Name", severity: "info" });

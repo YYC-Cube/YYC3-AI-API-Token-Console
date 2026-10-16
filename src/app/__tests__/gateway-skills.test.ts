@@ -69,7 +69,7 @@ describe("gateway-skills: 执行器", () => {
     expect(r.summary).toContain("请求 42");
     expect(r.summary).toContain("成本 $1.50");
     expect(r.detail).toContain("total_requests");
-    expect(String(vi.mocked(globalThis.fetch).mock.calls[0][0])).toContain("/console/gw/v1/models/summary");
+    expect(String(vi.mocked(globalThis.fetch).mock.calls[0]![0])).toContain("/console/gw/v1/models/summary");
   });
 
   it("成功: POST + 路径参数编码（缓存失效）", async () => {
@@ -88,7 +88,7 @@ describe("gateway-skills: 执行器", () => {
     vi.stubGlobal("fetch", spy);
     const r = await runGatewaySkill("logs-recent", { minutes: "30", limit: "10" });
     expect(r.ok).toBe(true);
-    expect(String(spy.mock.calls[0][0])).toContain("minutes=30&limit=10");
+    expect(String(spy.mock.calls[0]![0])).toContain("minutes=30&limit=10");
     expect(r.summary).toContain("共 5 条");
   });
 

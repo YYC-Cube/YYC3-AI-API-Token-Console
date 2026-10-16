@@ -126,7 +126,7 @@ export async function runWithCheckpoint<T = unknown>(
 
   for (let i = record.lastStepIndex + 1; i < steps.length; i++) {
     try {
-      const result = await steps[i]();
+      const result = await steps[i]!();
       results.push(result);
       // 先持久化确认再继续 — 崩溃窗口最小化为「当前步重试」
       await confirmStep(taskId, i, result);

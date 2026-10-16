@@ -79,7 +79,7 @@ describe("ai-family/FamilyModelSettings", () => {
   it("切换模型应持久化 assignment", () => {
     render(<FamilyModelSettings />);
     expandCard("千行");
-    fireEvent.click(screen.getAllByText("GPT-4o")[0]);
+    fireEvent.click(screen.getAllByText("GPT-4o")[0]!);
     const saved = JSON.parse(localStorage.getItem(ASSIGN_STORAGE)!);
     expect(saved[0]).toMatchObject({ memberId: "navigator", providerId: "openai", modelId: "gpt-4o" });
   });
@@ -125,8 +125,8 @@ describe("ai-family/FamilyModelSettings", () => {
     expandCard("千行");
     fireEvent.click(screen.getByText("语音预览"));
     expect(speakMock).toHaveBeenCalledTimes(1);
-    const u = speakMock.mock.calls[0][0] as UtteranceMock;
-    const profile = DEFAULT_VOICE_PROFILES[0];
+    const u = speakMock.mock.calls[0]![0] as UtteranceMock;
+    const profile = DEFAULT_VOICE_PROFILES[0]!;
     expect(u.text).toContain("千行");
     expect(u.pitch).toBe(profile.pitch);
     expect(u.rate).toBe(profile.rate);

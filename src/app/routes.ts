@@ -33,7 +33,7 @@ function lazyPage<T extends Record<string, React.ComponentType>>(
   loader: () => Promise<T>,
   name: keyof T & string
 ): React.LazyExoticComponent<React.ComponentType> {
-  return React.lazy(() => loader().then(m => ({ default: m[name] })));
+  return React.lazy(() => loader().then(m => ({ default: m[name]! })));
 }
 
 /** Suspense 包装的路由 element (复用 ai-family LazyWrap 壳) */

@@ -84,8 +84,8 @@ function addWifiNetwork(overrides: Partial<WifiNetwork> & { ssid: string }) {
     signal: overrides.signal ?? 80,
     security: overrides.security ?? "WPA2",
     connected: overrides.connected ?? false,
-    password: overrides.password,
-    lastConnectedAt: overrides.lastConnectedAt,
+    ...(overrides.password !== undefined ? { password: overrides.password } : {}),
+    ...(overrides.lastConnectedAt !== undefined ? { lastConnectedAt: overrides.lastConnectedAt } : {}),
   });
 }
 
@@ -436,7 +436,7 @@ describe("NetworkConfig", () => {
       render(<NetworkConfig {...defaultProps} />);
       fireEvent.click(screen.getByText("WiFi 配置"));
       fireEvent.click(screen.getByText("断开"));
-      expect(wifiNetworkStore.getAll()[0].connected).toBe(false);
+      expect(wifiNetworkStore.getAll()[0]!.connected).toBe(false);
       expect(toast.info).toHaveBeenCalledWith("已断开 Home-WiFi");
     });
   });
@@ -461,7 +461,7 @@ describe("NetworkConfig", () => {
       render(<NetworkConfig {...defaultProps} />);
       fireEvent.click(screen.getByText("连接历史"));
       fireEvent.click(screen.getByText("重连"));
-      expect(wifiNetworkStore.getAll()[0].connected).toBe(true);
+      expect(wifiNetworkStore.getAll()[0]!.connected).toBe(true);
       expect(toast.success).toHaveBeenCalledWith("已连接到 Old", expect.anything());
     });
 

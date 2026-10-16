@@ -230,7 +230,7 @@ describe("ErrorBoundary", () => {
         </ErrorBoundary>
       );
       expect(handleError).toHaveBeenCalledTimes(1);
-      expect(handleError.mock.calls[0][0].message).toBe("callback test");
+      expect(handleError.mock.calls[0]![0].message).toBe("callback test");
     });
   });
 

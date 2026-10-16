@@ -73,11 +73,12 @@ export function upstreamNodesFromRouterStats(router: unknown): NodeData[] {
     .filter((u): u is UpstreamPoolItem => typeof u === "object" && u !== null)
     .map((u) =>
       normalizeUpstreamNode(String(u.name ?? "?"), {
-        // WS 帧=status, REST 快照=breaker_state — 双字段兼容
-        status: typeof u.status === "string" ? u.status : u.breaker_state,
-        load: typeof u.load === "number" ? u.load : undefined,
-        latency_ms: typeof u.latency_ms === "number" ? u.latency_ms : undefined,
-        error_rate: typeof u.error_rate === "number" ? u.error_rate : undefined,
+        // WS 帧=status, REST 快照=breaker_state — 双字段兼容 (status 优先, spread 置后覆盖)
+        ...(typeof u.breaker_state === "string" && { status: u.breaker_state }),
+        ...(typeof u.status === "string" && { status: u.status }),
+        ...(typeof u.load === "number" && { load: u.load }),
+        ...(typeof u.latency_ms === "number" && { latency_ms: u.latency_ms }),
+        ...(typeof u.error_rate === "number" && { error_rate: u.error_rate }),
       }),
     );
 }
@@ -116,7 +117,7 @@ export function gatewaySelfNode(health: unknown): NodeData | null {
     temp: 0,
     model: `YYC³ 网关 v${h.version ?? "?"}`,
     tasks: h.metrics?.active_requests ?? 0, // 真实在途请求
-    uptime: h.uptime_seconds !== undefined ? `${Math.floor(h.uptime_seconds / 3600)}h` : undefined,
+    ...(h.uptime_seconds !== undefined && { uptime: `${Math.floor(h.uptime_seconds / 3600)}h` }),
     kind: "gateway" as const,
   };
 }

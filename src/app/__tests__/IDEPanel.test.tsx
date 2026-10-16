@@ -155,7 +155,7 @@ describe("IDEPanel", () => {
     it("点击文件应在编辑器中打开", () => {
       render(<IDEPanel />);
       // 文件树与 Tab 栏可能同时出现同名文件，点击第一个（文件树项）
-      fireEvent.click(screen.getAllByText("GlassCard.tsx")[0]);
+      fireEvent.click(screen.getAllByText("GlassCard.tsx")[0]!);
       expect(screen.getByTestId("code-editor")).toBeInTheDocument();
     });
   });
@@ -172,7 +172,7 @@ describe("IDEPanel", () => {
 
     it("打开文件后应显示编辑器", () => {
       render(<IDEPanel />);
-      fireEvent.click(screen.getAllByText("GlassCard.tsx")[0]);
+      fireEvent.click(screen.getAllByText("GlassCard.tsx")[0]!);
       expect(screen.getByTestId("code-editor")).toBeInTheDocument();
     });
   });

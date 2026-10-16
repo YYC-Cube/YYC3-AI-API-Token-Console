@@ -127,7 +127,7 @@ describe("useLocalDatabase", () => {
 
     it("执行模板只设置 sqlInput 不执行查询", () => {
       const { result } = renderHook(() => useLocalDatabase());
-      const template = SQL_TEMPLATES[0];
+      const template = SQL_TEMPLATES[0]!;
 
       act(() => {
         result.current.executeTemplate(template);
@@ -159,9 +159,9 @@ describe("useLocalDatabase", () => {
       });
 
       expect(result.current.connections.length).toBe(1);
-      expect(result.current.connections[0].name).toBe("Test PG");
-      expect(result.current.connections[0].type).toBe("postgresql");
-      expect(result.current.connections[0].status).toBe("disconnected");
+      expect(result.current.connections[0]?.name).toBe("Test PG");
+      expect(result.current.connections[0]?.type).toBe("postgresql");
+      expect(result.current.connections[0]?.status).toBe("disconnected");
       expect(mockToast.success).toHaveBeenCalledWith("连接已添加: Test PG");
     });
 
@@ -180,7 +180,7 @@ describe("useLocalDatabase", () => {
         });
       });
 
-      const id = result.current.connections[0].id;
+      const id = result.current.connections[0]!.id;
 
       await act(async () => {
         await result.current.removeConnection(id);
@@ -204,7 +204,7 @@ describe("useLocalDatabase", () => {
         });
       });
 
-      const id = result.current.connections[0].id;
+      const id = result.current.connections[0]!.id;
 
       act(() => {
         result.current.updateConnection(id, { name: "Updated Name", port: 5433 });
@@ -580,7 +580,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
     act(() => {
       result.current.addConnection(PG_CONN);
     });
-    return result.current.connections[0].id;
+    return result.current.connections[0]!.id;
   }
 
   /** 冲刷挂载 effect 中的 idbGetAll 微任务 */
@@ -610,10 +610,10 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await flushMount();
 
       expect(result.current.connections.length).toBe(2);
-      expect(result.current.connections[0].password).toBe("secret");
-      expect(result.current.connections[0].status).toBe("disconnected");
+      expect(result.current.connections[0]?.password).toBe("secret");
+      expect(result.current.connections[0]?.status).toBe("disconnected");
       // atob 解码失败 → 原样返回
-      expect(result.current.connections[1].password).toBe("not-base64!!!");
+      expect(result.current.connections[1]?.password).toBe("not-base64!!!");
     });
 
     it("挂载时加载查询历史并按 executedAt 倒序", async () => {
@@ -761,7 +761,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
         await result.current.disconnectDB(id);
       });
 
-      expect(result.current.connections[0].status).toBe("disconnected");
+      expect(result.current.connections[0]?.status).toBe("disconnected");
       expect(result.current.tables).toEqual([]);
       expect(result.current.activeConnection).toBeNull();
       expect(mockToast.info).toHaveBeenCalledWith("已断开连接");
@@ -805,7 +805,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
 
       expect(result.current.activeConnection?.status).toBe("connected");
       expect(result.current.tables.length).toBe(1);
-      expect(result.current.tables[0].name).toBe("remote_t");
+      expect(result.current.tables[0]?.name).toBe("remote_t");
       expect(mockToast.success).toHaveBeenCalledWith("已连接: Test PG");
       fetchSpy.mockRestore();
     });
@@ -874,29 +874,29 @@ describe("useLocalDatabase 覆盖率补测", () => {
         await result.current.loadTableData("core.models", 3);
       });
       expect(result.current.tableData.length).toBe(3);
-      expect(result.current.tableData[0].name).toBe("LLaMA-70B");
+      expect(result.current.tableData[0]?.name).toBe("LLaMA-70B");
 
       await act(async () => {
         await result.current.loadTableData("core.agents", 2);
       });
-      expect(result.current.tableData[0].name_cn).toBe("编排器");
-      expect(typeof result.current.tableData[0].is_active).toBe("boolean");
+      expect(result.current.tableData[0]?.name_cn).toBe("编排器");
+      expect(typeof result.current.tableData[0]?.is_active).toBe("boolean");
 
       await act(async () => {
         await result.current.loadTableData("infra.nodes", 2);
       });
-      expect(result.current.tableData[0].hostname).toBe("GPU-A100-01");
+      expect(result.current.tableData[0]?.hostname).toBe("GPU-A100-01");
 
       await act(async () => {
         await result.current.loadTableData("telemetry.inference_logs", 2);
       });
-      expect(typeof result.current.tableData[0].latency_ms).toBe("number");
+      expect(typeof result.current.tableData[0]?.latency_ms).toBe("number");
 
       await act(async () => {
         await result.current.loadTableData("audit.operations", 2);
       });
-      expect(result.current.tableData[0].id).toBe("row-1");
-      expect(JSON.parse(String(result.current.tableData[0].detail)).key).toBe("val_0");
+      expect(result.current.tableData[0]?.id).toBe("row-1");
+      expect(JSON.parse(String(result.current.tableData[0]?.detail)).key).toBe("val_0");
 
       await act(async () => {
         await result.current.loadTableData("unknown.table");
@@ -933,7 +933,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await act(async () => {
         r2 = await result.current.executeQuery("SELECT count(*) FROM dual;") as typeof r2;
       });
-      expect(r2?.rows[0].count).toBe(128456);
+      expect(r2?.rows[0]?.count).toBe(128456);
 
       let r3: { columns: string[] } | undefined;
       await act(async () => {
@@ -945,7 +945,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await act(async () => {
         r4 = await result.current.executeQuery("INSERT INTO core.models VALUES ('x');") as typeof r4;
       });
-      expect(r4?.rows[0].affected_rows).toBeDefined();
+      expect(r4?.rows[0]?.affected_rows).toBeDefined();
 
       let r5: { error?: string } | undefined;
       await act(async () => {
@@ -958,7 +958,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await act(async () => {
         r6 = await result.current.executeQuery("VACUUM ANALYZE;") as typeof r6;
       });
-      expect(r6?.rows[0].result).toBe("OK");
+      expect(r6?.rows[0]?.result).toBe("OK");
 
       expect(result.current.queryResults.length).toBe(6);
       expect(result.current.queryHistory.length).toBe(6);
@@ -976,7 +976,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await act(async () => {
         r = await result.current.executeQuery() as typeof r;
       });
-      expect(r?.rows[0].name_cn).toBe("编排器");
+      expect(r?.rows[0]?.name_cn).toBe("编排器");
     });
 
     it("后端成功: 直接使用后端 QueryResult", async () => {
@@ -992,7 +992,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       });
 
       expect(r?.id).toBe("backend-1");
-      expect(result.current.queryResults[0].rowCount).toBe(1);
+      expect(result.current.queryResults[0]?.rowCount).toBe(1);
       expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining("查询完成: 1 行"));
       fetchSpy.mockRestore();
     });
@@ -1106,9 +1106,9 @@ describe("useLocalDatabase 覆盖率补测", () => {
       });
 
       expect(result.current.backups.length).toBe(1);
-      expect(result.current.backups[0].fileName).toMatch(/^yyc3_postgresql_\d{4}-\d{2}-\d{2}\.sql$/);
-      expect(result.current.backups[0].sizeBytes).toBeGreaterThan(0);
-      expect(result.current.backups[0].status).toBe("completed");
+      expect(result.current.backups[0]?.fileName).toMatch(/^yyc3_postgresql_\d{4}-\d{2}-\d{2}\.sql$/);
+      expect(result.current.backups[0]?.sizeBytes).toBeGreaterThan(0);
+      expect(result.current.backups[0]?.status).toBe("completed");
       expect(result.current.stats.totalBackups).toBe(1);
       expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining("备份完成"));
     });
@@ -1118,7 +1118,7 @@ describe("useLocalDatabase 覆盖率补测", () => {
       await seedBackup(result);
 
       expect(result.current.backups.length).toBe(1);
-      expect(result.current.backups[0].fileName).toBe("remote.sql");
+      expect(result.current.backups[0]?.fileName).toBe("remote.sql");
       expect(mockToast.success).toHaveBeenCalledWith("备份完成");
     });
 

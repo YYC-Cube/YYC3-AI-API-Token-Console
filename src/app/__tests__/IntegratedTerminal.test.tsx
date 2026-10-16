@@ -125,7 +125,7 @@ describe("IntegratedTerminal", () => {
     it("点击 Tab 切换激活", () => {
       renderTerminal();
       fireEvent.click(screen.getByTitle("新建终端 Tab"));
-      fireEvent.click(screen.getAllByText("cpim")[0]);
+      fireEvent.click(screen.getAllByText("cpim")[0]!);
       // cpim 重新激活 → 状态栏显示 Tab 1/2
       expect(screen.getByText("Tab 1/2")).toBeInTheDocument();
     });
@@ -133,7 +133,7 @@ describe("IntegratedTerminal", () => {
     it("关闭非末尾 Tab", () => {
       renderTerminal();
       fireEvent.click(screen.getByTitle("新建终端 Tab"));
-      const tab2 = screen.getAllByText("cpim-2")[0].closest("div")!;
+      const tab2 = screen.getAllByText("cpim-2")[0]!.closest("div")!;
       fireEvent.click(tab2.querySelector("button")!);
       expect(screen.queryByText("cpim-2")).not.toBeInTheDocument();
       expect(screen.getByText("Tab 1/1")).toBeInTheDocument();
@@ -144,7 +144,7 @@ describe("IntegratedTerminal", () => {
       renderTerminal(true, onClose);
       // 单 tab 时不渲染关闭按钮 → 先建再关
       fireEvent.click(screen.getByTitle("新建终端 Tab"));
-      const tab2 = screen.getAllByText("cpim-2")[0].closest("div")!;
+      const tab2 = screen.getAllByText("cpim-2")[0]!.closest("div")!;
       fireEvent.click(tab2.querySelector("button")!);
       // 此时仅剩 tab-1, 关闭按钮随 tabs.length>1 消失 → 直接验证重置回 Tab 1/1
       expect(onClose).not.toHaveBeenCalled();

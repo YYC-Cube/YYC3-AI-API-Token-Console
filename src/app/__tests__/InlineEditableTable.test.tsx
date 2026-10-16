@@ -212,7 +212,7 @@ describe("InlineEditableTable", () => {
       fireEvent.keyDown(input, { key: "Enter" });
 
       expect(onCellChange).toHaveBeenCalledTimes(1);
-      const [change, sql] = onCellChange.mock.calls[0];
+      const [change, sql] = onCellChange.mock.calls[0] ?? [];
       expect(change.column).toBe("name");
       expect(change.oldValue).toBe("LLaMA-70B");
       expect(change.newValue).toBe("GPT-4o");
@@ -261,7 +261,7 @@ describe("InlineEditableTable", () => {
       // 找到第一行的选择按钮 (第二个 Square 图标)
       const rowButtons = screen.getAllByRole("button");
       // 第一个是表头全选，之后是每行选择
-      const firstRowSelectBtn = rowButtons[1];
+      const firstRowSelectBtn = rowButtons[1]!;
       fireEvent.click(firstRowSelectBtn);
       expect(screen.getByText(/删除选中/)).toBeTruthy();
     });
@@ -272,7 +272,7 @@ describe("InlineEditableTable", () => {
 
       // 选择第一行
       const rowButtons = screen.getAllByRole("button");
-      fireEvent.click(rowButtons[1]);
+      fireEvent.click(rowButtons[1]!);
 
       // 点击删除
       fireEvent.click(screen.getByText(/删除选中/));
@@ -334,7 +334,7 @@ describe("InlineEditableTable", () => {
       render(<InlineEditableTable columns={mockColumns} rows={mockRows} tableName="core.models" primaryKey="id" editable={true} onExecuteSQL={onExecuteSQL} />);
       // 选择行并标记删除
       const rowButtons = screen.getAllByRole("button");
-      fireEvent.click(rowButtons[1]);
+      fireEvent.click(rowButtons[1]!);
       fireEvent.click(screen.getByText(/删除选中/));
       // 打开确认弹窗
       fireEvent.click(screen.getByText("提交变更"));
@@ -391,7 +391,7 @@ describe("InlineEditableTable", () => {
       fireEvent.click(screen.getByText("全部回滚"));
       await waitFor(() => {
         expect(onExecuteSQL).toHaveBeenCalledTimes(2);
-        const rollbackCall = onExecuteSQL.mock.calls[1][0];
+        const rollbackCall = onExecuteSQL.mock.calls[1]?.[0];
         expect(rollbackCall).toContain("SET name = 'LLaMA-70B'");
       });
     });
@@ -439,7 +439,7 @@ describe("InlineEditableTable", () => {
       await waitFor(() => expect(screen.getByText(/Undo/)).toBeTruthy());
       fireEvent.click(screen.getByText(/Undo/));
       await waitFor(() => expect(screen.getAllByText("撤销").length).toBe(2));
-      fireEvent.click(screen.getAllByText("撤销")[0]);
+      fireEvent.click(screen.getAllByText("撤销")[0]!);
       await waitFor(() => {
         expect(screen.getByText("已撤销")).toBeTruthy();
       });

@@ -201,7 +201,7 @@ export function TopBar({
     }
   }, [mobileMenuOpen]);
 
-  const displayName = userEmail ? userEmail.split("@")[0] : "Admin";
+  const displayName = userEmail ? userEmail.split("@")[0]! : "Admin";
   const roleLabel = userRole === "admin" ? t("nav.userMgmt") : userRole === "developer" ? t("nav.devGuide") : t("nav.userMgmt");
   const initials = displayName.slice(0, 2).toUpperCase();
 

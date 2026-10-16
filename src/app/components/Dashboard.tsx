@@ -106,7 +106,7 @@ export function Dashboard() {
       if (idx < ANALYTICS_TABS.length - 1) {
         setSwipeAnim("left");
         setTimeout(() => {
-          setAnalyticsTab(ANALYTICS_TABS[idx + 1]);
+          setAnalyticsTab(ANALYTICS_TABS[idx + 1]!);
           setSwipeAnim("");
         }, 150);
       }
@@ -116,7 +116,7 @@ export function Dashboard() {
       if (idx > 0) {
         setSwipeAnim("right");
         setTimeout(() => {
-          setAnalyticsTab(ANALYTICS_TABS[idx - 1]);
+          setAnalyticsTab(ANALYTICS_TABS[idx - 1]!);
           setSwipeAnim("");
         }, 150);
       }
@@ -217,7 +217,7 @@ export function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,180,255,0.08)" />
-                  <XAxis dataKey="time" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} tickFormatter={(v: string) => v.split(".")[0]} />
+                  <XAxis dataKey="time" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} tickFormatter={(v: string) => v.split(".")[0]!} />
                   <YAxis key="yaxis-left" yAxisId="left" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} width={40} />
                   <YAxis key="yaxis-right" yAxisId="right" orientation="right" tick={{ fill: "rgba(0,255,136,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(0,255,136,0.1)" }} width={45} />
                   <Tooltip contentStyle={customTooltipStyle} />

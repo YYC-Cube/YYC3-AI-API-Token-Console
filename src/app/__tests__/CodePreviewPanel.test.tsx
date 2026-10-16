@@ -136,7 +136,7 @@ describe("CodePreviewPanel", () => {
     const { onTabClose, onTabSelect } = renderPanel([TAB_A, TAB_B]);
     const tab = screen.getByText("README.md").closest("button")!;
     const spans = tab.querySelectorAll("span");
-    fireEvent.click(spans[spans.length - 1]);
+    fireEvent.click(spans[spans.length - 1]!);
     expect(onTabClose).toHaveBeenCalledWith("readme-md");
     expect(onTabSelect).not.toHaveBeenCalled();
   });

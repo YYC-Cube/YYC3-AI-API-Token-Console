@@ -120,9 +120,9 @@ describe("useReportExporter（真实数据源 P0-4）", () => {
     await generate(result);
     const report = result.current.report!;
     expect(report.performanceHistory).toHaveLength(1);
-    expect(report.performanceHistory[0].cpuUsage).toBe(35.5);
-    expect(report.performanceHistory[0].memoryUsage).toBe(60.2);
-    expect(report.performanceHistory[0].latencyP99).toBe(0); // 无 P99 源 → 0 不冒充
+    expect(report.performanceHistory[0]!.cpuUsage).toBe(35.5);
+    expect(report.performanceHistory[0]!.memoryUsage).toBe(60.2);
+    expect(report.performanceHistory[0]!.latencyP99).toBe(0); // 无 P99 源 → 0 不冒充
     expect(report.securityHistory).toEqual([]);
   });
 
@@ -159,7 +159,7 @@ describe("useReportExporter（真实数据源 P0-4）", () => {
     const { result } = renderHook(() => useReportExporter());
     await generate(result);
     expect(result.current.recentReports).toHaveLength(1);
-    expect(result.current.recentReports[0].type).toBe("performance");
+    expect(result.current.recentReports[0]!.type).toBe("performance");
   });
 
   it("无报告时导出不抛错", () => {
@@ -225,7 +225,7 @@ describe("useReportExporter 导出链路", () => {
     });
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
-    expect(createObjectURL.mock.calls[0][0]).toBeInstanceOf(Blob);
+    expect(createObjectURL.mock.calls[0]![0]).toBeInstanceOf(Blob);
     expect(downloads).toHaveLength(1);
     expect(downloads[0]).toMatch(/^yyc3-performance-report-\d{4}-\d{2}-\d{2}\.json$/);
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");

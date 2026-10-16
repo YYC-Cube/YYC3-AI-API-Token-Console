@@ -192,19 +192,19 @@ describe("IDETerminal", () => {
       fireEvent.click(screen.getByTitle("新建终端"));
       typeAndRun("help");
       // 切回第一个 tab → 恢复默认欢迎行
-      fireEvent.click(screen.getAllByText("bash")[0]);
+      fireEvent.click(screen.getAllByText("bash")[0]!);
       expect(screen.getByText("YYC³ CloudPivot Terminal v2.4.0")).toBeInTheDocument();
     });
 
     it("关闭 Tab (单 Tab 时关闭按钮不渲染)", () => {
       renderTerminal();
       // 单 tab: tab 内无关闭 span
-      const singleTab = screen.getAllByText("bash")[0];
+      const singleTab = screen.getAllByText("bash")[0]!;
       expect(singleTab.parentElement!.querySelectorAll("span").length).toBe(1);
       fireEvent.click(screen.getByTitle("新建终端"));
       const tabs = screen.getAllByText("bash");
       // 第二个 tab 的关闭按钮: button 内第 2 个 span
-      fireEvent.click(tabs[1].parentElement!.querySelectorAll("span")[1]);
+      fireEvent.click(tabs[1]!.parentElement!.querySelectorAll("span")[1]!);
       expect(screen.getAllByText("bash").length).toBe(1);
       expect(screen.queryByText("New terminal session")).not.toBeInTheDocument();
     });

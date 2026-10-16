@@ -145,8 +145,9 @@ function TerminalTabPane({
         handleHistoryNav("down");
       } else if (e.key === "Tab") {
         e.preventDefault();
-        if (completions.length > 0) {
-          applyCompletion(completions[0]);
+        const firstCompletion = completions[0];
+        if (firstCompletion !== undefined) {
+          applyCompletion(firstCompletion);
         }
       }
     },
@@ -293,7 +294,10 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
           return [{ id: "tab-1", label: "cpim", createdAt: Date.now() }];
         }
         if (activeTabId === tabId) {
-          setActiveTabId(next[next.length - 1].id);
+          const lastTab = next[next.length - 1];
+          if (lastTab !== undefined) {
+            setActiveTabId(lastTab.id);
+          }
         }
         return next;
       });
@@ -340,7 +344,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
   const onDragStart = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       e.preventDefault();
-      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+      const clientY = "touches" in e ? e.touches[0]!.clientY : e.clientY;
       dragRef.current = {
         startY: clientY,
         startH: panelHeight,
@@ -351,7 +355,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
         if (!dragRef.current?.dragging) return;
         const y =
           "touches" in ev
-            ? (ev as TouchEvent).touches[0].clientY
+            ? (ev as TouchEvent).touches[0]!.clientY
             : (ev as MouseEvent).clientY;
         const delta = dragRef.current.startY - y;
         const maxH = window.innerHeight * MAX_HEIGHT_RATIO;

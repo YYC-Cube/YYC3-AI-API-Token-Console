@@ -309,11 +309,11 @@ export function IDETerminal({ isCollapsed, onToggleCollapse }: IDETerminalProps)
       const lower = input.toLowerCase();
       const matches = OWN_COMPLETIONS.filter((c) => c.startsWith(lower) && c.trim() !== lower.trim());
       if (matches.length === 1) {
-        setInput(matches[0]);
+        setInput(matches[0]!);
       } else if (matches.length > 1) {
         // Cycle through matches
         const nextIdx = (tabIndex + 1) % matches.length;
-        setInput(matches[nextIdx]);
+        setInput(matches[nextIdx]!);
         setTabIndex(nextIdx);
       }
     } else if (e.key === "ArrowUp") {
@@ -359,7 +359,7 @@ export function IDETerminal({ isCollapsed, onToggleCollapse }: IDETerminalProps)
     if (tabs.length <= 1) return;
     setTabs((prev) => prev.filter((t) => t.id !== id));
     if (activeTabId === id) {
-      setActiveTabId(tabs.find((t) => t.id !== id)?.id ?? tabs[0].id);
+      setActiveTabId(tabs.find((t) => t.id !== id)?.id ?? tabs[0]!.id);
     }
   };
 

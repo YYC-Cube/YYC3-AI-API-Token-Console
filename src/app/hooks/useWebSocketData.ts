@@ -368,7 +368,7 @@ export function useWebSocketData(): WebSocketDataState {
           tokensPerSecRef.current !== null ? { ...p, tokens: tokensPerSecRef.current } : p;
         if (msg.payload.length === 1) {
           setThroughputHistory((prev) => {
-            const next = [...prev, injectTokens(msg.payload[0])];
+            const next = [...prev, injectTokens(msg.payload[0]!)];
             return next.length > MAX_THROUGHPUT_HISTORY ? next.slice(-MAX_THROUGHPUT_HISTORY) : next;
           });
         } else {

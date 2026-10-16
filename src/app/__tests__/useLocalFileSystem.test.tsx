@@ -52,7 +52,7 @@ describe("useLocalFileSystem", () => {
     it("breadcrumbs 初始只有根路径", () => {
       const { result } = renderHook(() => useLocalFileSystem());
       expect(result.current.breadcrumbs.length).toBe(1);
-      expect(result.current.breadcrumbs[0].label).toBe("~/.yyc3-cloudpivot");
+      expect(result.current.breadcrumbs[0]?.label).toBe("~/.yyc3-cloudpivot");
     });
 
     it("selectedFile 初始为 null", () => {
@@ -90,7 +90,7 @@ describe("useLocalFileSystem", () => {
         result.current.navigateTo("~/.yyc3-cloudpivot/logs/node");
       });
       expect(result.current.breadcrumbs.length).toBe(3);
-      expect(result.current.breadcrumbs[2].label).toBe("node");
+      expect(result.current.breadcrumbs[2]?.label).toBe("node");
     });
 
     it("导航后 currentItems 应返回子目录", () => {
@@ -166,7 +166,7 @@ describe("useLocalFileSystem", () => {
       const { result } = renderHook(() => useLocalFileSystem());
       const source = result.current.logSources[0];
       act(() => {
-        result.current.setLogSourceFilter(source);
+        result.current.setLogSourceFilter(source ?? "");
       });
       expect(result.current.logs.every((l) => l.source === source)).toBe(true);
     });
@@ -203,8 +203,8 @@ describe("useLocalFileSystem", () => {
         });
       });
       expect(result.current.reports.length).toBe(1);
-      expect(result.current.reports[0].filename).toContain(".json");
-      expect(result.current.reports[0].previewContent).toContain("nodeHealth");
+      expect(result.current.reports[0]?.filename).toContain(".json");
+      expect(result.current.reports[0]?.previewContent).toContain("nodeHealth");
     });
 
     it("生成 Markdown 报告", async () => {
@@ -219,8 +219,8 @@ describe("useLocalFileSystem", () => {
         });
       });
       expect(result.current.reports.length).toBe(1);
-      expect(result.current.reports[0].filename).toContain(".md");
-      expect(result.current.reports[0].previewContent).toContain("# YYC³");
+      expect(result.current.reports[0]?.filename).toContain(".md");
+      expect(result.current.reports[0]?.previewContent).toContain("# YYC³");
     });
 
     it("生成 CSV 报告", async () => {
@@ -234,7 +234,7 @@ describe("useLocalFileSystem", () => {
           includeRawData: true,
         });
       });
-      expect(result.current.reports[0].filename).toContain(".csv");
+      expect(result.current.reports[0]?.filename).toContain(".csv");
     });
 
     it("isGenerating 在生成过程中应为 true", async () => {
@@ -505,7 +505,7 @@ describe("useLocalFileSystem 覆盖率补测", () => {
 
       const { result } = renderHook(() => useLocalFileSystem());
       expect(result.current.fileTree.length).toBe(1);
-      expect(result.current.fileTree[0].name).toBe("custom-root");
+      expect(result.current.fileTree[0]?.name).toBe("custom-root");
     });
   });
 
@@ -631,9 +631,9 @@ describe("useLocalFileSystem 覆盖率补测", () => {
       });
 
       expect(result.current.reports.length).toBe(1);
-      expect(result.current.reports[0].filename).toContain("custom");
-      expect(result.current.reports[0].filename).toContain(".md");
-      expect(result.current.reports[0].previewContent).toContain("自定义");
+      expect(result.current.reports[0]?.filename).toContain("custom");
+      expect(result.current.reports[0]?.filename).toContain(".md");
+      expect(result.current.reports[0]?.previewContent).toContain("自定义");
     });
   });
 });

@@ -43,7 +43,7 @@ const NEWS_ITEMS = [
 
 function formatTime(progress: number, duration: string): string {
   const parts = duration.split(":");
-  const totalSecs = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  const totalSecs = parseInt(parts[0] ?? "0") * 60 + parseInt(parts[1] ?? "0");
   const currentSecs = Math.floor(totalSecs * progress / 100);
   const m = Math.floor(currentSecs / 60);
   const s = currentSecs % 60;
@@ -59,7 +59,7 @@ export function FamilyMusic() {
   const [muted, setMuted] = useState(false);
   const [liked, setLiked] = useState<Set<number>>(new Set([1]));
 
-  const track = PLAYLIST[currentTrack];
+  const track = PLAYLIST[currentTrack]!;  // 模取值恒在字面量播放列表内
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -207,7 +207,7 @@ export function FamilyMusic() {
                       <GlassCard
                         className={`p-3 cursor-pointer group transition-all ${isCurrent ? "" : "hover:bg-[rgba(0,40,80,0.15)]"}`}
                         onClick={() => { setCurrentTrack(i); setProgress(0); setIsPlaying(true); }}
-                        glowColor={isCurrent ? `${t.color}06` : undefined}
+                        {...(isCurrent ? { glowColor: `${t.color}06` } : {})}
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 text-center shrink-0">

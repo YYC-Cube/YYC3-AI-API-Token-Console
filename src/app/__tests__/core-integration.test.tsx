@@ -53,7 +53,7 @@ describe("createLocalStore 集成测试", () => {
   it("getAll 首次返回默认数据并写入 localStorage", () => {
     const all = store.getAll();
     expect(all).toHaveLength(2);
-    expect(all[0].name).toBe("Alpha");
+    expect(all[0]!.name).toBe("Alpha");
     expect(localStorageMock.setItem).toHaveBeenCalledWith("test_store", expect.any(String));
   });
 
@@ -345,7 +345,7 @@ describe("Store 数据持久化验证", () => {
     const store = createLocalStore<{ id: string; val: string }>("persist_test", [], "pt");
     store.add({ val: "hello" });
     expect(localStorageMock.setItem).toHaveBeenCalledWith("persist_test", expect.any(String));
-    const stored = JSON.parse(storageMap["persist_test"]);
+    const stored = JSON.parse(storageMap["persist_test"]!);
     expect(stored).toHaveLength(1);
     expect(stored[0].val).toBe("hello");
   });
@@ -354,7 +354,7 @@ describe("Store 数据持久化验证", () => {
     const store = createLocalStore<{ id: string; val: string }>("persist_update", [{ id: "p1", val: "old" }], "p");
     store.getAll();
     store.update("p1", { val: "new" });
-    const stored = JSON.parse(storageMap["persist_update"]);
+    const stored = JSON.parse(storageMap["persist_update"]!);
     expect(stored[0].val).toBe("new");
   });
 
@@ -362,7 +362,7 @@ describe("Store 数据持久化验证", () => {
     const store = createLocalStore<{ id: string; val: string }>("persist_delete", [{ id: "d1", val: "x" }], "d");
     store.getAll();
     store.remove("d1");
-    const stored = JSON.parse(storageMap["persist_delete"]);
+    const stored = JSON.parse(storageMap["persist_delete"]!);
     expect(stored).toHaveLength(0);
   });
 
@@ -372,7 +372,7 @@ describe("Store 数据持久化验证", () => {
     store.getAll();
     store.add({ val: "extra" });
     store.reset();
-    const stored = JSON.parse(storageMap["persist_reset"]);
+    const stored = JSON.parse(storageMap["persist_reset"]!);
     expect(stored).toHaveLength(1);
     expect(stored[0].val).toBe("default");
   });

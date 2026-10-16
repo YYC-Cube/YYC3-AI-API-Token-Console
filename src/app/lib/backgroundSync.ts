@@ -112,6 +112,6 @@ export function getSyncQueueStats(): SyncQueueStats {
     total: queue.length,
     pending: queue.filter((i) => i.retries === 0).length,
     retrying: queue.filter((i) => i.retries > 0).length,
-    oldestTimestamp: queue.length > 0 ? queue[0].timestamp : null,
+    oldestTimestamp: queue.length > 0 ? queue[0]?.timestamp ?? null : null,
   };
 }

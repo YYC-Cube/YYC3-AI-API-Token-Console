@@ -120,7 +120,7 @@ describe("CreateRuleModal", () => {
       renderRuleModal({ onSubmit });
       fireEvent.change(screen.getByTestId("rule-name-input"), { target: { value: "  新规则  " } });
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      const payload = onSubmit.mock.calls[0][0];
+      const payload = onSubmit.mock.calls[0]?.[0];
       expect(payload).toEqual({
         name: "新规则",
         enabled: true,
@@ -141,7 +141,7 @@ describe("CreateRuleModal", () => {
       fireEvent.change(screen.getByTestId("rule-name-input"), { target: { value: "R" } });
       fireEvent.click(screen.getByTestId("severity-critical"));
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].severity).toBe("critical");
+      expect(onSubmit.mock.calls[0]?.[0].severity).toBe("critical");
     });
   });
 
@@ -166,7 +166,7 @@ describe("CreateRuleModal", () => {
       fireEvent.change(screen.getByPlaceholderText("单位"), { target: { value: "GB" } });
       fireEvent.change(screen.getByTitle("持续时间(秒)"), { target: { value: "30" } });
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].thresholds).toEqual([
+      expect(onSubmit.mock.calls[0]?.[0].thresholds).toEqual([
         { metric: "memory", condition: "lt", value: 50, unit: "GB", duration: 30 },
       ]);
     });
@@ -199,7 +199,7 @@ describe("CreateRuleModal", () => {
       fireEvent.change(maxGroupInput, { target: { value: "20" } });
       fireEvent.change(screen.getByTestId("dedup-cooldown-input"), { target: { value: "60" } });
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      const payload = onSubmit.mock.calls[0][0];
+      const payload = onSubmit.mock.calls[0]?.[0];
       expect(payload.aggregation).toEqual({ enabled: true, windowMinutes: 10, maxGroupSize: 20 });
       expect(payload.deduplication).toEqual({ enabled: true, cooldownMinutes: 60 });
     });
@@ -238,7 +238,7 @@ describe("CreateRuleModal", () => {
         target: { value: "auto_restart" },
       });
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].escalation[0]).toEqual({
+      expect(onSubmit.mock.calls[0]?.[0].escalation[0]).toEqual({
         level: 1,
         delayMinutes: 7,
         notifyChannels: ["dashboard"],
@@ -254,7 +254,7 @@ describe("CreateRuleModal", () => {
       fireEvent.click(screen.getByTestId("channel-webhook-0"));
       fireEvent.click(screen.getByTestId("channel-webhook-0")); // 再点一次移除
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].escalation[0].notifyChannels).toEqual([
+      expect(onSubmit.mock.calls[0]?.[0].escalation[0].notifyChannels).toEqual([
         "dashboard",
         "email",
       ]);
@@ -266,7 +266,7 @@ describe("CreateRuleModal", () => {
       fireEvent.change(screen.getByTestId("rule-name-input"), { target: { value: "R" } });
       fireEvent.click(screen.getByTestId("channel-dashboard-0")); // 移除唯一渠道
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].escalation[0].notifyChannels).toEqual(["dashboard"]);
+      expect(onSubmit.mock.calls[0]?.[0].escalation[0].notifyChannels).toEqual(["dashboard"]);
     });
   });
 
@@ -278,7 +278,7 @@ describe("CreateRuleModal", () => {
       fireEvent.click(screen.getByTestId("node-GPU-A100-01")); // 取消
       fireEvent.click(screen.getByTestId("node-NAS-01")); // 新增
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      expect(onSubmit.mock.calls[0][0].targets).toEqual(["NAS-01"]);
+      expect(onSubmit.mock.calls[0]?.[0].targets).toEqual(["NAS-01"]);
     });
   });
 
@@ -294,7 +294,7 @@ describe("CreateRuleModal", () => {
       expect((screen.getByTestId("threshold-value-0") as HTMLInputElement).value).toBe("95");
       expect(screen.getByTestId("node-NAS-01")).toBeInTheDocument();
       fireEvent.click(screen.getByTestId("submit-rule-btn"));
-      const payload = onSubmit.mock.calls[0][0];
+      const payload = onSubmit.mock.calls[0]?.[0];
       expect(payload.name).toBe("GPU 高温告警");
       expect(payload.enabled).toBe(false);
       expect(payload.severity).toBe("critical");

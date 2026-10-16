@@ -374,7 +374,7 @@ export function FamilyUISettings() {
         status,
         message,
         latency,
-        storageSize,
+        ...(storageSize !== undefined ? { storageSize } : {}),
         lastChecked: new Date().toISOString(),
       },
     }));
@@ -402,7 +402,7 @@ export function FamilyUISettings() {
       }
       setLinkStatuses(prev => ({
         ...prev,
-        [ls.nodeId]: { ...prev[ls.nodeId], status: "ok", message: "已修复" },
+        [ls.nodeId]: { ...prev[ls.nodeId], nodeId: ls.nodeId, status: "ok", message: "已修复" },
       }));
       await new Promise(r => setTimeout(r, 200));
     }

@@ -71,7 +71,7 @@ function saveMessages(msgs: FamilyMessage[]) {
 
 // ═══ 消息类型配置 ═══
 
-const MSG_TYPE_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+const MSG_TYPE_CONFIG: Record<FamilyMessage["type"], { label: string; color: string; icon: React.ElementType }> = {
   announcement: { label: "公告", color: "#f59e0b", icon: Sparkles },
   alert: { label: "警报", color: "#ef4444", icon: Shield },
   text: { label: "消息", color: "#3b82f6", icon: MessageCircle },
@@ -279,12 +279,12 @@ export function FamilyCommCenter() {
     const groups: { date: string; msgs: FamilyMessage[] }[] = [];
     let currentDate = "";
     for (const msg of displayMessages) {
-      const dateStr = msg.timestamp.split("T")[0];
+      const dateStr = msg.timestamp.split("T")[0]!;
       if (dateStr !== currentDate) {
         currentDate = dateStr;
         groups.push({ date: dateStr, msgs: [] });
       }
-      groups[groups.length - 1].msgs.push(msg);
+      groups[groups.length - 1]?.msgs.push(msg);
     }
     return groups;
   }, [displayMessages]);
@@ -322,7 +322,7 @@ export function FamilyCommCenter() {
             id: `msg-${Date.now()}-reply-${i}`,
             from: responder.id,
             to: sendAs,
-            content: responses[Math.floor(Math.random() * responses.length)],
+            content: responses[Math.floor(Math.random() * responses.length)] ?? "",
             timestamp: new Date().toISOString(),
             type: "text",
             read: false,

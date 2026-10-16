@@ -71,8 +71,8 @@ describe("console-metrics: collectNodeMetrics", () => {
     const r = await collect({ n1: "http://a:11434", n2: "http://b:11434" }, fetchImpl);
     expect(r.nodes).toHaveLength(2);
     expect(r.nodes.every((n: { status: string }) => n.status === "active")).toBe(true);
-    expect(r.nodes[0].models).toEqual(["llama3:8b", "qwen2:7b"]);
-    expect(r.nodes[0].latencyMs).toBeGreaterThanOrEqual(0);
+    expect(r.nodes[0]!.models).toEqual(["llama3:8b", "qwen2:7b"]);
+    expect(r.nodes[0]!.latencyMs).toBeGreaterThanOrEqual(0);
     expect(r.activeCount).toBe("2/2");
     expect(r.ts).toBeGreaterThan(0);
   });
@@ -94,7 +94,7 @@ describe("console-metrics: collectNodeMetrics", () => {
   it("HTTP 非 200 按不可达处理", async () => {
     const fetchImpl = vi.fn(async () => new Response("nope", { status: 503 }));
     const r = await collect({ n1: "http://x:11434" }, fetchImpl);
-    expect(r.nodes[0].status).toBe("inactive");
+    expect(r.nodes[0]!.status).toBe("inactive");
   });
 
   it("空节点表返回空集", async () => {
@@ -161,7 +161,7 @@ describe("console-metrics: collectGatewaySnapshot（P0-3 网关三端点）", ()
     expect(r.models).toEqual([{ model_id: "vllm", total_tokens: 100 }]);
     const authed = gwSnapshotFetch.mock.calls.filter((c) => String(c[0]).includes("v1/"));
     expect(authed.length).toBe(2);
-    expect((authed[0][1] as { headers: Record<string, string> }).headers["X-API-Key"]).toBe("sk-admin-x");
+    expect((authed[0]![1] as { headers: Record<string, string> }).headers["X-API-Key"]).toBe("sk-admin-x");
   });
 
   it("部分降级: 鉴权端点 503 不拖垮 /health", async () => {

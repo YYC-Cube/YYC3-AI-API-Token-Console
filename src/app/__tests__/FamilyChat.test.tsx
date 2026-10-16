@@ -96,7 +96,7 @@ describe("ai-family/FamilyChat", () => {
 
   it("切换到一对一频道后头部显示家人名", () => {
     renderChat();
-    fireEvent.click(screen.getAllByText("万物")[0]); // 频道入口 (消息气泡发送者同文本)
+    fireEvent.click(screen.getAllByText("万物")[0]!); // 频道入口 (消息气泡发送者同文本)
     expect(screen.getAllByText("语枢·万物").length).toBeGreaterThanOrEqual(1); // 频道描述 + 头部
     expect(screen.getByText("一对一对话")).toBeInTheDocument();
     expect(screen.queryByText("8位家人 · 在线")).not.toBeInTheDocument();
@@ -134,7 +134,7 @@ describe("FamilyChat 真实 LLM 回复", () => {
     await act(async () => { await Promise.resolve(); });
     expect(await screen.findByText("这是天枢的真实调度回复。")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string);
     expect(body.messages[0].role).toBe("system"); // 人格 prompt 首位
     expect(body.messages[0].content).toContain("YYC³ AI Family");
     vi.unstubAllGlobals();

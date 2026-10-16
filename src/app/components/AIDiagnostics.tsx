@@ -78,7 +78,12 @@ function PatternCard({ pattern, t }: { pattern: DiagnosticPattern; t: (k: string
   return (
     <GlassCard
       className="p-4"
-      glowColor={pattern.severity === "critical" ? "rgba(255,51,102,0.08)" : pattern.severity === "warning" ? "rgba(255,170,0,0.05)" : undefined}
+      {...(pattern.severity === "critical" || pattern.severity === "warning"
+        ? {
+            glowColor:
+              pattern.severity === "critical" ? "rgba(255,51,102,0.08)" : "rgba(255,170,0,0.05)",
+          }
+        : {})}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -192,7 +197,7 @@ function ActionCard({
   t: (k: string) => string;
 }) {
   return (
-    <GlassCard className="p-4" glowColor={action.priority === "urgent" ? "rgba(255,51,102,0.06)" : undefined}>
+    <GlassCard className="p-4" {...(action.priority === "urgent" ? { glowColor: "rgba(255,51,102,0.06)" } : {})}>
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-4 h-4" style={{ color: priorityColor(action.priority) }} />
@@ -287,7 +292,7 @@ function ForecastCard({ forecast, t }: { forecast: PredictiveForecast; t: (k: st
   const TrendIcon = forecast.trend === "up" ? TrendingUp : forecast.trend === "down" ? TrendingDown : Minus;
 
   return (
-    <GlassCard className="p-4" glowColor={forecast.riskLevel === "danger" ? "rgba(255,51,102,0.06)" : undefined}>
+    <GlassCard className="p-4" {...(forecast.riskLevel === "danger" ? { glowColor: "rgba(255,51,102,0.06)" } : {})}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {metricIcon(forecast.metric)}

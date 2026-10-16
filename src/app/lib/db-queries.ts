@@ -112,7 +112,7 @@ function getNodes(): NodeStatusRecord[] {
 // ============================================================
 
 function generateMockLogs(count: number): InferenceLog[] {
-  const statuses: Array<"success" | "error" | "timeout"> = ["success", "error", "timeout"];
+  const statuses = ["success", "error", "timeout"] as const;
   const modelIds = getModels().map((m) => m.id);
   const agentIds = getAgents().filter((a) => a.is_active).map((a) => a.id);
 
@@ -120,8 +120,8 @@ function generateMockLogs(count: number): InferenceLog[] {
 
   return Array.from({ length: count }, (_, i) => ({
     id: `log-${String(i + 1).padStart(5, "0")}`,
-    model_id: modelIds[i % modelIds.length],
-    agent_id: agentIds[i % agentIds.length],
+    model_id: modelIds[i % modelIds.length] ?? "",
+    agent_id: agentIds[i % agentIds.length] ?? "",
     latency_ms: Math.floor(Math.random() * 300) + 20,
     tokens_in: Math.floor(Math.random() * 2000) + 100,
     tokens_out: Math.floor(Math.random() * 4000) + 200,

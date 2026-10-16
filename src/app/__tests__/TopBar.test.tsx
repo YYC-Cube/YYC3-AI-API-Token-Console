@@ -198,7 +198,7 @@ describe("TopBar", () => {
       render(<TopBar {...mobileProps} />);
       // Find hamburger button (contains Menu icon)
       const buttons = screen.getAllByRole("button");
-      fireEvent.click(buttons[0]); // First button is hamburger
+      fireEvent.click(buttons[0]!); // First button is hamburger
       expect(mobileProps.onToggleMobileMenu).toHaveBeenCalled();
     });
 

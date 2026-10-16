@@ -118,7 +118,7 @@ describe("PatrolHistory", () => {
       const items = screen.getAllByRole("button").filter((b) =>
         b.getAttribute("data-testid")?.startsWith("history-")
       );
-      fireEvent.click(items[0]);
+      fireEvent.click(items[0]!);
       expect(onViewReport).toHaveBeenCalledTimes(1);
       expect(onViewReport).toHaveBeenCalledWith(mockHistory[0]);
     });

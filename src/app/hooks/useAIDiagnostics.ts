@@ -42,7 +42,7 @@ function uid(): string {
 }
 
 function randomFrom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
 const PATTERN_TYPES: PatternType[] = ["recurring", "gradual", "spike", "correlation", "seasonal"];
@@ -60,11 +60,11 @@ function generatePatterns(opts: DiagnosticsOptions): DiagnosticPattern[] {
   const count = 3 + Math.floor(Math.random() * 3);
 
   return Array.from({ length: count }, (_, i) => {
-    const type = PATTERN_TYPES[i % PATTERN_TYPES.length];
+    const type = PATTERN_TYPES[i % PATTERN_TYPES.length] ?? "recurring";
     const node = hasLiveData ? opts.liveNodes![i % opts.liveNodes!.length] : undefined;
     const nodeId = node?.id ?? randomFrom(NODE_IDS);
-    const metricKey = METRICS[i % METRICS.length];
-    const metricLabel = METRIC_LABELS[metricKey];
+    const metricKey = METRICS[i % METRICS.length] ?? "gpu_utilization";
+    const metricLabel = METRIC_LABELS[metricKey] ?? "";
     const gpu = node?.gpu ?? 50 + Math.random() * 40;
 
     return {
@@ -87,8 +87,8 @@ function generateAnomalies(opts: DiagnosticsOptions, patterns: DiagnosticPattern
   const hasLiveData = opts.liveNodes && opts.liveNodes.length > 0;
   // Use only the first node to avoid multiple DOM elements matching regex in tests
   const primaryNode = hasLiveData
-    ? opts.liveNodes![0]
-    : { id: NODE_IDS[0], gpu: 70, mem: 60, temp: 65, status: "online" };
+    ? opts.liveNodes![0] ?? { id: "GPU-A100-01", gpu: 70, mem: 60, temp: 65, status: "online" }
+    : { id: NODE_IDS[0] ?? "GPU-A100-01", gpu: 70, mem: 60, temp: 65, status: "online" };
 
   const secondaryNodes = hasLiveData
     ? opts.liveNodes!.slice(1).map((n) => ({ ...n, id: `Node-${n.id.split("-").pop()}` }))
@@ -103,12 +103,12 @@ function generateAnomalies(opts: DiagnosticsOptions, patterns: DiagnosticPattern
     id: `ano-${uid()}`,
     timestamp: now - Math.floor(Math.random() * 1800000),
     nodeId: n.id,
-    metric: METRIC_LABELS[METRICS[i % METRICS.length]],
+    metric: METRIC_LABELS[METRICS[i % METRICS.length] ?? "gpu_utilization"] ?? "",
     expectedValue: Math.round(50 + Math.random() * 20),
     actualValue: Math.round(n.gpu ?? 80 + Math.random() * 15),
     deviation: Math.round((15 + Math.random() * 35) * 10) / 10,
     rootCause: `并发推理任务过多导致该节点负载升高`,
-    relatedPatternId: patterns[i % patterns.length]?.id,
+    ...(patterns[i % patterns.length] && { relatedPatternId: patterns[i % patterns.length]!.id }),
   }));
 }
 

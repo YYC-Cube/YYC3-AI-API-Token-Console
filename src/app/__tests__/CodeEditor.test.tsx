@@ -198,11 +198,11 @@ describe("CodeEditor", () => {
     render(
       <CodeEditor value="" onChange={() => {}} filename="a.ts" onSave={onSave} />
     );
-    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1];
+    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1]!;
     const metaEvent = { metaKey: true, ctrlKey: false, key: "s", preventDefault: vi.fn() };
-    expect(handlers.keydown(metaEvent)).toBe(true);
+    expect(handlers.keydown!(metaEvent)).toBe(true);
     const ctrlEvent = { metaKey: false, ctrlKey: true, key: "s", preventDefault: vi.fn() };
-    expect(handlers.keydown(ctrlEvent)).toBe(true);
+    expect(handlers.keydown!(ctrlEvent)).toBe(true);
     expect(onSave).toHaveBeenCalledTimes(2);
     expect(metaEvent.preventDefault).toHaveBeenCalled();
     expect(ctrlEvent.preventDefault).toHaveBeenCalled();
@@ -213,9 +213,9 @@ describe("CodeEditor", () => {
     render(
       <CodeEditor value="" onChange={() => {}} filename="a.ts" onSave={onSave} />
     );
-    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1];
+    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1]!;
     const otherEvent = { metaKey: true, ctrlKey: false, key: "x", preventDefault: vi.fn() };
-    expect(handlers.keydown(otherEvent)).toBe(false);
+    expect(handlers.keydown!(otherEvent)).toBe(false);
     expect(onSave).not.toHaveBeenCalled();
     expect(otherEvent.preventDefault).not.toHaveBeenCalled();
   });
@@ -263,11 +263,11 @@ describe("SQLEditor", () => {
     render(
       <SQLEditor value="" onChange={() => {}} onExecute={onExecute} />
     );
-    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1];
+    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1]!;
     const metaEvent = { metaKey: true, ctrlKey: false, key: "Enter", preventDefault: vi.fn() };
-    expect(handlers.keydown(metaEvent)).toBe(true);
+    expect(handlers.keydown!(metaEvent)).toBe(true);
     const ctrlEvent = { metaKey: false, ctrlKey: true, key: "Enter", preventDefault: vi.fn() };
-    expect(handlers.keydown(ctrlEvent)).toBe(true);
+    expect(handlers.keydown!(ctrlEvent)).toBe(true);
     expect(onExecute).toHaveBeenCalledTimes(2);
     expect(metaEvent.preventDefault).toHaveBeenCalled();
   });
@@ -277,9 +277,9 @@ describe("SQLEditor", () => {
     render(
       <SQLEditor value="" onChange={() => {}} onExecute={onExecute} />
     );
-    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1];
+    const handlers = cmViewMock.domHandlers[cmViewMock.domHandlers.length - 1]!;
     const otherEvent = { metaKey: true, ctrlKey: false, key: "s", preventDefault: vi.fn() };
-    expect(handlers.keydown(otherEvent)).toBe(false);
+    expect(handlers.keydown!(otherEvent)).toBe(false);
     expect(onExecute).not.toHaveBeenCalled();
   });
 });

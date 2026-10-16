@@ -15,8 +15,14 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ResultCard } from "../components/service-test/results-view";
 import type { TestResult } from "../components/service-test/types";
 
-function makeResult(overrides: Partial<TestResult> = {}): TestResult {
-  return {
+type ResultOverrides = Partial<Omit<TestResult, "startedAt" | "completedAt">> & {
+  startedAt?: number | undefined;
+  completedAt?: number | undefined;
+};
+
+function makeResult(overrides: ResultOverrides = {}): TestResult {
+  const { startedAt, completedAt, ...rest } = overrides;
+  const merged: TestResult = {
     id: "t-1",
     category: "ai",
     name: "AI 推理连通性",
@@ -30,8 +36,18 @@ function makeResult(overrides: Partial<TestResult> = {}): TestResult {
     startedAt: 1700000000000,
     completedAt: 1700000000123,
     suggestion: "检查 API Key 配置",
-    ...overrides,
+    ...rest,
   };
+  // 传 undefined = 显式清除默认时间戳; 未传 = 保留默认 (组件按 falsy 判定, 缺省等价)
+  if ("startedAt" in overrides) {
+    if (startedAt === undefined) delete merged.startedAt;
+    else merged.startedAt = startedAt;
+  }
+  if ("completedAt" in overrides) {
+    if (completedAt === undefined) delete merged.completedAt;
+    else merged.completedAt = completedAt;
+  }
+  return merged;
 }
 
 describe("service-test/ResultCard", () => {

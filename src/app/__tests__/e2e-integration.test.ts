@@ -65,7 +65,7 @@ describe("E2E: Store CRUD 闭环", () => {
 
     // 1. 初始化 → 默认数据
     expect(s.count()).toBe(2);
-    expect(s.getAll()[0].name).toBe("Alpha");
+    expect(s.getAll()[0]!.name).toBe("Alpha");
 
     // 2. 添加
     const added = s.add({ name: "Gamma", value: 30 });

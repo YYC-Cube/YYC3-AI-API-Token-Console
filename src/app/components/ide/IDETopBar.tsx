@@ -24,7 +24,7 @@ export function IDETopBar({ projectName, onBack, selectedModel, onModelChange }:
   const { t } = useI18n();
   const [showModelSelect, setShowModelSelect] = useState(false);
 
-  const currentModel = AI_MODELS.find((m) => m.id === selectedModel) ?? AI_MODELS[0];
+  const currentModel = AI_MODELS.find((m) => m.id === selectedModel) ?? AI_MODELS[0]!;
 
   const ACTION_ICONS = [
     { icon: FolderOpen, label: t("ide.explorer"), color: "#00d4ff" },

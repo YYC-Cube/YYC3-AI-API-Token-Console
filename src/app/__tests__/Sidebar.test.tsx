@@ -159,7 +159,7 @@ describe("Sidebar", () => {
       // 分类按钮的父容器
       const catButtons = screen.getAllByRole("button");
       // hover the first category (monitor)
-      const firstCat = catButtons[0].closest(".relative");
+      const firstCat = catButtons[0]!.closest(".relative");
       if (firstCat) {
         fireEvent.mouseEnter(firstCat);
         // flyout should appear with category label

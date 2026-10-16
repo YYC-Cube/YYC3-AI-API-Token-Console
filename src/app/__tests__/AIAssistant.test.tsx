@@ -134,7 +134,7 @@ describe("AIAssistant", () => {
       // The last button in header area is close
       const headerBtns = screen.getByText("AI 智能助理").closest("div")?.parentElement?.querySelectorAll("button");
       if (headerBtns && headerBtns.length > 0) {
-        fireEvent.click(headerBtns[headerBtns.length - 1]); // last = close
+        fireEvent.click(headerBtns[headerBtns.length - 1]!); // last = close
         expect(screen.queryByText("AI 智能助理")).not.toBeInTheDocument();
       }
     });
@@ -374,7 +374,7 @@ describe("AIAssistant", () => {
       fireEvent.click(screen.getByRole("button"));
       fireEvent.change(screen.getByPlaceholderText(/输入指令/), { target: { value: "按钮发送" } });
       const allBtns = screen.getAllByRole("button", { name: "" });
-      fireEvent.click(allBtns[allBtns.length - 1]);
+      fireEvent.click(allBtns[allBtns.length - 1]!);
       expect(screen.getByText("按钮发送")).toBeInTheDocument();
     });
 
@@ -418,7 +418,7 @@ describe("AIAssistant", () => {
       fireEvent.click(screen.getByRole("button"));
       // 头部按钮组: [清空对话, 最大化, 关闭] → 取最后一个
       const headerBtns = screen.getByTitle("清空对话").parentElement!.querySelectorAll("button");
-      fireEvent.click(headerBtns[headerBtns.length - 1]);
+      fireEvent.click(headerBtns[headerBtns.length - 1]!);
       expect(screen.queryByText("AI 智能助理")).not.toBeInTheDocument();
       expect(screen.getByText("AI 智能助理 (⌘J)")).toBeInTheDocument();
     });
@@ -482,11 +482,11 @@ describe("AIAssistant", () => {
       const ranges = document.querySelectorAll('input[type="range"]');
       // 顺序: [温度, Top-P, 最大 Token]
       expect(ranges.length).toBe(3);
-      fireEvent.change(ranges[0], { target: { value: "1.5" } });
+      fireEvent.change(ranges[0]!, { target: { value: "1.5" } });
       expect(mockUpdateValue).toHaveBeenCalledWith("aiTemperature", "1.5");
-      fireEvent.change(ranges[1], { target: { value: "0.5" } });
+      fireEvent.change(ranges[1]!, { target: { value: "0.5" } });
       expect(mockUpdateValue).toHaveBeenCalledWith("aiTopP", "0.5");
-      fireEvent.change(ranges[2], { target: { value: "4096" } });
+      fireEvent.change(ranges[2]!, { target: { value: "4096" } });
       expect(mockUpdateValue).toHaveBeenCalledWith("aiMaxTokens", "4096");
     });
 

@@ -104,7 +104,7 @@ describe("ai-family/FamilyVoiceSystem", () => {
     const card = cardOf("千行");
     fireEvent.click(card.querySelector("button svg.lucide-play")!.closest("button") as HTMLButtonElement);
     expect(speakMock).toHaveBeenCalledTimes(1);
-    expect((speakMock.mock.calls[0][0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0].greeting);
+    expect((speakMock.mock.calls[0]![0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0]?.greeting);
     expect(screen.getByText("播报中")).toBeInTheDocument();
     expect(screen.getByText("停止")).toBeInTheDocument();
     fireEvent.click(screen.getByText("停止"));
@@ -137,9 +137,9 @@ describe("ai-family/FamilyVoiceSystem", () => {
     const card = cardOf("千行");
     fireEvent.click(card.querySelector("button svg[class*='lucide-sliders']")!.closest("button") as HTMLButtonElement);
     fireEvent.click(within(card).getByText("问候语"));
-    expect((speakMock.mock.calls[0][0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0].greeting);
+    expect((speakMock.mock.calls[0]![0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0]?.greeting);
     fireEvent.click(within(card).getByText("关爱播报"));
-    expect((speakMock.mock.calls[1][0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0].careMessage);
+    expect((speakMock.mock.calls[1]![0] as UtteranceMock).text).toBe(FAMILY_MEMBERS[0]?.careMessage);
   });
 
   it("语音对话面板: 文字输入 → 回复 → 对话持久化", async () => {
@@ -158,7 +158,7 @@ describe("ai-family/FamilyVoiceSystem", () => {
 
     await act(async () => { await vi.advanceTimersByTimeAsync(750); });
     // AI 回复取 AI_RESPONSES.navigator[2]
-    const expectedReply = AI_RESPONSES.navigator[2];
+    const expectedReply = AI_RESPONSES.navigator?.[2] ?? "";
     expect(screen.getByText(expectedReply)).toBeInTheDocument();
     expect(screen.getByText("你好")).toBeInTheDocument();
     expect(input).toHaveValue("");
@@ -184,12 +184,12 @@ describe("ai-family/FamilyVoiceSystem", () => {
     // 面板内圆形麦克风按钮 (w-14)
     const micBtn = document.querySelector("button.w-14") as HTMLButtonElement;
     fireEvent.click(micBtn);
-    expect(instances[0].start).toHaveBeenCalledTimes(1);
+    expect(instances[0]?.start).toHaveBeenCalledTimes(1);
     expect(screen.getByText("录音中")).toBeInTheDocument();
 
     // 模拟识别结果 (final)
     act(() => {
-      instances[0].onresult?.({
+      instances[0]?.onresult?.({
         resultIndex: 0,
         results: [{ isFinal: true, 0: { transcript: "测试语音" }, length: 1 }],
       });
@@ -202,7 +202,7 @@ describe("ai-family/FamilyVoiceSystem", () => {
     expect(convs.at(-1).userText).toBe("测试语音");
 
     // onend → 录音中消失
-    act(() => { instances[0].onend?.(); });
+    act(() => { instances[0]?.onend?.(); });
     expect(screen.queryByText("录音中")).not.toBeInTheDocument();
   });
 
@@ -211,7 +211,7 @@ describe("ai-family/FamilyVoiceSystem", () => {
     render(<FamilyVoiceSystem />);
     fireEvent.click(screen.getByText("整点关爱"));
     const care = FAMILY_MEMBERS[new Date().getHours() % FAMILY_MEMBERS.length];
-    expect((speakMock.mock.calls[0][0] as UtteranceMock).text).toBe(care.careMessage);
+    expect((speakMock.mock.calls[0]![0] as UtteranceMock).text).toBe(care?.careMessage);
     expect(screen.getByText("播报中")).toBeInTheDocument();
   });
 
@@ -223,12 +223,12 @@ describe("ai-family/FamilyVoiceSystem", () => {
     expect(speakMock).toHaveBeenCalledTimes(1);
     await act(async () => {
       for (let i = 0; i < 8; i++) {
-        (speakMock.mock.calls[i][0] as UtteranceMock).onend?.();
+        (speakMock.mock.calls[i]![0] as UtteranceMock).onend?.();
         await vi.advanceTimersByTimeAsync(300);
       }
     });
     expect(speakMock).toHaveBeenCalledTimes(8);
-    expect((speakMock.mock.calls[7][0] as UtteranceMock).text).toContain("灵韵");
+    expect((speakMock.mock.calls[7]![0] as UtteranceMock).text).toContain("灵韵");
     expect(screen.queryByText("停止")).not.toBeInTheDocument();
   });
 

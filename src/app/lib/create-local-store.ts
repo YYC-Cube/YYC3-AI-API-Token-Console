@@ -89,10 +89,10 @@ export function createLocalStore<T extends { id: string }>(
       const data = load();
       const idx = data.findIndex((item) => item.id === id);
       if (idx < 0) return null;
-      data[idx] = { ...data[idx], ...updates };
+      data[idx] = { ...data[idx]!, ...updates };
       _cache = data;
       save();
-      return data[idx];
+      return data[idx] ?? null;
     },
 
     remove: (id) => {

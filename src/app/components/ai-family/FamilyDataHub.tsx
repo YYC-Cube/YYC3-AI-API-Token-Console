@@ -22,12 +22,12 @@ import { FadeIn } from "./FadeIn";
 import {
   FAMILY_MEMBERS, FAMILY_ACTIVITIES, SAMPLE_MEMORIES, SAMPLE_MESSAGES,
   MEMBER_MEDALS, getFamilyDataSummary, hexToRgb,
-  type FamilyMember,
+  type FamilyActivity, type FamilyMember,
 } from "./shared";
 
 // ═══ Activity type config ═══
 
-const ACTIVITY_TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; color: string }> = {
+const ACTIVITY_TYPE_CONFIG: Record<FamilyActivity["type"], { icon: React.ElementType; label: string; color: string }> = {
   game:        { icon: Gamepad2,  label: "游戏",   color: "#06b6d4" },
   talent:      { icon: Sparkles,  label: "才艺",   color: "#f59e0b" },
   learning:    { icon: BookOpen,  label: "学习",   color: "#a855f7" },
@@ -71,7 +71,7 @@ function MemberRanking({ members }: { members: FamilyMember[] }) {
       <div className="space-y-2">
         {sorted.map((m, i) => {
           const rgb = hexToRgb(m.color);
-          const maxContrib = sorted[0].contribution;
+          const maxContrib = sorted[0]?.contribution ?? m.contribution;  // sorted 非空，兜底仅类型收窄
           const barWidth = (m.contribution / maxContrib) * 100;
           return (
             <div key={m.id} className="flex items-center gap-2">

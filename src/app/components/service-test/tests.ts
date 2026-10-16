@@ -8,9 +8,9 @@ import { Database, Globe, Network, Radio, Server, Zap } from "lucide-react";
 import { getAPIConfig, getGatewayConfig } from "../../lib/api-config";
 import { env } from "../../lib/env-config";
 import { getOllamaChatUrl, getOllamaEndpointInfo, getOllamaTagsUrl } from "../../lib/ollama-url";
-import type { DBConnection } from "../../stores/dashboard-stores";
+import type { StoredDBConnection } from "../../stores/dashboard-stores";
 import { testFetch } from "./test-fetch";
-import type { TestResult, TestStatus } from "./types";
+import type { ServiceTestStatus, TestResult } from "./types";
 
 /** 汇总 steps → overallStatus */
 function finalize(result: TestResult, passOnSkip = true): TestResult {
@@ -46,8 +46,8 @@ export async function runAIProviderTest(
     startedAt: Date.now(),
   };
 
-  const addStep = (label: string, status: TestStatus, detail: string, latencyMs?: number) => {
-    result.steps.push({ label, status, detail, latencyMs, timestamp: Date.now() });
+  const addStep = (label: string, status: ServiceTestStatus, detail: string, latencyMs?: number) => {
+    result.steps.push({ label, status, detail, ...(latencyMs !== undefined ? { latencyMs } : {}), timestamp: Date.now() });
   };
 
   // Step 1: DNS / Network
@@ -209,7 +209,7 @@ export async function runAIProviderTest(
 }
 
 /** 数据库连接测试（原 testDB, 参数化纯函数） */
-export async function runDBTest(conn: DBConnection): Promise<TestResult> {
+export async function runDBTest(conn: StoredDBConnection): Promise<TestResult> {
   const result: TestResult = {
     id: `db-${conn.id}`,
     category: "db",

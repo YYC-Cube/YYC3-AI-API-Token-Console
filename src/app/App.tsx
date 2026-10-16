@@ -262,7 +262,7 @@ export default function App() {
 
   // 未登录 - 显示登录页
   if (!authenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} onGhostLogin={CONSOLE_MODE ? undefined : handleGhostLogin} />;
+    return <Login onLoginSuccess={handleLoginSuccess} {...(CONSOLE_MODE ? {} : { onGhostLogin: handleGhostLogin })} />;
   }
 
   // 已登录 - 显示主应用

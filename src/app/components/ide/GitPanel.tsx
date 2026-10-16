@@ -42,7 +42,7 @@ export function GitPanel() {
   const [showBranchSelect, setShowBranchSelect] = useState(false);
   const [searchCommits, setSearchCommits] = useState("");
 
-  const currentBranch = MOCK_GIT_BRANCHES.find((b) => b.current) ?? MOCK_GIT_BRANCHES[0];
+  const currentBranch = MOCK_GIT_BRANCHES.find((b) => b.current) ?? MOCK_GIT_BRANCHES[0]!;
   const stagedChanges = changes.filter((c) => c.staged);
   const unstagedChanges = changes.filter((c) => !c.staged);
 

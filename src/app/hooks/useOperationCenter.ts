@@ -111,7 +111,7 @@ function generateMockLogs(): OperationLogEntry[] {
     category: a.category,
     action: a.action,
     user: a.user,
-    status: statuses[i % statuses.length],
+    status: statuses[i % statuses.length] ?? "success",
     duration: 200 + Math.floor(Math.random() * 3000),
   }));
 }

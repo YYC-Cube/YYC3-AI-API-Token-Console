@@ -142,7 +142,7 @@ describe("useNetworkConfig", () => {
     });
 
     expect(saveNetworkConfig).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(saveNetworkConfig).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(saveNetworkConfig).mock.calls[0]![0]).toMatchObject({
       serverAddress: "10.2.2.2",
       wsUrl: "ws://10.2.2.2:9/ws",
     });

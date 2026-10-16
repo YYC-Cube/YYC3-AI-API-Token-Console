@@ -6,11 +6,13 @@ import { AlertTriangle, CheckCircle2, Clock, Loader2, XCircle } from "lucide-rea
 import type { ElementType } from "react";
 import { lsGet, lsRemove, lsSetJSON } from "../../lib/yyc3-storage";
 
-export type TestStatus = "idle" | "running" | "pass" | "fail" | "warn" | "skip";
+// S2 类型收敛: 与 types/network-sync.TestStatus 同名异构(联合集不同),
+// 域名限定消歧 — 网络同步状态契约见 src/app/types/network-sync.ts
+export type ServiceTestStatus = "idle" | "running" | "pass" | "fail" | "warn" | "skip";
 
 export interface TestStep {
   label: string;
-  status: TestStatus;
+  status: ServiceTestStatus;
   detail: string;
   latencyMs?: number;
   timestamp?: number;
@@ -23,7 +25,7 @@ export interface TestResult {
   icon: ElementType;
   color: string;
   steps: TestStep[];
-  overallStatus: TestStatus;
+  overallStatus: ServiceTestStatus;
   startedAt?: number;
   completedAt?: number;
   suggestion?: string;
@@ -35,7 +37,7 @@ export const toastStyle = {
   color: "#e0f0ff",
 };
 
-export const STATUS_META: Record<TestStatus, { label: string; color: string; icon: ElementType }> = {
+export const STATUS_META: Record<ServiceTestStatus, { label: string; color: string; icon: ElementType }> = {
   idle: { label: "待测试", color: "rgba(0,212,255,0.3)", icon: Clock },
   running: { label: "测试中", color: "#ffdd00", icon: Loader2 },
   pass: { label: "通过", color: "#00ff88", icon: CheckCircle2 },

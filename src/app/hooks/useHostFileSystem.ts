@@ -158,7 +158,7 @@ async function readDirectory(
         const file = await (handle as FileSystemFileHandle).getFile();
         entry.size = file.size;
         entry.lastModified = file.lastModified;
-        entry.mimeType = file.type || undefined;
+        if (file.type) entry.mimeType = file.type;
       } catch {
         // 权限被拒
       }
@@ -248,7 +248,7 @@ function loadRecentFiles(): RecentFile[] {
 function saveRecentFile(entry: HostFileEntry) {
   try {
     const recent = loadRecentFiles().filter(r => r.path !== entry.path);
-    recent.unshift({ id: entry.id, name: entry.name, path: entry.path, size: entry.size, accessedAt: Date.now() });
+    recent.unshift({ id: entry.id, name: entry.name, path: entry.path, ...(entry.size !== undefined && { size: entry.size }), accessedAt: Date.now() });
     lsSetJSON(RECENT_KEY, recent.slice(0, MAX_RECENT));
   } catch { /* ignore */ }
 }

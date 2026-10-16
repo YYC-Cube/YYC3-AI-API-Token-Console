@@ -106,7 +106,7 @@ describe("api-config", () => {
       setAPIConfig({ timeout: 999 });
 
       expect(listener).toHaveBeenCalledTimes(1);
-      expect(listener.mock.calls[0][0].timeout).toBe(999);
+      expect(listener.mock.calls[0]![0].timeout).toBe(999);
 
       unsubscribe();
     });

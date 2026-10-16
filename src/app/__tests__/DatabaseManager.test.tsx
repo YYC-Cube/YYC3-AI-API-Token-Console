@@ -249,7 +249,7 @@ describe("DatabaseManager", () => {
     expect(mockDb.disconnectDB).toHaveBeenCalledWith("conn-1");
 
     const buttons = within(card).getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]); // 末位 icon 按钮 = 删除
+    fireEvent.click(buttons[buttons.length - 1]!); // 末位 icon 按钮 = 删除
     expect(mockDb.removeConnection).toHaveBeenCalledWith("conn-1");
   });
 
@@ -534,7 +534,7 @@ describe("DatabaseManager", () => {
 
     const card = screen.getByText("yyc3_matrix_dump.sql").closest("div.p-4") as HTMLElement;
     const buttons = within(card).getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]); // 末位 icon 按钮 = 删除备份
+    fireEvent.click(buttons[buttons.length - 1]!); // 末位 icon 按钮 = 删除备份
     expect(mockDb.deleteBackup).toHaveBeenCalledWith("bk-1");
   });
 });

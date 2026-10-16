@@ -16,7 +16,7 @@ import { WS_MONITOR_PATH, computeAcceptKey, deriveGatewayWsUrl, encodeCloseFrame
 /** 构造 masked 客户端帧（RFC 6455 §5.3: 客户端→服务端必掩码） */
 function clientFrame(opcode: number, payload: Buffer, mask: number[] = [0x11, 0x22, 0x33, 0x44]): Buffer {
   const masked = Buffer.alloc(payload.length);
-  for (let i = 0; i < payload.length; i++) masked[i] = payload[i] ^ mask[i & 3];
+  for (let i = 0; i < payload.length; i++) masked[i] = payload[i]! ^ mask[i & 3]!;
   const len = payload.length;
   let header: Buffer;
   if (len < 126) {

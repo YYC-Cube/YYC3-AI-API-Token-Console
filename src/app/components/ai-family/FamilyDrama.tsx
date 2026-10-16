@@ -196,7 +196,7 @@ export function FamilyDrama() {
       </FadeIn>
       <div className="grid gap-2 md:grid-cols-2 mb-6">
         {SERVICES.map((def, i) => (
-          <ServiceRow key={def.id} def={def} state={states[def.id]} delay={0.08 + i * 0.04} />
+          <ServiceRow key={def.id} def={def} state={states[def.id] ?? "probing"} delay={0.08 + i * 0.04} />
         ))}
       </div>
 

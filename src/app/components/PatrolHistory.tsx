@@ -107,7 +107,7 @@ export function PatrolHistory({ history, onViewReport, isMobile = false }: Patro
               item.healthScore >= 90 ? "#00ff88" :
               item.healthScore >= 70 ? "#ffaa00" :
               "#ff3366";
-            const trig = triggerLabel[item.triggeredBy] ?? triggerLabel.auto;
+            const trig = triggerLabel[item.triggeredBy] ?? triggerLabel.auto!; // 字面量键常量直取
             const TrigIcon = trig.icon;
 
             return (

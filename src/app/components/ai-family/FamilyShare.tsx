@@ -76,7 +76,7 @@ const INITIAL_POSTS: SharePost[] = [
   },
 ];
 
-const CATEGORY_MAP: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+const CATEGORY_MAP: Record<SharePost["category"], { label: string; color: string; icon: React.ElementType }> = {
   knowledge: { label: "知识分享", color: "#00d4ff", icon: BookOpen },
   insight: { label: "洞察发现", color: "#FFD700", icon: TrendingUp },
   creative: { label: "创意设计", color: "#FF7043", icon: Lightbulb },

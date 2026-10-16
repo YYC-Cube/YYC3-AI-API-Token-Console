@@ -47,7 +47,7 @@ describe("ai-family/FamilyPhone", () => {
     vi.useFakeTimers();
     vi.spyOn(Math, "random").mockReturnValue(0.5);
     renderPage();
-    fireEvent.click(callButtons()[0]);
+    fireEvent.click(callButtons()[0]!);
     expect(screen.getByText("正在拨号...")).toBeInTheDocument();
     expect(screen.getByText("言启·千行")).toBeInTheDocument();
 
@@ -56,7 +56,7 @@ describe("ai-family/FamilyPhone", () => {
 
     act(() => { vi.advanceTimersByTime(2_100); });
     expect(screen.getByText("00:00")).toBeInTheDocument();
-    expect(screen.getByText(FAMILY_MEMBERS[0].greeting)).toBeInTheDocument();
+    expect(screen.getByText(FAMILY_MEMBERS[0]!.greeting)).toBeInTheDocument();
 
     act(() => { vi.advanceTimersByTime(1_000); });
     expect(screen.getByText("00:01")).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe("ai-family/FamilyPhone", () => {
     vi.useFakeTimers();
     vi.spyOn(Math, "random").mockReturnValue(0.5);
     renderPage();
-    fireEvent.click(callButtons()[0]);
+    fireEvent.click(callButtons()[0]!);
     act(() => { vi.advanceTimersByTime(3_600); });
     expect(screen.getByText("00:00")).toBeInTheDocument();
 
@@ -88,7 +88,7 @@ describe("ai-family/FamilyPhone", () => {
     vi.useFakeTimers();
     vi.spyOn(Math, "random").mockReturnValue(0.5);
     renderPage();
-    fireEvent.click(callButtons()[0]);
+    fireEvent.click(callButtons()[0]!);
     act(() => { vi.advanceTimersByTime(3_600); });
     fireEvent.click(document.querySelector("button svg.lucide-phone-off")!.closest("button") as HTMLButtonElement);
     expect(screen.getByText("通话已结束")).toBeInTheDocument();

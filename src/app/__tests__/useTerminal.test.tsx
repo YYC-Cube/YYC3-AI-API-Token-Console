@@ -34,7 +34,7 @@ describe("useTerminal", () => {
     it("history 应有欢迎消息", () => {
       const { result } = renderHook(() => useTerminal());
       expect(result.current.history.length).toBe(1);
-      expect(result.current.history[0].output).toContain("YYC³");
+      expect(result.current.history[0]?.output).toContain("YYC³");
     });
 
     it("inputValue 应为空", () => {
@@ -59,8 +59,8 @@ describe("useTerminal", () => {
         result.current.execute("help");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("cpim status");
-      expect(last.status).toBe("info");
+      expect(last?.output).toContain("cpim status");
+      expect(last?.status).toBe("info");
     });
 
     it("cpim status 应显示系统状态", () => {
@@ -69,9 +69,9 @@ describe("useTerminal", () => {
         result.current.execute("cpim status");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("活跃节点");
-      expect(last.output).toContain("GPU 利用率");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("活跃节点");
+      expect(last?.output).toContain("GPU 利用率");
+      expect(last?.status).toBe("success");
     });
 
     it("cpim node 应列出节点", () => {
@@ -80,8 +80,8 @@ describe("useTerminal", () => {
         result.current.execute("cpim node");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("GPU-A100-01");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("GPU-A100-01");
+      expect(last?.status).toBe("success");
     });
 
     it("cpim node GPU-A100-01 应显示节点详情", () => {
@@ -90,8 +90,8 @@ describe("useTerminal", () => {
         result.current.execute("cpim node GPU-A100-01");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("节点详情");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("节点详情");
+      expect(last?.status).toBe("success");
     });
 
     it("cpim alerts 应列出告警", () => {
@@ -100,8 +100,8 @@ describe("useTerminal", () => {
         result.current.execute("cpim alerts");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("AL-0032");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("AL-0032");
+      expect(last?.status).toBe("success");
     });
 
     it("cpim model list 应列出模型", () => {
@@ -110,7 +110,7 @@ describe("useTerminal", () => {
         result.current.execute("cpim model list");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("LLaMA-70B");
+      expect(last?.output).toContain("LLaMA-70B");
     });
 
     it("cpim patrol run --full 应执行巡查", () => {
@@ -119,7 +119,7 @@ describe("useTerminal", () => {
         result.current.execute("cpim patrol run --full");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("巡查完成");
+      expect(last?.output).toContain("巡查完成");
     });
 
     it("cpim report 应生成报告", () => {
@@ -128,7 +128,7 @@ describe("useTerminal", () => {
         result.current.execute("cpim report");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("报告已生成");
+      expect(last?.output).toContain("报告已生成");
     });
 
     it("cpim config list 应列出配置", () => {
@@ -137,7 +137,7 @@ describe("useTerminal", () => {
         result.current.execute("cpim config list");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("patrol.interval");
+      expect(last?.output).toContain("patrol.interval");
     });
 
     it("cpim config set key value 应设置成功", () => {
@@ -146,8 +146,8 @@ describe("useTerminal", () => {
         result.current.execute("cpim config set patrol.interval 30");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("已更新");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("已更新");
+      expect(last?.status).toBe("success");
     });
 
     it("clear 应清空历史", () => {
@@ -176,8 +176,8 @@ describe("useTerminal", () => {
         result.current.execute("foobar");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("命令未找到");
-      expect(last.status).toBe("error");
+      expect(last?.output).toContain("命令未找到");
+      expect(last?.status).toBe("error");
     });
 
     it("未知 cpim 子命令应返回错误", () => {
@@ -186,8 +186,8 @@ describe("useTerminal", () => {
         result.current.execute("cpim foobar");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("未知子命令");
-      expect(last.status).toBe("error");
+      expect(last?.output).toContain("未知子命令");
+      expect(last?.status).toBe("error");
     });
   });
 
@@ -204,8 +204,8 @@ describe("useTerminal", () => {
       });
       expect(onNavigate).toHaveBeenCalledWith("/patrol");
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("巡查模式");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("巡查模式");
+      expect(last?.status).toBe("success");
     });
 
     it("open /operations 应触发 onNavigate", () => {
@@ -223,8 +223,8 @@ describe("useTerminal", () => {
         result.current.execute("goto");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("可用路由");
-      expect(last.status).toBe("info");
+      expect(last?.output).toContain("可用路由");
+      expect(last?.status).toBe("info");
     });
 
     it("goto 中文名应模糊匹配", () => {
@@ -242,8 +242,8 @@ describe("useTerminal", () => {
         result.current.execute("goto /nonexistent");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("未知路由");
-      expect(last.status).toBe("error");
+      expect(last?.output).toContain("未知路由");
+      expect(last?.status).toBe("error");
     });
   });
 
@@ -258,8 +258,8 @@ describe("useTerminal", () => {
         result.current.execute("ai");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("ai <自然语言描述>");
-      expect(last.status).toBe("info");
+      expect(last?.output).toContain("ai <自然语言描述>");
+      expect(last?.status).toBe("info");
     });
 
     it("ai 查看节点状态 应产生 AI 建议", () => {
@@ -268,8 +268,8 @@ describe("useTerminal", () => {
         result.current.execute("ai 查看节点状态");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("AI Text-to-CLI");
-      expect(last.output).toContain("cpim node");
+      expect(last?.output).toContain("AI Text-to-CLI");
+      expect(last?.output).toContain("cpim node");
     });
 
     it("ai 告警 应建议 cpim alerts", () => {
@@ -278,7 +278,7 @@ describe("useTerminal", () => {
         result.current.execute("ai 查看告警");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("cpim alerts");
+      expect(last?.output).toContain("cpim alerts");
     });
   });
 
@@ -400,8 +400,8 @@ describe("useTerminal", () => {
     it("不同 tabId 应有独立初始消息", () => {
       const { result: r1 } = renderHook(() => useTerminal({ tabId: "tab-1" }));
       const { result: r2 } = renderHook(() => useTerminal({ tabId: "tab-2" }));
-      expect(r1.current.history[0].id).toContain("tab-1");
-      expect(r2.current.history[0].id).toContain("tab-2");
+      expect(r1.current.history[0]?.id).toContain("tab-1");
+      expect(r2.current.history[0]?.id).toContain("tab-2");
     });
 
     it("不同 Tab 执行命令互不影响", () => {
@@ -429,8 +429,8 @@ describe("useTerminal", () => {
         result.current.execute("ls");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("logs/");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("logs/");
+      expect(last?.status).toBe("success");
     });
 
     it("pwd 应返回当前目录", () => {
@@ -439,7 +439,7 @@ describe("useTerminal", () => {
         result.current.execute("pwd");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("cpim");
+      expect(last?.output).toContain("cpim");
     });
 
     it("whoami 应返回用户名", () => {
@@ -448,7 +448,7 @@ describe("useTerminal", () => {
         result.current.execute("whoami");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("admin");
+      expect(last?.output).toContain("admin");
     });
 
     it("echo hello 应输出 hello", () => {
@@ -457,7 +457,7 @@ describe("useTerminal", () => {
         result.current.execute("echo hello");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toBe("hello");
+      expect(last?.output).toBe("hello");
     });
 
     it("df 应显示磁盘信息", () => {
@@ -466,7 +466,7 @@ describe("useTerminal", () => {
         result.current.execute("df");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("Filesystem");
+      expect(last?.output).toContain("Filesystem");
     });
 
     it("neofetch 应显示系统信息", () => {
@@ -475,7 +475,7 @@ describe("useTerminal", () => {
         result.current.execute("neofetch");
       });
       const last = result.current.history[result.current.history.length - 1];
-      expect(last.output).toContain("M4 Max");
+      expect(last?.output).toContain("M4 Max");
     });
   });
 });
@@ -492,7 +492,7 @@ describe("useTerminal 覆盖率补测", () => {
     act(() => {
       result.current.execute(cmd);
     });
-    return result.current.history[result.current.history.length - 1];
+    return result.current.history[result.current.history.length - 1]!;
   }
 
   /** 等待 ai 建议的 400ms 自动执行 follow-up 触发 */
@@ -500,7 +500,7 @@ describe("useTerminal 覆盖率补测", () => {
     await act(async () => {
       await new Promise((r) => setTimeout(r, 550));
     });
-    return result.current.history[result.current.history.length - 1];
+    return result.current.history[result.current.history.length - 1]!;
   }
 
   /** 设置输入并返回补全结果 */
@@ -527,8 +527,8 @@ describe("useTerminal 覆盖率补测", () => {
     it("cpim 裸命令默认显示系统状态", () => {
       const { result } = renderHook(() => useTerminal());
       const last = runMockCommand(result, "cpim");
-      expect(last.output).toContain("活跃节点");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("活跃节点");
+      expect(last?.status).toBe("success");
     });
 
     it("cpim help / cpim --help 等价 help", () => {
@@ -564,8 +564,8 @@ describe("useTerminal 覆盖率补测", () => {
     it("cpim report 健康 + Markdown 组合", () => {
       const { result } = renderHook(() => useTerminal());
       const last = runMockCommand(result, "cpim report --type health --format markdown");
-      expect(last.output).toContain("类型: 健康");
-      expect(last.output).toContain("格式: Markdown");
+      expect(last?.output).toContain("类型: 健康");
+      expect(last?.output).toContain("格式: Markdown");
     });
 
     it("cpim config get 命中/未命中/缺 key", () => {
@@ -672,7 +672,7 @@ describe("useTerminal 覆盖率补测", () => {
       const { result } = renderHook(() => useTerminal({ onNavigate }));
       const last = runMockCommand(result, "goto patrol");
       expect(onNavigate).toHaveBeenCalledWith("/patrol");
-      expect(last.output).toContain("巡查模式");
+      expect(last?.output).toContain("巡查模式");
     });
 
     it("open 无斜杠路径自动补 /", () => {
@@ -881,10 +881,10 @@ describe("useTerminal 覆盖率补测", () => {
     it("family list 应列出注入的成员档案", () => {
       const { result } = renderWithFamily();
       const last = runMockCommand(result, "family list");
-      expect(last.output).toContain("言启·千行");
-      expect(last.output).toContain("语枢·万物");
-      expect(last.output).toContain("2 位");
-      expect(last.status).toBe("success");
+      expect(last?.output).toContain("言启·千行");
+      expect(last?.output).toContain("语枢·万物");
+      expect(last?.output).toContain("2 位");
+      expect(last?.status).toBe("success");
     });
 
     it("family chat <成员> 应显示成员详情", () => {
@@ -937,8 +937,8 @@ describe("useTerminal 覆盖率补测", () => {
       const { result } = renderHook(() => useTerminal());
       runMockCommand(result, "cpim alerts");
       const last = runMockCommand(result, "history");
-      expect(last.output).toContain("Command history");
-      expect(last.output).toContain("cpim alerts");
+      expect(last?.output).toContain("Command history");
+      expect(last?.output).toContain("cpim alerts");
     });
 
     it("completionMeta 应携带来源与描述元数据", () => {

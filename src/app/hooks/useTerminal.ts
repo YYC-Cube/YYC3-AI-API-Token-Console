@@ -837,7 +837,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     if (direction === "up") {
       const newIndex = Math.min(historyIndex + 1, inputHistory.current.length - 1);
       setHistoryIndex(newIndex);
-      setInputValue(inputHistory.current[newIndex]);
+      setInputValue(inputHistory.current[newIndex] ?? "");
     } else {
       const newIndex = historyIndex - 1;
       if (newIndex < 0) {
@@ -845,7 +845,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
         setInputValue("");
       } else {
         setHistoryIndex(newIndex);
-        setInputValue(inputHistory.current[newIndex]);
+        setInputValue(inputHistory.current[newIndex] ?? "");
       }
     }
   }, [historyIndex]);
@@ -862,7 +862,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
   const completions = useMemo(() => completionItems.map((c) => c.value), [completionItems]);
   const completionMeta = useMemo(() => {
     const meta: Record<string, { source: CompletionItem["source"]; description?: string }> = {};
-    for (const c of completionItems) meta[c.value] = { source: c.source, description: c.description };
+    for (const c of completionItems) meta[c.value] = { source: c.source, ...(c.description !== undefined && { description: c.description }) };
     return meta;
   }, [completionItems]);
 

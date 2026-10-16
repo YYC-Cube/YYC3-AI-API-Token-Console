@@ -30,17 +30,17 @@ function createBoard(): Stone[][] {
 
 function checkWin(board: Stone[][], row: number, col: number, stone: Stone): boolean {
   if (!stone) return false;
-  const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+  const dirs: [number, number][] = [[1, 0], [0, 1], [1, 1], [1, -1]];
   for (const [dr, dc] of dirs) {
     let count = 1;
     for (let d = 1; d < 5; d++) {
       const r = row + dr * d, c = col + dc * d;
-      if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === stone) count++;
+      if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r]?.[c] === stone) count++;
       else break;
     }
     for (let d = 1; d < 5; d++) {
       const r = row - dr * d, c = col - dc * d;
-      if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === stone) count++;
+      if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r]?.[c] === stone) count++;
       else break;
     }
     if (count >= 5) return true;
@@ -55,7 +55,7 @@ export function FamilyEntertainment() {
   const [board, setBoard] = useState(createBoard);
   const [currentPlayer, setCurrentPlayer] = useState<"black" | "white">("black");
   const [winner, setWinner] = useState<string | null>(null);
-  const [opponent] = useState<FamilyMember>(FAMILY_MEMBERS[1]); // 万物 — 擅长思考
+  const [opponent] = useState<FamilyMember>(FAMILY_MEMBERS[1]!); // 万物 — 擅长思考 (字面量表直取)
   const [aiThinking, setAiThinking] = useState(false);
 
   // 整点关爱
@@ -68,21 +68,21 @@ export function FamilyEntertainment() {
       const empty: [number, number][] = [];
       for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
-          if (!currentBoard[r][c]) empty.push([r, c]);
+          if (!currentBoard[r]?.[c]) empty.push([r, c]);
         }
       }
       if (empty.length === 0) { setAiThinking(false); return; }
 
       // 简单策略：优先靠近已有棋子
-      let best: [number, number] = empty[Math.floor(Math.random() * empty.length)];
+      let best: [number, number] = empty[Math.floor(Math.random() * empty.length)]!;  // 上方已保证 empty 非空
       let bestScore = -1;
       for (const [r, c] of empty) {
         let score = 0;
         for (let dr = -2; dr <= 2; dr++) {
           for (let dc = -2; dc <= 2; dc++) {
             const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && currentBoard[nr][nc]) {
-              score += currentBoard[nr][nc] === "white" ? 3 : 2;
+            if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && currentBoard[nr]?.[nc]) {
+              score += currentBoard[nr]?.[nc] === "white" ? 3 : 2;
             }
           }
         }
@@ -91,7 +91,7 @@ export function FamilyEntertainment() {
       }
 
       const newBoard = currentBoard.map(row => [...row]);
-      newBoard[best[0]][best[1]] = "white";
+      newBoard[best[0]]![best[1]] = "white";  // best 来源于棋盘内合法空位
       setBoard(newBoard);
 
       if (checkWin(newBoard, best[0], best[1], "white")) {
@@ -104,9 +104,9 @@ export function FamilyEntertainment() {
   }, [opponent]);
 
   const handlePlace = useCallback((row: number, col: number) => {
-    if (board[row][col] || winner || currentPlayer !== "black" || aiThinking) return;
+    if (board[row]?.[col] || winner || currentPlayer !== "black" || aiThinking) return;
     const newBoard = board.map(r => [...r]);
-    newBoard[row][col] = "black";
+    newBoard[row]![col] = "black";  // row 来源于棋盘渲染索引
     setBoard(newBoard);
 
     if (checkWin(newBoard, row, col, "black")) {
@@ -205,7 +205,7 @@ export function FamilyEntertainment() {
                   <GlassCard
                     className={`p-5 text-center transition-all ${game.available ? "cursor-pointer hover:scale-[1.03]" : "opacity-50"}`}
                     onClick={() => game.available && game.key === "gomoku" && setGameType("gomoku")}
-                    glowColor={game.available ? `${game.color}06` : undefined}
+                    {...(game.available ? { glowColor: `${game.color}06` } : {})}
                   >
                     <div
                       className="w-14 h-14 rounded-xl mx-auto mb-3 flex items-center justify-center"

@@ -200,7 +200,7 @@ export function recordCommand(input: string): void {
   const keys = Object.keys(stats);
   if (keys.length > STATS_LIMIT) {
     // 淘汰频次最低的尾部 key, 控制体积
-    keys.sort((a, b) => stats[a] - stats[b]);
+    keys.sort((a, b) => (stats[a] ?? 0) - (stats[b] ?? 0));
     for (const k of keys.slice(0, keys.length - STATS_LIMIT)) delete stats[k];
   }
   lsSet(LOCALSTORAGE_KEYS.terminalCmdStats, JSON.stringify(stats));
@@ -297,8 +297,8 @@ export function getSmartCompletions(
     return dedupe([...historyItems, ...byFrequencyThenValue(matchPrefix(staticCmds, trimmed))]);
   }
 
-  const base = parts[0].toLowerCase();
-  const prefix = parts[parts.length - 1];
+  const base = parts[0]?.toLowerCase() ?? "";
+  const prefix = parts[parts.length - 1] ?? "";
   const prevWords = parts.length - 1;
 
   // ── cpim 命令组 ──
@@ -348,7 +348,7 @@ export function getSmartCompletions(
         return matchPrefix(modelItems, prefix);
       }
     }
-    const subTable = TERMINAL_COMMANDS[sub] ?? [];
+    const subTable = TERMINAL_COMMANDS[sub ?? ""] ?? [];
     return matchPrefix(subTable.map((v) => ({ value: v, source: "subcommand" as const })), prefix);
   }
 

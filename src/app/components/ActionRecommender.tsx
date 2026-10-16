@@ -35,7 +35,7 @@ export function ActionRecommender({
       {/* Pending recommendations */}
       {pending.length > 0 ? (
         pending.map((rec) => {
-          const imp = impactConfig[rec.impact];
+          const imp = impactConfig[rec.impact]!; // impact 为三键联合类型，impactConfig 全覆盖
           const applying = isApplying === rec.id;
 
           return (

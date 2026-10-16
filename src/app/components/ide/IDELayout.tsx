@@ -65,7 +65,7 @@ export function IDELayout() {
     } catch { }
     return "preview";
   });
-  const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(AI_MODELS[0]!.id);
   const [openTabs, setOpenTabs] = useState<OpenTab[]>([]);
   const [activeTabId, setActiveTabId] = useState("");
   const [terminalCollapsed, setTerminalCollapsed] = useState(false);
@@ -117,7 +117,7 @@ export function IDELayout() {
     setOpenTabs((prev) => {
       const next = prev.filter((t) => t.id !== tabId);
       if (activeTabId === tabId && next.length > 0) {
-        setActiveTabId(next[next.length - 1].id);
+        setActiveTabId(next[next.length - 1]!.id);
       } else if (next.length === 0) {
         setActiveTabId("");
       }

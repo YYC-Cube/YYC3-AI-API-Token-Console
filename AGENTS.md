@@ -56,7 +56,7 @@ components → hooks → lib → types
 | --- | --- | --- |
 | `src/app/__tests__/` | 全部测试（170 文件，~2986 用例） | [该目录 AGENTS.md](src/app/__tests__/AGENTS.md) |
 | `src/app/hooks/` | 全局 Hooks（28 个） | [该目录 AGENTS.md](src/app/hooks/AGENTS.md) |
-| `src/app/components/ui/` | shadcn/ui 生成物，**禁手改**（改造走 wrapper） | — |
+| `src/app/components/ui/` | shadcn/ui 生成物，**禁手改**（改造走 wrapper；唯一例外: slider/menubar/dropdown-menu/context-menu 各 1 处条件展开微调，S2 exactOptionalPropertyTypes 落地所需，零行为变更，再生成时须重放） | — |
 | `src/app/lib/` | 纯逻辑层（无 UI 依赖；`lib/batch/checkpoint.ts` 检查点管线） | — |
 | `src/app/config/providers/` | 提供商声明式配置（JSON + zod，新增提供商零代码改动） | — |
 | `scripts/` | 架构守护脚本（ast-grep / check-size / knip-check / doctor） | — |

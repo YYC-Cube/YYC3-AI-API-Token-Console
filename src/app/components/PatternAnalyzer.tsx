@@ -45,7 +45,7 @@ export function PatternAnalyzer({
       {patterns.length > 0 ? (
         patterns.map((pat) => {
           const sev = severityConfig[pat.severity];
-          const TrendIc = trendIcon[pat.trend];
+          const TrendIc = trendIcon[pat.trend]!; // trend 为三键联合类型，trendIcon 全覆盖
           const isSelected = selectedPatternId === pat.id;
 
           return (

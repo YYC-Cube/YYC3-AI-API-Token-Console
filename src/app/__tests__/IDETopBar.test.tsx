@@ -71,6 +71,14 @@ describe("IDETopBar", () => {
     expect(screen.getByText("Z.ai")).toBeInTheDocument();
   });
 
+  it("选中离线模型时状态圆点为异常色且名称正常显示", () => {
+    renderTopBar({ selectedModel: "deepseek-v3" });
+    expect(screen.getByText("DeepSeek-V3")).toBeInTheDocument();
+    const dot = document.querySelector(".lucide-circle");
+    expect(dot).not.toBeNull();
+    expect(dot!.getAttribute("style")).toContain("rgb(255, 51, 102)");
+  });
+
   it("未知模型 id 回退到第一个模型", () => {
     renderTopBar({ selectedModel: "nonexistent" });
     expect(screen.getByText("GLM-4 Flash")).toBeInTheDocument();

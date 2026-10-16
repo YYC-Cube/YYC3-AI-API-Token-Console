@@ -40,16 +40,16 @@ describe("StageReview", () => {
 
     it("第 1~9 章应为 completed（第 8 章 R3 清理批归档除外）", () => {
       for (let i = 0; i < 9; i++) {
-        if (CHAPTER_REVIEWS[i].chapter === 8) {
-          expect(CHAPTER_REVIEWS[i].status).toBe("archived");
+        if (CHAPTER_REVIEWS[i]!.chapter === 8) {
+          expect(CHAPTER_REVIEWS[i]!.status).toBe("archived");
           continue;
         }
-        expect(CHAPTER_REVIEWS[i].status).toBe("completed");
+        expect(CHAPTER_REVIEWS[i]!.status).toBe("completed");
       }
     });
 
     it("第 10 章应为 completed", () => {
-      expect(CHAPTER_REVIEWS[9].status).toBe("completed");
+      expect(CHAPTER_REVIEWS[9]!.status).toBe("completed");
     });
 
     it("所有 10 章均为 completed 或 archived 状态", () => {

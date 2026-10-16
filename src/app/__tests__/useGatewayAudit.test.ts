@@ -40,14 +40,14 @@ describe("useGatewayAudit（R5 真实数据源）", () => {
     const { result } = renderHook(() => useGatewayAudit());
     await waitFor(() => expect(result.current.sourceOk).toBe(true));
     const [first] = result.current.logs;
-    expect(first.id).toBe("LOG-3");
-    expect(first.status).toBe("failed");
-    expect(first.risk).toBe("high");
-    expect(first.action).toContain("upstream_error");
-    expect(first.user).toBe("vk-abcd1234");
-    expect(result.current.logs[1].user).toBe("网关直连");
-    expect(result.current.logs[1].risk).toBe("medium"); // 3200ms > 3000
-    expect(result.current.logs[2].risk).toBe("low");
+    expect(first?.id).toBe("LOG-3");
+    expect(first?.status).toBe("failed");
+    expect(first?.risk).toBe("high");
+    expect(first?.action).toContain("upstream_error");
+    expect(first?.user).toBe("vk-abcd1234");
+    expect(result.current.logs[1]?.user).toBe("网关直连");
+    expect(result.current.logs[1]?.risk).toBe("medium"); // 3200ms > 3000
+    expect(result.current.logs[2]?.risk).toBe("low");
   });
 
   it("趋势按小时分桶与风险四档分布", async () => {

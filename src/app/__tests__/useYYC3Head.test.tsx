@@ -141,7 +141,7 @@ describe("useYYC3Head", () => {
 
     const links = document.head.querySelectorAll('link[rel="icon"][sizes="16x16"]');
     expect(links.length).toBe(1);
-    expect(links[0].getAttribute("href")).toBe(icons.favicon16);
+    expect(links[0]!.getAttribute("href")).toBe(icons.favicon16);
   });
 
   it("favicon 加载失败时应回退 CDN 地址", () => {

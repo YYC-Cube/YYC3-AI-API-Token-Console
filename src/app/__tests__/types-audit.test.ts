@@ -388,7 +388,7 @@ describe("types/index.ts 完整性审计", () => {
         category: "功能验收",
         items: [{ label: "测试项", passed: true }],
       };
-      expect(item.items[0].passed).toBe(true);
+      expect(item.items[0]!.passed).toBe(true);
     });
 
     it("ProjectStats 结构正确", () => {

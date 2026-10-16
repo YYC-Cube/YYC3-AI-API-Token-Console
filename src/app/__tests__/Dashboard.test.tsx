@@ -269,7 +269,7 @@ describe("Dashboard", () => {
       // 节点网格应为 5 列
       const nodeMatrixCard = screen.getByTestId("node-matrix-card");
       const grids = nodeMatrixCard.querySelectorAll(".grid");
-      const nodeGrid = grids[grids.length - 1];
+      const nodeGrid = grids[grids.length - 1]!;
       expect(nodeGrid.className).toContain("grid-cols-5");
     });
 

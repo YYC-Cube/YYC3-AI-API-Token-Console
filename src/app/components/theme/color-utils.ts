@@ -110,9 +110,9 @@ export function formatOklch(oklch: OklchColor): string {
 export function parseOklchString(s: string): OklchColor | null {
   const m = s.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)\s*\)/i);
   if (!m) return null;
-  let L = parseFloat(m[1]);
+  let L = parseFloat(m[1]!);
   if (L > 1) L /= 100;
-  return { L, C: parseFloat(m[2]), h: parseFloat(m[3]) };
+  return { L, C: parseFloat(m[2]!), h: parseFloat(m[3]!) };
 }
 
 // ── HSV ↔ RGB (for color picker canvas) ─────────────

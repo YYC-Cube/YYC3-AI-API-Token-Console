@@ -81,7 +81,7 @@ describe("terminal-completions 补全引擎", () => {
       const items = getSmartCompletions("cpim node ");
       // 传入尾词为空格分割后的最后一个词 ("") — trim 后 parts 长度 2, 走子命令分支
       // 使用显式节点前缀验证参数位:
-      const firstNode = nodeIds[0];
+      const firstNode = nodeIds[0]!;
       const paramItems = getSmartCompletions(`cpim node ${firstNode.slice(0, 3)}`);
       expect(paramItems.some((i) => i.value === firstNode && i.source === "node")).toBe(true);
     });
@@ -143,7 +143,7 @@ describe("terminal-completions 补全引擎", () => {
     it("补全活跃路由并带中文描述", () => {
       const items = getSmartCompletions("goto /pat");
       expect(items.map((i) => i.value)).toEqual(["/patrol"]);
-      expect(items[0].description).toBe("巡查模式");
+      expect(items[0]!.description).toBe("巡查模式");
     });
 
     it("不应再补全已重定向死路径 (缺陷修复回归)", () => {
@@ -233,7 +233,7 @@ describe("terminal-completions 补全引擎", () => {
     // 采用 ?raw 源码静态提取 (不执行 routes.ts — node 环境无 DOM, createBrowserRouter 需 document)。
     it("TERMINAL_ROUTES 每条路径都存在于 routes.ts 源码 path 声明", () => {
       const declared = new Set(
-        [...routesSource.matchAll(/path:\s*"([^"]+)"/g)].map((m) => `/${m[1].replace(/^\//, "")}`)
+        [...routesSource.matchAll(/path:\s*"([^"]+)"/g)].map((m) => `/${m[1]!.replace(/^\//, "")}`)
       );
 
       for (const path of Object.keys(TERMINAL_ROUTES)) {

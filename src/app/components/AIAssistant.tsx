@@ -145,7 +145,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
   // AI Settings (只保留本地 UI 状态)
   const [showApiKey, setShowApiKey] = useState(false);
-  const [systemPrompt, setSystemPrompt] = useState(PROMPT_PRESETS[4].prompt);
+  const [systemPrompt, setSystemPrompt] = useState(PROMPT_PRESETS[4]!.prompt); // 模块级常量数组字面量索引
 
   // Command filter
   const [cmdFilter, setCmdFilter] = useState<string>("all");
@@ -154,7 +154,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   // 自动选中第一个可用模型
   useEffect(() => {
     if (!selectedModel && availableModels.length > 0) {
-      setSelectedModel(availableModels[0].id);
+      setSelectedModel(availableModels[0]!.id); // length > 0 已由上方守卫保证
     }
   }, [availableModels, selectedModel, setSelectedModel]);
 

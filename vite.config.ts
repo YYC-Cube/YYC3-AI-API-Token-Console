@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -35,12 +35,14 @@ export default defineConfig({
     tailwindcss(),
     // Bundle 字节级归因: 每次构建输出 stats.html（gitignored, 不入产物）
     // 打开查看主包/路由包构成 → 优化 manualChunks 或拆分巨石组件的决策依据
+    // as Plugin: visualizer 的 Bundler 钩子类型与 vite 内置 rollup 类型在
+    // exactOptionalPropertyTypes 下存在三方结构性差异（NormalizedOutputOptions 方差）, 目标类型断言消歧
     visualizer({
       filename: 'stats.html',
       template: 'sunburst',
       gzipSize: true,
       brotliSize: true,
-    }),
+    }) as Plugin,
   ],
   resolve: {
     alias: {

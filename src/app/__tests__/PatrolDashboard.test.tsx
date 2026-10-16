@@ -160,6 +160,12 @@ describe("PatrolDashboard", () => {
       expect(screen.getByText("96%")).toBeInTheDocument();
     });
 
+    it("健康度低于 80 时仍应渲染百分比数值", () => {
+      mockPatrolState.currentResult = { ...mockPatrolState.currentResult!, healthScore: 70 };
+      render(<PatrolDashboard />);
+      expect(screen.getByText("70%")).toBeInTheDocument();
+    });
+
     it("应渲染成功数", () => {
       render(<PatrolDashboard />);
       expect(screen.getByText("12/13")).toBeInTheDocument();

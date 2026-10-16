@@ -56,7 +56,7 @@ describe("RF-002: 错误日志 localStorage + IndexedDB 双写", () => {
       captureError(new Error("test dual write"), { silent: true });
       const log = getErrorLog();
       expect(log.length).toBe(1);
-      expect(log[0].message).toBe("test dual write");
+      expect(log[0]!.message).toBe("test dual write");
     });
 
     it("应异步写入 IndexedDB (idbPut)", () => {
@@ -106,8 +106,8 @@ describe("RF-002: 错误日志 localStorage + IndexedDB 双写", () => {
       vi.mocked(idbGetAll).mockResolvedValueOnce(mockEntries);
 
       const log = await getFullErrorLog();
-      expect(log[0].message).toBe("new");
-      expect(log[1].message).toBe("old");
+      expect(log[0]!.message).toBe("new");
+      expect(log[1]!.message).toBe("old");
     });
 
     it("IndexedDB 失败时应降级到 localStorage", async () => {
@@ -116,7 +116,7 @@ describe("RF-002: 错误日志 localStorage + IndexedDB 双写", () => {
 
       const log = await getFullErrorLog();
       expect(log.length).toBeGreaterThanOrEqual(1);
-      expect(log[0].message).toBe("fallback test");
+      expect(log[0]!.message).toBe("fallback test");
     });
   });
 
@@ -133,7 +133,7 @@ describe("RF-002: 错误日志 localStorage + IndexedDB 双写", () => {
       }).not.toThrow();
 
       const log = getErrorLog();
-      expect(log[0].message).toBe("should still work");
+      expect(log[0]!.message).toBe("should still work");
     });
   });
 });

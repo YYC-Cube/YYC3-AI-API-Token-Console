@@ -4,7 +4,7 @@
  * IDE 页面 Mock 数据
  */
 
-import type { ChatMessage, GitBranch, GitChange, GitCommit, IDEFile, IDEProject } from "./ide-types";
+import type { GitBranch, GitChange, GitCommit, IDEFile, IdeChatMessage, IDEProject } from "./ide-types";
 
 export const MOCK_FILE_TREE: IDEFile[] = [
   {
@@ -318,9 +318,10 @@ export function useI18n() {
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) => {
       const keys = key.split(".");
-      let val: any = PACKS[lang];
+      let val: unknown = PACKS[lang];
       for (const k of keys) {
-        val = val?.[k];
+        if (typeof val !== "object" || val === null) return key;
+        val = Reflect.get(val, k);
         if (val === undefined) return key;
       }
       if (typeof val !== "string") return key;
@@ -479,7 +480,7 @@ export interface AuditLog {
 }`,
 };
 
-export const MOCK_CHAT_HISTORY: ChatMessage[] = [
+export const MOCK_CHAT_HISTORY: IdeChatMessage[] = [
   {
     id: "msg-1",
     role: "system",

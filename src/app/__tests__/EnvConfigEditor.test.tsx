@@ -165,12 +165,12 @@ describe("EnvConfigEditor", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.spyOn(navigator.clipboard, "writeText").mockImplementation(writeText);
     const buttons = within(row).getAllByRole("button");
-    fireEvent.click(buttons[0]);
+    fireEvent.click(buttons[0]!);
     expect(writeText).toHaveBeenCalledWith("YYC³ Test");
     expect(m.toastSuccess).toHaveBeenCalledWith("已复制: SYSTEM_NAME");
 
     // 编辑按钮 = 第 2 个
-    fireEvent.click(buttons[1]);
+    fireEvent.click(buttons[1]!);
     const input = within(row).getByRole("textbox") as HTMLInputElement;
     expect(input.value).toBe("YYC³ Test");
 
@@ -179,7 +179,7 @@ describe("EnvConfigEditor", () => {
     expect(m.setEnvConfig).not.toHaveBeenCalled();
     expect(within(row).queryByRole("textbox")).not.toBeInTheDocument();
 
-    fireEvent.click(within(row).getAllByRole("button")[1]);
+    fireEvent.click(within(row).getAllByRole("button")[1]!);
     const input2 = within(row).getByRole("textbox") as HTMLInputElement;
     fireEvent.change(input2, { target: { value: "New Name" } });
     fireEvent.keyDown(input2, { key: "Enter" });
@@ -192,14 +192,14 @@ describe("EnvConfigEditor", () => {
     renderPage();
 
     const maxTokensRow = fieldRow("Max Tokens");
-    fireEvent.click(within(maxTokensRow).getAllByRole("button")[1]);
+    fireEvent.click(within(maxTokensRow).getAllByRole("button")[1]!);
     const input = within(maxTokensRow).getByRole("textbox") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "4096" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(m.setEnvConfig).toHaveBeenCalledWith({ DEFAULT_AI_MAX_TOKENS: 4096 });
 
     const tempRow = fieldRow("Temperature");
-    fireEvent.click(within(tempRow).getAllByRole("button")[1]);
+    fireEvent.click(within(tempRow).getAllByRole("button")[1]!);
     const input2 = within(tempRow).getByRole("textbox") as HTMLInputElement;
     fireEvent.change(input2, { target: { value: "0.9" } });
     fireEvent.keyDown(input2, { key: "Enter" });
@@ -209,7 +209,7 @@ describe("EnvConfigEditor", () => {
   it("number 字段非法输入应 toast.error 且不保存", () => {
     renderPage();
     const row = fieldRow("Max Tokens");
-    fireEvent.click(within(row).getAllByRole("button")[1]);
+    fireEvent.click(within(row).getAllByRole("button")[1]!);
     const input = within(row).getByRole("textbox") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "abc" } });
     fireEvent.keyDown(input, { key: "Enter" });

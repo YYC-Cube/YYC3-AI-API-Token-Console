@@ -317,8 +317,8 @@ describe("localStorage 序列化", () => {
     const json = JSON.stringify(sessions);
     const parsed: ChatSession[] = JSON.parse(json);
     expect(parsed.length).toBe(1);
-    expect(parsed[0].messages.length).toBe(2);
-    expect(parsed[0].messages[1].model).toBe("glm-4");
+    expect(parsed[0]!.messages.length).toBe(2);
+    expect(parsed[0]!.messages[1]!.model).toBe("glm-4");
   });
 
   it("空数组应正确序列化", () => {

@@ -75,7 +75,7 @@ describe("ColorPicker", () => {
 
   it("HEX 输入应过滤非法字符并截断至 6 位", () => {
     renderPicker();
-    const input = hexInputs()[0];
+    const input = hexInputs()[0]!;
     fireEvent.change(input, { target: { value: "zz12ab!987" } });
     expect((input as HTMLInputElement).value).toBe("12ab98");
   });
@@ -83,7 +83,7 @@ describe("ColorPicker", () => {
   it("Enter 提交完整 hex 应回调 onChange", () => {
     const onChange = vi.fn();
     renderPicker("#00d4ff", onChange);
-    const input = hexInputs()[0];
+    const input = hexInputs()[0]!;
     fireEvent.change(input, { target: { value: "aabbcc" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onChange).toHaveBeenCalledWith("#aabbcc");
@@ -92,7 +92,7 @@ describe("ColorPicker", () => {
   it("blur 提交短 hex 应右侧补零", () => {
     const onChange = vi.fn();
     renderPicker("#00d4ff", onChange);
-    const input = hexInputs()[0];
+    const input = hexInputs()[0]!;
     fireEvent.change(input, { target: { value: "abc" } });
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledWith("#abc000");
@@ -103,7 +103,7 @@ describe("ColorPicker", () => {
     renderPicker("#00d4ff", onChange);
     const spinners = screen.getAllByRole("spinbutton");
     expect(spinners.length).toBe(3);
-    fireEvent.change(spinners[0], { target: { value: "255" } });
+    fireEvent.change(spinners[0]!, { target: { value: "255" } });
     expect(onChange).toHaveBeenCalledWith("#ffd4ff");
   });
 
@@ -111,7 +111,7 @@ describe("ColorPicker", () => {
     const onChange = vi.fn();
     renderPicker("#00d4ff", onChange);
     const spinners = screen.getAllByRole("spinbutton");
-    fireEvent.change(spinners[2], { target: { value: "300" } });
+    fireEvent.change(spinners[2]!, { target: { value: "300" } });
     expect(onChange).toHaveBeenCalledWith("#00d4ff"); // B 255 → 钳位后不变
   });
 
@@ -119,24 +119,24 @@ describe("ColorPicker", () => {
     const onChange = vi.fn();
     renderPicker("#00d4ff", onChange);
     const spinners = screen.getAllByRole("spinbutton");
-    fireEvent.change(spinners[1], { target: { value: "abc" } });
+    fireEvent.change(spinners[1]!, { target: { value: "abc" } });
     expect(onChange).toHaveBeenCalledWith("#0000ff");
   });
 
   it("SV 画布 mousedown 应按坐标取色并回调", () => {
     const onChange = vi.fn();
     const { container } = renderPicker("#00d4ff", onChange);
-    const svCanvas = container.querySelectorAll("canvas")[0];
+    const svCanvas = container.querySelectorAll("canvas")[0]!;
     fireEvent.mouseDown(svCanvas, { clientX: 130, clientY: 80 });
     expect(onChange).toHaveBeenCalledTimes(1);
-    const hex = onChange.mock.calls[0][0] as string;
+    const hex = onChange.mock.calls[0]?.[0] as string;
     expect(hex).toMatch(/^#[0-9a-f]{6}$/);
   });
 
   it("SV 拖拽: mousemove 连续取色, mouseup 后停止", () => {
     const onChange = vi.fn();
     const { container } = renderPicker("#00d4ff", onChange);
-    const svCanvas = container.querySelectorAll("canvas")[0];
+    const svCanvas = container.querySelectorAll("canvas")[0]!;
 
     fireEvent.mouseDown(svCanvas, { clientX: 130, clientY: 80 });
     fireEvent.mouseMove(window, { clientX: 200, clientY: 40 });
@@ -150,10 +150,10 @@ describe("ColorPicker", () => {
   it("Hue 画布 mousedown 应改变色相并回调", () => {
     const onChange = vi.fn();
     const { container } = renderPicker("#00d4ff", onChange);
-    const hueCanvas = container.querySelectorAll("canvas")[1];
+    const hueCanvas = container.querySelectorAll("canvas")[1]!;
     fireEvent.mouseDown(hueCanvas, { clientX: 130, clientY: 7 });
     expect(onChange).toHaveBeenCalledTimes(1);
-    const hex = onChange.mock.calls[0][0] as string;
+    const hex = onChange.mock.calls[0]?.[0] as string;
     expect(hex).toMatch(/^#[0-9a-f]{6}$/);
     expect(hex).not.toBe("#00d4ff");
   });

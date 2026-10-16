@@ -149,7 +149,9 @@ export const logStore = createLocalStore<StoredLogEntry>("yyc3_logs", DEFAULT_LO
 // 7. 数据库连接存储
 // ============================================================
 
-export interface DBConnection {
+// S2 类型收敛: 与 types/ai-provider.DBConnection 同名异构(status 联合已分叉 "testing"),
+// 域名限定消歧 — 连接管理契约见 src/app/types/ai-provider.ts
+export interface StoredDBConnection {
   id: string;
   name: string;
   type: "postgresql" | "mysql" | "sqlite" | "redis" | "mongodb" | "custom";
@@ -163,7 +165,7 @@ export interface DBConnection {
   options?: string;
 }
 
-const DEFAULT_DB_CONNECTIONS: DBConnection[] = [
+const DEFAULT_DB_CONNECTIONS: StoredDBConnection[] = [
   {
     id: "db-pg-main",
     name: "主数据库 (PostgreSQL)",
@@ -189,7 +191,7 @@ const DEFAULT_DB_CONNECTIONS: DBConnection[] = [
   },
 ];
 
-export const dbConnectionStore = createLocalStore<DBConnection>("yyc3_db_connections", DEFAULT_DB_CONNECTIONS, "db");
+export const dbConnectionStore = createLocalStore<StoredDBConnection>("yyc3_db_connections", DEFAULT_DB_CONNECTIONS, "db");
 
 // ============================================================
 // 8. 模型管理存储 (SystemSettings 模型管理)
@@ -275,7 +277,7 @@ export const wifiAutoReconnectStore = createLocalStore<WifiAutoReconnectSettings
  */
 export function getWifiAutoReconnectConfig(): WifiAutoReconnectSettings {
   const all = wifiAutoReconnectStore.getAll();
-  return all[0] || DEFAULT_WIFI_AUTO_RECONNECT[0];
+  return all[0] || DEFAULT_WIFI_AUTO_RECONNECT[0]!;
 }
 
 /**

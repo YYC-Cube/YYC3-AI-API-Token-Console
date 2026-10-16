@@ -248,7 +248,7 @@ export function ComponentShowcase() {
           {/* Tier filter */}
           <div className="flex flex-wrap gap-1 mb-3">
             {tiers.map((t) => {
-              const tl = t === "all" ? { label: "全部", color: "#00d4ff" } : tierLabels[t];
+              const tl = t === "all" ? { label: "全部", color: "#00d4ff" } : tierLabels[t] ?? { label: t, color: "#00d4ff" };
               return (
                 <button
                   key={t}
@@ -275,7 +275,7 @@ export function ComponentShowcase() {
           {/* Component list */}
           <div className="space-y-1" data-testid="component-list">
             {filteredComponents.map((c) => {
-              const tl = tierLabels[c.tier];
+              const tl = tierLabels[c.tier] ?? { label: c.tier, color: "#00d4ff" };
               return (
                 <div
                   key={c.name}

@@ -98,7 +98,7 @@ function RuleCard({
     <GlassCard
       className="p-4 cursor-pointer"
       onClick={onSelect}
-      glowColor={rule.enabled ? `${severityColor(rule.severity)}15` : undefined}
+      {...(rule.enabled ? { glowColor: `${severityColor(rule.severity)}15` } : {})}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -401,8 +401,8 @@ export function AlertRulesPanel() {
             source: String(a.source ?? "unknown"),
             level: String(a.level ?? "info"),
             title: String(a.title ?? ""),
-            model: a.model,
-            at: a.at,
+            ...(a.model !== undefined ? { model: a.model } : {}),
+            ...(a.at !== undefined ? { at: a.at } : {}),
           })),
         );
         setServerAlertsOk(true);

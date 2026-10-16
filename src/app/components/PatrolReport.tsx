@@ -31,7 +31,7 @@ export function PatrolReport({ result, embedded = false }: PatrolReportProps) {
   // Group checks by category
   const grouped = result.checks.reduce<Record<string, PatrolCheckItem[]>>((acc, check) => {
     if (!acc[check.category]) acc[check.category] = [];
-    acc[check.category].push(check);
+    acc[check.category]!.push(check);
     return acc;
   }, {});
 

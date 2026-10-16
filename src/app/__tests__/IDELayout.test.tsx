@@ -184,8 +184,8 @@ describe("IDELayout", () => {
 
     it("同一文件重复选择不新建 Tab", () => {
       renderLayout();
-      fireEvent.click(screen.getAllByText("package.json")[0]);
-      fireEvent.click(screen.getAllByText("package.json")[0]);
+      fireEvent.click(screen.getAllByText("package.json")[0]!);
+      fireEvent.click(screen.getAllByText("package.json")[0]!);
       expect(screen.getAllByText("package.json").length).toBeGreaterThan(0);
       // 仅一个 tab (面包屑唯一)
       expect(screen.getAllByText("src/package.json")).toHaveLength(1);

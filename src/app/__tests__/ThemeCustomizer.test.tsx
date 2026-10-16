@@ -167,7 +167,7 @@ describe("ThemeCustomizer", () => {
       render(<ThemeCustomizer />);
       const inputs = screen.getAllByDisplayValue("YYC³ CloudPivot Intelli-Matrix");
       expect(inputs.length).toBeGreaterThan(0);
-      fireEvent.change(inputs[0], { target: { value: "New Name" } });
+      fireEvent.change(inputs[0]!, { target: { value: "New Name" } });
       expect(screen.getByDisplayValue("New Name")).toBeInTheDocument();
     });
 
@@ -265,7 +265,7 @@ describe("ThemeCustomizer", () => {
       fireEvent.click(screen.getByText(/预设系统: 赛博朋克/));
       // 点击下拉列表中的 "自然绿"（取第一个匹配）
       const targets = screen.getAllByText("自然绿");
-      fireEvent.click(targets[0]);
+      fireEvent.click(targets[0]!);
       expect(screen.getByText(/预设系统: 自然绿/)).toBeInTheDocument();
     });
 
@@ -311,7 +311,7 @@ describe("ThemeCustomizer", () => {
       // Select another preset
       fireEvent.click(screen.getByText(/预设系统: 赛博朋克/));
       const targets = screen.getAllByText("自然绿");
-      fireEvent.click(targets[0]);
+      fireEvent.click(targets[0]!);
       expect(screen.getByText(/预设系统: 自然绿/)).toBeInTheDocument();
       // Reset
       fireEvent.click(screen.getByText("重置"));
@@ -345,7 +345,7 @@ describe("ThemeCustomizer", () => {
       expect(previewCard).toBeInTheDocument();
       // 移除按钮 (与上传按钮同一行的第二个按钮)
       const rowButtons = screen.getByText("上传背景").closest("div")!.querySelectorAll("button");
-      fireEvent.click(rowButtons[1]);
+      fireEvent.click(rowButtons[1]!);
       expect(screen.queryByAltText("bg")).not.toBeInTheDocument();
     });
 
@@ -417,9 +417,9 @@ describe("ThemeCustomizer", () => {
       const ranges = document.querySelectorAll('input[type="range"]');
       // 顺序: [圆角, X偏移, Y偏移, 模糊, 传播]
       expect(ranges.length).toBe(5);
-      fireEvent.change(ranges[0], { target: { value: "1" } });
+      fireEvent.change(ranges[0]!, { target: { value: "1" } });
       expect(screen.getByText("1rem")).toBeInTheDocument();
-      fireEvent.change(ranges[2], { target: { value: "20" } });
+      fireEvent.change(ranges[2]!, { target: { value: "20" } });
       expect(screen.getByText("20px")).toBeInTheDocument();
       // 阴影扩散色 swatch (onChange 追加透明度后缀)
       fireEvent.change(screen.getByTestId("swatch-input-扩散颜色"), {

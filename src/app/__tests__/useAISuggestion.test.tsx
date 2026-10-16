@@ -67,12 +67,12 @@ describe("useAISuggestion", () => {
   describe("模式排序", () => {
     it("critical 应排在最前", () => {
       const { result } = renderHook(() => useAISuggestion());
-      expect(result.current.patterns[0].severity).toBe("critical");
+      expect(result.current.patterns[0]!.severity).toBe("critical");
     });
 
     it("low 应排在最后", () => {
       const { result } = renderHook(() => useAISuggestion());
-      const last = result.current.patterns[result.current.patterns.length - 1];
+      const last = result.current.patterns[result.current.patterns.length - 1]!;
       expect(last.severity).toBe("low");
     });
   });
@@ -122,7 +122,7 @@ describe("useAISuggestion", () => {
   describe("applyRecommendation", () => {
     it("应用后 applied 应为 true", async () => {
       const { result } = renderHook(() => useAISuggestion());
-      const recId = result.current.recommendations[0].id;
+      const recId = result.current.recommendations[0]!.id;
 
       await act(async () => {
         await result.current.applyRecommendation(recId);
@@ -137,7 +137,7 @@ describe("useAISuggestion", () => {
       const before = result.current.stats.appliedCount;
 
       await act(async () => {
-        await result.current.applyRecommendation(result.current.recommendations[0].id);
+        await result.current.applyRecommendation(result.current.recommendations[0]!.id);
       });
 
       expect(result.current.stats.appliedCount).toBe(before + 1);
@@ -147,7 +147,7 @@ describe("useAISuggestion", () => {
   describe("dismissRecommendation", () => {
     it("忽略后应移除推荐", () => {
       const { result } = renderHook(() => useAISuggestion());
-      const recId = result.current.recommendations[0].id;
+      const recId = result.current.recommendations[0]!.id;
       const before = result.current.recommendations.length;
 
       act(() => {
