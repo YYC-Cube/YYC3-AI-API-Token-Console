@@ -18,7 +18,9 @@ import type { KnipConfig } from "knip";
 const BASELINE_COUNTS = {
   files: 0, // 未引用文件 (批12 死代码批量归档后归零)
   dependencies: 0, // 未使用 dependencies (批13 白名单留证后归零)
-  devDependencies: 4,
+  // 2026-10-16 S8 缺口落地批下调: @ast-grep/cli 迁 TOOLCHAIN_BINARIES_WHITELIST
+  // (package.json "astgrep" 脚本直接调二进制路径, knip 静态盲区留证)
+  devDependencies: 3,
   exports: 7,
   types: 3,
   duplicates: 1,
@@ -66,11 +68,13 @@ const UI_ECOSYSTEM_WHITELIST = [
 ];
 
 /** 工具链二进制白名单 (S8 缺口落地, 2026-10-16): 经 scripts/*.mjs 以
- *  node_modules/.bin 形态间接调用的门禁工具, knip 脚本内二进制解析盲区
- *  (同类: @ast-grep/cli 历史上计入 unused 基线, 属同一盲区 — 后续可一并迁入)。
- *  证据: scripts/check-dup-budget.mjs 经 node_modules/.bin/jscpd 消费 (pnpm dup:check)。 */
+ *  node_modules/.bin 形态间接调用的门禁工具, knip 脚本内二进制解析盲区。
+ *  证据: scripts/check-dup-budget.mjs 经 node_modules/.bin/jscpd 消费 (pnpm dup:check);
+ *  package.json "astgrep" 脚本直接调 ast-grep 二进制 (pnpm astgrep) — 2026-10-16
+ *  自 unused 基线迁入 (devDependencies 4→3, 只减不增真实下降)。 */
 const TOOLCHAIN_BINARIES_WHITELIST = [
   "jscpd", // 重复代码基线门禁 (dup:check)
+  "@ast-grep/cli", // ast-grep 反模式扫描 (astgrep)
 ];
 
 const config: KnipConfig = {
