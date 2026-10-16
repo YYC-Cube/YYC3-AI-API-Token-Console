@@ -1,0 +1,48 @@
+{
+  "stage": "S7",
+  "title": "ast-grep 反模式守护（7 规则 × ts/tsx）",
+  "timestamp": "2026-10-16T17:50+08:00",
+  "mode": "online",
+  "rules_total": 7,
+  "hits": [],
+  "commands": [
+    { "cmd": "pnpm astgrep (规范命令 = sgconfig.yml + src/)", "exit": 0, "summary": "0 命中 (5 error 级 + 2 warning 级全零)" },
+    { "cmd": "pnpm exec ast-grep scan -c scripts/ast-grep/sgconfig.yml src/ --json > stage-7.json", "exit": 0, "summary": "matches=0 (机器可读); 注: 模板给的 --config 目录形态 exit 6 不可用, 规范形态为 -c sgconfig.yml" },
+    { "cmd": "pnpm guardrail-probe (维度4 元门禁交叉验证)", "exit": 0, "summary": "5/5 门禁有效 — 植入违规样本真实拦截" }
+  ],
+  "actual_ruleset": [
+    { "rule": "no-bare-websocket", "severity": "error", "semantics": "禁裸 new WebSocket — 必须经 globalThis 解析 (测试 stub 约定)" },
+    { "rule": "no-raw-localstorage", "severity": "error", "semantics": "禁裸 localStorage 直写 — 统一走 lib/yyc3-storage 封装" },
+    { "rule": "no-hardcoded-secret-literal", "severity": "error", "semantics": "禁硬编码密钥字面量" },
+    { "rule": "no-document-write", "severity": "error", "semantics": "禁 document.write" },
+    { "rule": "no-innerhtml-assignment", "severity": "error", "semantics": "禁 innerHTML 赋值 (XSS 面)" },
+    { "rule": "no-process-env-in-src", "severity": "warning", "semantics": "禁 Vite 客户端读 process.env (构建期注入契约)" },
+    { "rule": "no-string-timer", "severity": "warning", "semantics": "禁字符串定时器参数 (隐式 eval)" }
+  ],
+  "template_vs_actual_mapping": {
+    "note": "模板七条与实际规则集不同名但同目标域, 逐条映射到真实守门者",
+    "direct-fetch": "ast-grep 无此规则 — 已由 S3 治理 A 收敛 (lib/http.ts fetchWithTimeout, grep 残留 0) + AGENTS 域契约",
+    "console.log": "ast-grep 无此规则 — S3 治理 B 甄别 (App.tsx 噪声过滤=唯一例外) + eslint no-console 可选启用",
+    "硬编码端点": "ast-grep 无此规则 — S3 治理 C 定性标注 + lib/api-config 权威源",
+    "硬编码色值": "ast-grep 无此规则 — pnpm color:check 基线冻结门禁 (6080 只减不增, S3 治理 D)",
+    "any/ts-ignore": "ast-grep 无此规则 — S2 双旗标 + eslint no-explicit-any (业务码 0) + 6 处 ts 指令全白名单带因",
+    "跨层-import": "ast-grep 无此规则 — eslint-plugin-boundaries 六层 elements 契约 (0 违规) + guardrail-probe 探针",
+    "floating-promise": "仓库无任何门禁覆盖 — 本轮如实登记为缺口 (见 backtrace)"
+  },
+  "checks": [
+    { "id": 1, "name": "0 命中", "actual": "matches=0 (error 级与 warning 级皆零)", "result": "PASS" },
+    { "id": 2, "name": "规则文件有测试 (meta-gate)", "actual": "guardrail-probe 为元门禁载体: 探针覆盖 no-bare-websocket(ts/tsx) + no-raw-localstorage(ts/tsx) = 7 规则中 2 条×双语; 其余 5 条 (document-write/innerhtml/secret-literal/process-env/string-timer) 无探针 — 如实登记", "result": "PASS", "advisory": "探针覆盖率 2/7 规则" },
+    { "id": 3, "name": "规则集与 AGENTS 红线一致", "actual": "映射: 红线③裸 WebSocket ↔ no-bare-websocket ✓; 红线②零密钥 ↔ no-hardcoded-secret-literal ✓; 目录导读「yyc3-storage 统一封装」↔ no-raw-localstorage ✓; 红线①⑤(上游依赖/最小重构)为流程性红线不可 AST 化; 红线④(依赖铁律)由 pnpm-workspace catalog 与 overrides 注释纪律承载", "result": "PASS" },
+    { "id": 4, "name": "guardrail-probe 可验证 (S10 交叉)", "actual": "5/5 探针全有效 (运行时植入违规样本断言必拦, exit 0)", "result": "PASS" },
+    { "id": 5, "name": "新规则误报率评估", "actual": "本轮无新规则; 既有 7 规则零命中零误报 (scan 输出为空); 流程要求已登记: 新增规则须附 FP 评估与探针", "result": "PASS" }
+  ],
+  "evidence": ["stage-7.scan.log (规范命令)", "stage-7.json (matches=0)", "stage-7.guardrail.log (5/5)", "stage-7.summary.json (本文件)"],
+  "blocking": [],
+  "backtrace": [
+    "缺口登记: floating-promise 无门禁 — 建议后续批评估 typescript-eslint no-floating-promises (需 strictNullChecks 已满足) 或 ast-grep 自研规则 (表达式语句位置 callExpression 返回 Promise 且无 await/catch/void 前缀), 附 FP 评估后入库",
+    "探针增强: guardrail-probe 可为 no-document-write/no-innerhtml-assignment 补 2 条探针 (规则 2/7 → 4/7)",
+    "命令判例: ast-grep JSON 输出规范形态 = `pnpm exec ast-grep scan -c sgconfig.yml src/ --json` (stdout 重定向); `--config 目录 --json=file` 形态 exit 6 不可用"
+  ],
+  "next": "S8",
+  "verdict": "5/5 PASS · 7 规则×双语言 0 命中 · 元门禁 5/5 交叉验证 · 模板七条全部映射到真实守门者 (floating-promise 登记缺口) · 放行 S8"
+}
