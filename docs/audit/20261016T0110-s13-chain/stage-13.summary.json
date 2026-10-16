@@ -1,0 +1,37 @@
+{
+  "stage": "S13",
+  "title": "PWA + 双语 i18n + 全端图标 三链路一致性",
+  "timestamp": "2026-10-17T01:10+08:00",
+  "mode": "online",
+  "status": "PASS",
+  "pwa": { "manifest": "PASS", "sw": "PASS", "inject": "PASS", "fallback": "PASS", "install_prompt": "PASS", "offline_idb": "PASS(经 SW 缓存)", "offline_pages": "PASS" },
+  "i18n": { "zh_CN_keys": "300+ (826 键位行, 全量一致性测试断言相等)", "en_US_keys": "300+ (与 zh 相等, 测试断言)", "missing": [], "extra": [] },
+  "icons": { "platforms": 5, "pngs": 29, "missing": [], "note": "仓库实况 29 PNG (Web App 5/Android 6/iOS 7/macOS 7/watchOS 4), 模板'36'与实况不符以实测为准" },
+  "commands": [
+    { "cmd": "pnpm exec vitest run <11 个链路测试文件>", "exit": 0, "summary": "153/153 用例: i18n-consistency(全量键双向一致+非空+命名空间)/i18n-keys/i18n-packs(结构+翻译非空+模板变量)/i18n-loop-devguide/security-i18n/useI18n(插值)/pwa-i18n-types/yyc3-icons/useYYC3Head(CDN 回退)/PWAInstallPrompt/usePWAManager" },
+    { "cmd": "node scripts/chain-verify.mjs (dist 实证)", "exit": 0, "summary": "manifest 6 必需字段全在 (name/short_name/icons/start_url=./ standalone/theme_color=#060e1f); 13 图标声明 ↔ dist 文件 100% 对齐零缺失; 5 平台目录全覆盖" }
+  ],
+  "chain_detail": {
+    "pwa_manifest": "字段完整 (含 background_color); icons 13 项全部存在",
+    "pwa_sw": "sw.js 90 项预缓存注入 (S12) + e2e 离线用例 (SW ready→断网→重载壳层服务, S11 实测)",
+    "pwa_inject": "useYYC3Head 运行时注入 + onerror CDN 三档回退 (16/32/apple-touch, useYYC3Head.test 147-170 断言 href 切换至 iconsCDN)",
+    "pwa_fallback": "yyc3-icons.ts iconsCDN 导出 + 单测覆盖 (yyc3-icons.test.tsx)",
+    "pwa_install": "PWAInstallPrompt.test.tsx (安装引导渲染/交互)",
+    "pwa_offline": "SW 缓存壳层 + API 透传不缓存; IndexedDB 快照 = 数据域持久化 (yyc3-storage, hooks 降级契约), e2e 断网重载 PASS (S11)",
+    "i18n_switch": "e2e zh→en→zh 双向 + 正文宽检 + 残留零 (S11 fullchain)",
+    "i18n_interp": "useI18n.test 插值 + i18n-packs 模板变量一致性 + rf001 (vars.n 形态)",
+    "i18n_lokalize": "数字/日期经自定义 format (体检/时间轴), 复数以 vars.n 插值承载 (中文无复数形态; en 侧键值含模板) — 模板维度部分承载",
+    "icons_favicon": "index.html 10 链路 (S11 相对路径修复后 e2e 全 200)",
+    "icons_manifest_align": "chain-verify: 13/13 对齐",
+    "icons_platforms": "Web App/Android/iOS/macOS/watchOS 5 目录"
+  },
+  "evidence": ["stage-13.tests.log (153 用例)", "stage-13.chain.json (manifest+图标对齐机器可读)", "stage-13.summary.json (本文件)"],
+  "blocking": [],
+  "backtrace": [
+    "模板'36 PNG'与仓库实况 29 PNG 不符 — 以 chain-verify 实测为准 (5 平台全覆盖零缺失, 数量差异系模板数字未随仓库演进)",
+    "i18n 数字/货币本地化 (Intl.NumberFormat) 未单列测试 — 现有自定义 format 承载, 如需 Intl 化为可选增强",
+    "scripts/chain-verify.mjs 已入 scripts/ 可复用 (manifest+图标链路断言)"
+  ],
+  "next": "S14",
+  "verdict": "三链路零断点 · 153 用例 + dist 实证对齐 · 5 平台全覆盖 · 放行 S14"
+}

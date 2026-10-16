@@ -1,0 +1,28 @@
+{
+  "manifest": {
+    "ok": true,
+    "missingFields": [],
+    "iconsDeclared": 13,
+    "missingIcons": [],
+    "fields": {
+      "name": "YYC³ 本地多端推理矩阵数据库 · 数据看盘",
+      "short_name": "YYC³ Matrix",
+      "start_url": "./",
+      "display": "standalone",
+      "theme_color": "#060e1f",
+      "background_color": "#060e1f"
+    }
+  },
+  "icons": {
+    "platforms": 5,
+    "platformDetail": {
+      "Android": 6,
+      "Web App": 5,
+      "iOS": 7,
+      "macOS": 7,
+      "watchOS": 4
+    },
+    "totalPngs": 29,
+    "ok": true
+  }
+}
