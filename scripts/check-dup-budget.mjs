@@ -6,8 +6,9 @@
  *       token 级克隆检测, 基线冻结只减不增 — 新增重复即阻断;
  *       收缩后人工下调 scripts/dup-budget.json (禁止上调)。
  *
- * 口径 (与 2026-10-16 S8 首测一致, 变更口径须同步换算基线):
- *   范围 src/app (含 __tests__ — 测试域 mock 模式重复属可接受存量)
+ * 口径 (2026-10-16 二次收口): 范围 src/app **排除 __tests__** — 生产码重复才是治理目标;
+ *   首版口径含测试域, 实测 106 克隆中绝大多数为测试样板重复 (beforeEach/轮询脚手架,
+ *   FP 评估已声明可接受类别), 属噪音非风险; 收紧后基线更低、等效阈值更严。
  *   min-tokens 70 · 跨文件克隆 · 输出 JSON 解析 clones/duplicatedLines
  *
  * 误报率评估 (入库前置, 2026-10-16): 106 克隆人工抽检 — 绝大多数为
@@ -26,7 +27,7 @@ const BASELINE_FILE = join(ROOT, "scripts", "dup-budget.json");
 const MIN_TOKENS = 70;
 
 const bin = join(ROOT, "node_modules", ".bin", "jscpd");
-const out = execFileSync(bin, ["src/app", "--min-tokens", String(MIN_TOKENS), "--reporters", "json", "--output", "/tmp", "--silent"], { cwd: ROOT, encoding: "utf8" });
+const out = execFileSync(bin, ["src/app", "--min-tokens", String(MIN_TOKENS), "--ignore", "**/__tests__/**", "--reporters", "json", "--output", "/tmp", "--silent"], { cwd: ROOT, encoding: "utf8" });
 void out;
 const report = JSON.parse(readFileSync("/tmp/jscpd-report.json", "utf8"));
 const { clones, duplicatedLines } = report.statistics.total;

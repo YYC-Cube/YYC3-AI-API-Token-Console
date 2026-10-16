@@ -1,0 +1,38 @@
+{
+  "stage": "S1",
+  "title": "环境自诊断（12 维度）",
+  "timestamp": "2026-10-16T09:05+08:00",
+  "mode": "online",
+  "commands": [
+    { "cmd": "pnpm run doctor", "exit": 0, "summary": "12/12 通过 · 0 warning · 0 error（注: 裸 `pnpm doctor` 会执行 pnpm 内建命令, 项目脚本须 `pnpm run doctor`）" },
+    { "cmd": "node -v", "output": "v22.22.3" },
+    { "cmd": "pnpm -v", "output": "12.11.2" },
+    { "cmd": "git --version", "output": "git version 2.56.0" },
+    { "cmd": "pnpm install --frozen-lockfile --prefer-offline", "exit": 0, "summary": "Lockfile passes supply-chain policies; Done in 20ms" },
+    { "cmd": "gitleaks git . --config .gitleaks.toml --redact", "exit": 1, "summary": "124 commits scanned, leaks found: 4 (全部为 RFC 6455 公开测试向量, 详见 checks[10])" },
+    { "cmd": "df -h .", "output": "avail=422Gi (77% used)" },
+    { "cmd": "lsof -nP -i :3030 / :3118", "output": "均为 0 行（无占用）" }
+  ],
+  "checks": [
+    { "id": 1, "name": "Node 版本", "expected": ">=22", "actual": "v22.22.3", "result": "PASS", "evidence": "node -v; doctor「Node 主版本 = 22 (CI 对齐)」" },
+    { "id": 2, "name": "pnpm 版本", "expected": ">=11", "actual": "12.11.2", "result": "PASS", "evidence": "pnpm -v; doctor「pnpm 版本 ≥ 11」" },
+    { "id": 3, "name": "Git 版本", "expected": ">=2.40", "actual": "2.56.0", "result": "PASS", "evidence": "git --version" },
+    { "id": 4, "name": "依赖锁定完整", "expected": "无漂移 + frozen 安装通过", "actual": "doctor: lockfile 一致 / 0 项 ^~ 漂移 / 供应链 8 项; install exit 0 (20ms)", "result": "PASS", "evidence": "pnpm run doctor + pnpm install --frozen-lockfile --prefer-offline" },
+    { "id": 5, "name": "磁盘可用空间", "expected": ">=10Gi 项目阈值", "actual": "422Gi 可用 (77% used)", "result": "PASS", "evidence": "df -h ." },
+    { "id": 6, "name": "端口 3030 (dev)", "expected": "未占用", "actual": "0 个进程", "result": "PASS", "evidence": "lsof -nP -i :3030 → 空" },
+    { "id": 7, "name": "端口 3118 (部署)", "expected": "未占用", "actual": "0 个进程", "result": "PASS", "evidence": "lsof -nP -i :3118 → 空" },
+    { "id": 8, "name": "本地服务清单可达", "expected": "清单逐项可达", "actual": "NAS console 3210 ✓(enabled) / gateway 8000 ✓(200,healthy) / grafana 3000 ✓(200, LAN+Tailscale) / loki 3100 可达未就绪(503, 仅 Tailscale 100.65.172.88) / redis 6379 仅回环(设计内, ss 实证 127.0.0.1:6379 LISTEN) / postgres 5432 仅回环(设计内) / Prometheus ✗ 容器 Up 但宿主端口未发布(LAN+Tailscale+NAS 本机 127.0.0.1:9090 均 000; 与后端 compose 声明 9090:9090 漂移) / Registry: 拓扑中不存在(docker ps 全量 12 容器无此项)", "result": "FAIL", "evidence": "curl 各端点 --max-time 4; ssh NAS 'docker ps -a' 全量; ss -tln 端口绑定表; 注: NAS 无 nc 命令, redis/pg 的 TCP 探测假阴性已由 ss 纠正" },
+    { "id": 9, "name": "env 文件齐全", "expected": ".env.example 存在且可解析", "actual": "在位, 注释式字段结构合法", "result": "PASS", "evidence": "cat .env.example; doctor 第 12 项「.env.example 在位」" },
+    { "id": 10, "name": "密钥零入库 (gitleaks 预扫)", "expected": "0 findings (exit 0)", "actual": "4 findings, exit 1 — generic-api-key × 4: scripts/nas-console-ops.mjs:102 与 console-relay.integration.test.ts:160 均为 RFC 6455 官方示例 nonce dGhlIHNhbXBsZSBub25jZQ==(源码带注释佐证); 实施日志两处为历史提交中的官方 accept 向量 s3pPLMBiTxaQ9kYGzzhZRbK+xOo= — 定性: 公开文档向量误报, 非真实凭据; 但门禁按退出码硬判", "result": "FAIL", "evidence": "gitleaks 8.30.1 git . --config .gitleaks.toml --redact → 'leaks found: 4'; 报告 JSON /tmp/s1-gitleaks.json; 命中行原文逐一核对" },
+    { "id": 11, "name": "缓存目录可写", "expected": "node_modules/.vite/dist 可写", "actual": "三者 WRITABLE", "result": "PASS", "evidence": "touch 写删测试" },
+    { "id": 12, "name": "时区与编码", "expected": "UTF-8 + 本地时区正确", "actual": "CST +0800 / LANG=en_US.UTF-8", "result": "PASS", "evidence": "date +%Z%z; locale" }
+  ],
+  "blocking": [8, 10],
+  "backtrace": [
+    "#10: 源码侧 scripts/nas-console-ops.mjs:102 与 console-relay.integration.test.ts:160 按既有判例分段拼装 RFC 向量, 或在 .gitleaks.toml [allowlist] 增加两条正则豁免(带原因+复核日期注释, 符合仓库 overrides 注释铁律); 文档侧 2 处为历史提交记录, 仅 allowlist 可消除; CI 已 pin GITLEAKS_VERSION=8.30.1 同版, b2b43fb(未推送)一旦 push 将连带 security job 红 — 推送前必须先处置",
+    "#8: yyc3-prometheus 容器 Up 但未发布 9090 (后端 repo docker-compose.yml:89 声明 \"9090:9090\" 属部署漂移) — NAS 上按仓库 compose 重建: docker compose up -d prometheus; 或若有意内网化则在后端仓库同步 compose 与文档消除漂移; 内网地址清单: 192.168.3.45(3210/8000/3000) 100.65.172.88(3100/3000/8000) 127.0.0.1@NAS(6379/5432/8000), 探测超时阈值 3-4s(curl)/2s(nc)",
+    "次要(非阻断): NAS 无 nc 命令, 后续探测统一用 ss/curl; 裸 pnpm doctor 被 pnpm 内建抢占, AGENTS 文档建议标注为 pnpm run doctor"
+  ],
+  "next": "STOP",
+  "verdict": "10/12 PASS · #8 #9 假阴性修正后实为 #8/#10 FAIL → 整体 BLOCKED, 禁止进入 S2"
+}

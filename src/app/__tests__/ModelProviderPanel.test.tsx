@@ -6,11 +6,12 @@
 
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { ModelProviderPanel } from "../components/ModelProviderPanel";
 import { ViewContext } from "../lib/view-context";
 import { I18nContext } from "../hooks/useI18n";
+import { setGatewayConfig, GATEWAY_DEFAULTS } from "../lib/api-config";
 import zhCN from "../i18n/zh-CN";
 
 function getNestedValue(obj: Record<string, any>, path: string): string {
@@ -23,14 +24,15 @@ function getNestedValue(obj: Record<string, any>, path: string): string {
   return typeof result === "string" ? result : path;
 }
 
-function renderPanel() {
+function renderPanel(viewOverride?: { isMobile: boolean }) {
+  const isMobile = viewOverride?.isMobile ?? false;
   const viewValue = {
     breakpoint: "lg" as const,
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
-    width: 1280,
-    isTouch: false,
+    isMobile,
+    isTablet: !isMobile,
+    isDesktop: !isMobile,
+    width: isMobile ? 390 : 1280,
+    isTouch: isMobile,
   };
 
   const i18nValue = {
@@ -277,5 +279,401 @@ describe("ModelProviderPanel 扩展覆盖", () => {
       expect.stringContaining("/v1/admin/upstreams"),
       expect.anything()
     );
+  });
+});
+
+// ============================================================
+// S5 覆盖率长尾批 1 — 网关管理面 (router/stats / models / admin
+// upstreams) / 自定义服务商 / 已配置模型三态 / 视口与导入长尾
+// ============================================================
+
+/** 路由式 fetch stub: 按命中的 URL 返回预置响应或抛错 */
+interface MockFetchResponse {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+}
+
+type RouteResult = MockFetchResponse | "reject-error" | "reject-string";
+
+function makeFetch(
+  route: (url: string, init?: RequestInit) => RouteResult,
+): (input: RequestInfo | URL, init?: RequestInit) => Promise<MockFetchResponse> {
+  return async (input, init) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const result = route(url, init);
+    if (result === "reject-error") throw new Error("gateway unreachable");
+    if (result === "reject-string") throw "plain-failure";
+    return result;
+  };
+}
+
+function okRes(data: unknown): MockFetchResponse {
+  return { ok: true, status: 200, json: () => Promise.resolve(data) };
+}
+
+function badRes(status: number, data: unknown): MockFetchResponse {
+  return { ok: false, status, json: () => Promise.resolve(data) };
+}
+
+function badJsonRes(status: number): MockFetchResponse {
+  return { ok: false, status, json: () => Promise.reject(new Error("invalid json body")) };
+}
+
+describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    // 恢复网关模块内存态, 避免跨 describe 污染 (默认 adminKey="proxy")
+    setGatewayConfig({ gatewayAdminKey: GATEWAY_DEFAULTS.gatewayAdminKey });
+    localStorage.clear();
+  });
+
+  it("上游池应渲染断路器徽标 / 畸形字段兜底 / 模型截断与池模型计数", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/router/stats")) {
+        return okRes({
+          upstream_pool: [
+            { name: "console-zhipu", base_url: "https://gw.example", models: ["m1", "m2", "m3", "m4"], breaker_state: "closed" },
+            { base_url: "https://anon.example", breaker_state: "open" },
+            { name: "plain-pool", base_url: "https://plain.example", models: [] },
+          ],
+        });
+      }
+      if (url.includes("/v1/models")) return okRes({ data: [{ id: "gw-chat" }, {}] });
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    renderPanel();
+    expect(await screen.findByText("console-zhipu")).toBeInTheDocument();
+    expect(screen.getByText("closed")).toBeInTheDocument();
+    expect(screen.getByText("open")).toBeInTheDocument();
+    expect(screen.getByText("?")).toBeInTheDocument(); // u.name 缺失 → "?"
+    expect(screen.getByText(/m1, m2, m3/)).toBeInTheDocument();
+    expect(screen.getByText(/\+1/)).toBeInTheDocument(); // 4 个模型 > 3 → 截断提示
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0); // 空模型列表 → "—"
+    expect(screen.getByText(/池模型 2/)).toBeInTheDocument(); // 含无 id 项
+  });
+
+  it("router/stats 仅有 upstreams 字段时也应渲染上游", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/router/stats")) {
+        return okRes({ upstreams: [{ name: "alt-upstream", base_url: "https://alt.example", models: ["only-one"] }] });
+      }
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    expect(await screen.findByText("alt-upstream")).toBeInTheDocument();
+    expect(screen.getByText("only-one")).toBeInTheDocument();
+  });
+
+  it("router/stats 与 /v1/models 非 2xx 时应保持空态占位", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/router/stats")) return badRes(403, {});
+      if (url.includes("/v1/models")) return badRes(500, {});
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    renderPanel();
+    expect(await screen.findByText("0379-World · 在线")).toBeInTheDocument();
+    // health=up 且无上游 → 提示走「填 ADMIN 密钥」文案
+    expect(screen.getByText(/在系统设置中填入 ADMIN 密钥/)).toBeInTheDocument();
+    expect(screen.queryByText(/池模型/)).not.toBeInTheDocument();
+  });
+
+  it("/v1/models 直接返回数组时应计入池模型", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/models")) return okRes([{ id: "arr-model" }]);
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    expect(await screen.findByText(/池模型 1/)).toBeInTheDocument();
+  });
+
+  it("推送遇 409 应转 PUT 更新并提示同步成功", async () => {
+    const adminCalls: Array<[string, string]> = [];
+    vi.stubGlobal("fetch", makeFetch((url, init) => {
+      if (url.includes("/v1/admin/upstreams")) {
+        adminCalls.push([init?.method ?? "", url]);
+        return init?.method === "POST" ? badRes(409, {}) : okRes({});
+      }
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/已同步到网关：console-zhipu/)).toBeInTheDocument();
+    expect(
+      adminCalls.some(([m, u]) => m === "PUT" && u.endsWith("/v1/admin/upstreams/console-zhipu")),
+    ).toBe(true);
+  });
+
+  it("推送失败应透出响应体 detail 错误信息", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/admin/upstreams")) return badRes(503, { detail: "上游配额不足" });
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/上游配额不足/)).toBeInTheDocument();
+  });
+
+  it("推送失败且响应体非法 JSON 时应回退 HTTP 状态码", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/admin/upstreams")) return badJsonRes(502);
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/HTTP 502/)).toBeInTheDocument();
+  });
+
+  it("推送网络异常 (Error) 应展示错误消息", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/admin/upstreams")) return "reject-error";
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/gateway unreachable/)).toBeInTheDocument();
+  });
+
+  it("推送抛出非 Error 值应字符串化展示", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/admin/upstreams")) return "reject-string";
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/plain-failure/)).toBeInTheDocument();
+  });
+
+  it("未配置 ADMIN 密钥: 推送应直接提示且管理面接口不被拉取", async () => {
+    let statsCalls = 0;
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/router/stats")) { statsCalls += 1; return okRes({}); }
+      if (url.includes("/v1/models")) return okRes({ data: [] });
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    setGatewayConfig({ gatewayAdminKey: "" });
+    renderPanel();
+    expect(await screen.findByText("0379-World · 在线")).toBeInTheDocument();
+    expect(statsCalls).toBe(0); // adminKey 空 → /v1/router/stats 未发起
+    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+    expect(await screen.findByText(/未配置网关 ADMIN 密钥/)).toBeInTheDocument();
+  });
+
+  it("自定义空模型服务商: 徽标 / 删除 / ollama baseUrl 空回退 / 推送通配 *", async () => {
+    localStorage.setItem("yyc3_model_providers", JSON.stringify([
+      {
+        id: "ollama", label: "Ollama", baseUrl: "", authType: "none", models: [],
+        requiresApiKey: false, isLocal: true, isBuiltin: true,
+      },
+      {
+        id: "custom-empty", label: "空模型服务商", baseUrl: "https://empty.example/v1", authType: "bearer",
+        models: [], requiresApiKey: true, isLocal: false, isBuiltin: false, isCustom: true, createdAt: 1,
+      },
+    ]));
+    let pushBody = "";
+    vi.stubGlobal("fetch", makeFetch((url, init) => {
+      if (url.includes("/v1/admin/upstreams") && init?.method === "POST") {
+        pushBody = String(init.body ?? "");
+        return okRes({});
+      }
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    renderPanel();
+    // 统计徽标 + 收起态 chip (isCustom → *)
+    expect(await screen.findByText("1 自定义")).toBeInTheDocument();
+    const chip = screen.getAllByText("空模型服务商").find((el) => el.textContent === "空模型服务商*");
+    expect(chip).toBeDefined();
+    // ollama baseUrl 为空 → 面包屑回退默认地址
+    expect(screen.getByText("http://localhost:11434")).toBeInTheDocument();
+    // 展开态: 自定义徽标 + 删除按钮
+    fireEvent.click(screen.getByText("展开"));
+    expect(screen.getAllByText("自定义").length).toBeGreaterThan(0);
+    const delBtn = screen.queryByTitle("删除服务商");
+    expect(delBtn).not.toBeNull();
+    // 推送空模型服务商 → body.models 回退 ["*"]
+    fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[1]!);
+    expect(await screen.findByText(/已同步到网关：console-custom-empty/)).toBeInTheDocument();
+    expect(JSON.parse(pushBody)).toMatchObject({ models: ["*"] });
+    // 删除自定义服务商 → chip 消失
+    fireEvent.click(screen.getByTitle("删除服务商")!);
+    await waitFor(() => expect(screen.queryByText("1 自定义")).not.toBeInTheDocument());
+  });
+
+  it("已配置模型三态渲染 + 测试连接 + 删除", () => {
+    localStorage.setItem("yyc3_configured_models", JSON.stringify([
+      {
+        id: "cm-active", providerId: "zhipu", providerLabel: "Z.ai", model: "glm-4-flash",
+        apiKey: "k1", baseUrl: "https://open.bigmodel.cn/api/paas/v4", createdAt: 1, lastUsed: null, status: "active",
+      },
+      {
+        id: "cm-error", providerId: "kimi-cn", providerLabel: "Kimi-CN", model: "moonshot-v1-8k",
+        apiKey: "k2", baseUrl: "https://api.moonshot.cn/v1", createdAt: 2, lastUsed: null, status: "error",
+      },
+      {
+        id: "cm-unchecked", providerId: "ollama", providerLabel: "Ollama", model: "qwen2.5:7b",
+        apiKey: "", baseUrl: "http://localhost:11434", createdAt: 3, lastUsed: null, status: "unchecked",
+      },
+    ]));
+    renderPanel();
+    for (const id of ["cm-active", "cm-error", "cm-unchecked"]) {
+      expect(screen.getByTestId(`configured-model-${id}`)).toBeInTheDocument();
+    }
+    // 测试连接 (unchecked → active)
+    const uncheckedRow = screen.getByTestId("configured-model-cm-unchecked");
+    fireEvent.click(uncheckedRow.querySelectorAll("button")[0]!);
+    expect(screen.getByTestId("configured-model-cm-unchecked")).toBeInTheDocument();
+    // 删除模型 → 行消失
+    fireEvent.click(screen.getByTestId("configured-model-cm-error").querySelectorAll("button")[1]!);
+    expect(screen.queryByTestId("configured-model-cm-error")).not.toBeInTheDocument();
+  });
+
+  it("移动端视图应使用两列统计栅格", () => {
+    renderPanel({ isMobile: true });
+    expect(
+      screen.getByTestId("model-provider-panel").querySelector(".grid-cols-2"),
+    ).not.toBeNull();
+  });
+
+  it("无 ViewContext 提供时应回退桌面布局", () => {
+    const i18nValue = {
+      locale: "zh-CN" as const,
+      setLocale: vi.fn(),
+      t: (key: string) => {
+        const v = getNestedValue(zhCN as Record<string, unknown>, key);
+        return typeof v === "string" ? v : key;
+      },
+      locales: [],
+    };
+    render(
+      <MemoryRouter>
+        <I18nContext.Provider value={i18nValue}>
+          <ModelProviderPanel />
+        </I18nContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId("model-provider-panel")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("model-provider-panel").querySelector(".grid-cols-4"),
+    ).not.toBeNull();
+  });
+
+  it("纯空白导入内容应被忽略且不产生结果提示", () => {
+    vi.stubGlobal("fetch", makeFetch(() => okRes({ models: [] })));
+    renderPanel();
+    fireEvent.click(screen.getByText("导入"));
+    fireEvent.change(screen.getByPlaceholderText(/粘贴从「导出」获取的 JSON 配置/), {
+      target: { value: "   " },
+    });
+    fireEvent.click(screen.getByText("执行导入"));
+    expect(screen.queryByText(/导入失败/)).not.toBeInTheDocument();
+    expect(screen.queryByText("导入成功")).not.toBeInTheDocument();
+  });
+
+  it("导入成功 1.5s 后应自动收起导入面板", async () => {
+    vi.stubGlobal("fetch", makeFetch(() => okRes({ models: [] })));
+    vi.useFakeTimers();
+    try {
+      renderPanel();
+      fireEvent.click(screen.getByText("导入"));
+      fireEvent.change(screen.getByPlaceholderText(/粘贴从「导出」获取的 JSON 配置/), {
+        target: { value: JSON.stringify({ version: 2, providers: [], configuredModels: [] }) },
+      });
+      fireEvent.click(screen.getByText("执行导入"));
+      expect(screen.getByText("导入成功")).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(1600); });
+      expect(screen.queryByText("执行导入")).not.toBeInTheDocument();
+      expect(screen.queryByText("导入成功")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("healthz 网络拒绝时应显示网关不可达 (catch 降级)", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.endsWith("/healthz")) return "reject-error";
+      return okRes({ models: [] });
+    }));
+    renderPanel();
+    expect(await screen.findByText(/网关不可达/, {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(await screen.findByText("0379-World · 离线")).toBeInTheDocument();
+  });
+
+  it("router/stats 与 /v1/models 网络拒绝时应静默保持空态", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/router/stats")) return "reject-error";
+      if (url.includes("/v1/models")) return "reject-error";
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    renderPanel();
+    expect(await screen.findByText("0379-World · 在线")).toBeInTheDocument();
+    expect(screen.queryByText(/池模型/)).not.toBeInTheDocument();
+  });
+
+  it("推送成功 4s 后应清空网关消息", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("/v1/admin/upstreams")) return okRes({});
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({ models: [] });
+    }));
+    vi.useFakeTimers();
+    try {
+      renderPanel();
+      fireEvent.click(screen.getByText("展开"));
+      fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
+      await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+      expect(screen.getByText(/已同步到网关：console-zhipu/)).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(4100); });
+      expect(screen.queryByText(/已同步到网关：console-zhipu/)).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("收起态点击服务商 chip 应打开编辑弹窗并可关闭", () => {
+    vi.stubGlobal("fetch", makeFetch(() => okRes({ models: [] })));
+    renderPanel();
+    // 收起态 chip: 第一个内置服务商 Z.ai
+    fireEvent.click(screen.getByText("Z.ai"));
+    expect(screen.getByText("编辑服务商")).toBeInTheDocument();
+    // 关闭 (header X 按钮)
+    const closeBtn = screen.getByText("编辑服务商").parentElement?.parentElement?.querySelector("button");
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    expect(screen.queryByText("编辑服务商")).not.toBeInTheDocument();
+  });
+
+  it("点击 Ollama 刷新按钮应触发本地模型拉取且不崩溃", async () => {
+    vi.stubGlobal("fetch", makeFetch((url) => {
+      if (url.includes("tags")) return okRes({ models: [] });
+      if (url.endsWith("/healthz")) return okRes({});
+      return okRes({});
+    }));
+    renderPanel();
+    fireEvent.click(screen.getByTestId("refresh-ollama-models"));
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByTestId("refresh-ollama-models")).toBeEnabled();
   });
 });
