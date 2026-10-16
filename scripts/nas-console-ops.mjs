@@ -250,6 +250,16 @@ function boot() {
   const line = cron.code === 0 ? cron.out.split("\n").find((l) => l.includes("yyc3-console-nas")) : "";
   console.log(`[boot] @reboot 钩子: ${line ? ok("已装") : bad("缺失")}`);
   if (line) console.log(dim(`  ${line.trim()}`));
+  // resurrect 就绪三要素之 dump: 内含本进程定义则重启链路 (cron→pm2 resurrect→dump) 完整可期
+  const dumpFile = path.join(homedir(), ".pm2", "dump.pm2");
+  if (existsSync(dumpFile)) {
+    const hasProc = readFileSync(dumpFile, "utf8").includes(`"name":"${PROC_NAME}"`) || readFileSync(dumpFile, "utf8").includes(`"${PROC_NAME}"`);
+    console.log(`  resurrect dump 含 ${PROC_NAME}: ${hasProc ? ok("是 (重启链路完整)") : bad("否 — 先 pm2 save")}`);
+    if (!hasProc) return false;
+  } else {
+    console.log(bad(`  resurrect dump 缺失 (~/.pm2/dump.pm2) — 先 pm2 save`));
+    return false;
+  }
   const logFile = path.join(homedir(), ".pm2", "boot.log");
   if (existsSync(logFile)) {
     const tail = readFileSync(logFile, "utf8").trim().split("\n").slice(-4).join("\n");
