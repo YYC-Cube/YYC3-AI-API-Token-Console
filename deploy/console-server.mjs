@@ -25,7 +25,7 @@ import { promises as fs } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "./console-auth.mjs";
+import { LoginRateLimiter, SESSION_TTL_MS, constantTimeEqual, parseCookies, revokeToken, signToken, verifyToken } from "./console-auth.mjs";
 import {
   collectGatewaySnapshot, collectNodeMetrics, consoleSettingsFile,
   effectiveOllamaNodes, filterSettingsPayload, loadConsoleSettings, saveConsoleSettings,
@@ -57,6 +57,15 @@ const AUTH_ENABLED = Boolean(AUTH_SECRET && ADMIN_PASSWORD);
 const SESSION_COOKIE = "console_session";
 /** @type {LoginRateLimiter} */
 const loginLimiter = new LoginRateLimiter();
+
+// 登录/登出审计流 (S6 增强落地, 2026-10-16): JSONL 追加写 console-audit.log
+// (与 server.mjs 同目录)。字段仅 ts/event/ip — 无 PII (S6 维度7); 异步尽力而为,
+// 写失败不阻断请求; 轮转由运维 logrotate 处理 (按行 JSONL 天然可切)。
+const AUDIT_LOG = path.join(__dirname, "console-audit.log");
+function auditLog(/** @type {string} */ event, /** @type {string} */ ip) {
+  const line = `${JSON.stringify({ ts: new Date().toISOString(), event, ip })}\n`;
+  fs.appendFile(AUDIT_LOG, line, "utf8").catch(() => { /* 审计写失败不阻断业务 */ });
+}
 
 // Ollama 多节点反代（无 SSRF 面）: 内置白名单常量 + /console/settings.ollamaNodes 可编辑覆盖
 // （双端联通 R2 / 设备可视化可编辑增减: B端设备管理 PUT 全量 desired-state 清单）
@@ -113,10 +122,12 @@ const server = http.createServer(async (req, res) => {
       let password = "";
       try { password = String(JSON.parse(Buffer.concat(chunks).toString("utf8")).password || ""); } catch { /* 解析失败按空密码 */ }
       if (!password || !constantTimeEqual(password, ADMIN_PASSWORD)) {
+        auditLog("login_fail", ip);
         res.writeHead(401, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ error: "密码不正确" }));
       }
       loginLimiter.reset(ip);
+      auditLog("login_ok", ip);
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Set-Cookie": `${SESSION_COOKIE}=${signToken(AUTH_SECRET)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}${secure}`,
@@ -124,6 +135,10 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify({ ok: true }));
     }
     if (pathname === "/console/auth/logout" && req.method === "POST") {
+      // S6 增强落地: 吊销当前令牌 jti (TTL 内主动失效, 防 Cookie 残留重放)
+      const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+      if (typeof token === "string" && token.includes(".")) revokeToken(token);
+      auditLog("logout", req.socket.remoteAddress || "unknown");
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`,

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- deploy/ 下 .mjs 为无类型声明的 ESM 纯 JS 模块; 失效条件: deploy/*.mjs 有 .d.ts 类型声明后移除本指令与该豁免
 // @ts-expect-error
-import { LoginRateLimiter, RATE_LIMIT_MAX, SESSION_TTL_MS, constantTimeEqual, parseCookies, signToken, verifyToken } from "../../../deploy/console-auth.mjs";
+import { LoginRateLimiter, RATE_LIMIT_MAX, SESSION_TTL_MS, constantTimeEqual, parseCookies, revokeToken, resetRevokedTokens, signToken, verifyToken } from "../../../deploy/console-auth.mjs";
 
 const HMAC_TEST_VECTOR = "0123456789abcdef0123456789abcdef";
 
@@ -106,5 +106,40 @@ describe("parseCookies", () => {
   it("空/undefined → 空对象", () => {
     expect(parseCookies(undefined)).toEqual({});
     expect(parseCookies("")).toEqual({});
+  });
+});
+
+// ============================================================
+// jti 吊销 (S6 增强落地, 2026-10-16) — logout 主动失效
+// ============================================================
+describe("revokeToken / jti 吊销", () => {
+  it("每次签发令牌 jti 互异", () => {
+    const a = signToken(HMAC_TEST_VECTOR);
+    const b = signToken(HMAC_TEST_VECTOR);
+    expect(a).not.toBe(b);
+  });
+
+  it("logout 吊销后旧令牌立即失效, 新签发令牌不受影响", () => {
+    resetRevokedTokens();
+    const old = signToken(HMAC_TEST_VECTOR);
+    expect(verifyToken(HMAC_TEST_VECTOR, old)).toBe(true);
+    revokeToken(old);
+    expect(verifyToken(HMAC_TEST_VECTOR, old)).toBe(false);
+    const fresh = signToken(HMAC_TEST_VECTOR);
+    expect(verifyToken(HMAC_TEST_VECTOR, fresh)).toBe(true);
+  });
+
+  it("resetRevokedTokens 清空登记簿后令牌恢复有效 (重启语义)", () => {
+    resetRevokedTokens();
+    const t = signToken(HMAC_TEST_VECTOR);
+    revokeToken(t);
+    expect(verifyToken(HMAC_TEST_VECTOR, t)).toBe(false);
+    resetRevokedTokens();
+    expect(verifyToken(HMAC_TEST_VECTOR, t)).toBe(true);
+  });
+
+  it("revokeToken 对垃圾输入不抛异常", () => {
+    expect(() => revokeToken("garbage")).not.toThrow();
+    expect(() => revokeToken("!!!.???")).not.toThrow();
   });
 });
