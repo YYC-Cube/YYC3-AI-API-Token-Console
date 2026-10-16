@@ -31,7 +31,7 @@
 
 ## P2 — 体验 / 量化增强（1d 内）
 
-### L-05 · S9-P3 request_id 升格全局 traceId（obs 维度）
+### L-05 · S9-P3 traceId 全局规范 — ✅ 2026-10-17 (AppError.traceId + 报告露出 + 注入通道, 3e57d00)
 - **现状**: request_id 链路检索已有（R7, /audit 页）; 缺统一规范（error-handler 的 AppError 无 trace 关联）。
 - **解法**: error-handler `captureError` 附 `traceId`（crypto.randomUUID 短前缀）; useGatewayAudit 的 request_id 检索与之对齐展示; 1d。
 
@@ -43,7 +43,7 @@
 - **现状**: 限流 5/5min/IP，套件已满额（5 登录），fullchain 单测 90s 长测试承载过多。
 - **解法**: `test.describe.serial` + 首测 `storageState` 落盘 + 依赖 describe `test.use({storageState})` 拆分导航/i18n 两个测试; 0.5d（有需要时做）。
 
-## P3 — 长期治理（分批）
+## P3 — 长期治理（分批）— L-08 第二片完成 (NetworkConfig 240→70, 基线 5841)
 
 ### L-08 · 色值 tokens 存量迁移（DEF-01，6011 处）
 - **解法**（首片模式已立，e6f9fb1）: 顺序 NetworkConfig(240)→SecurityMonitor(163)→AIAssistant(152)→DatabaseManager(149)→NodeDetailModal(110); 每批: 映射表替换（primary/foreground/destructive/chart-2/3/4 已实证同值）+ Recharts props 走 `var(--chart-N)` + 测试网回归 + `color:check` 基线人工下调（禁抬）; theme-presets.ts 永久豁免（数据源本体）; 每片约 1-2h，可穿插进行。
