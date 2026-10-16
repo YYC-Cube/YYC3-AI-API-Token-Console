@@ -18,7 +18,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, act } from "@testing-library/react";
 
 // ── Mocks ──
 
@@ -56,9 +56,13 @@ vi.mock("recharts", () => {
   };
 });
 
-// Mock react-swipeable
+// Mock react-swipeable — 捕获 handlers 供滑动用例直接触发 (覆盖 onSwipedLeft/Right 分支)
+const swipeRef = vi.hoisted(() => ({ current: {} as Record<string, () => void> }));
 vi.mock("react-swipeable", () => ({
-  useSwipeable: () => ({}),
+  useSwipeable: (handlers: Record<string, () => void>) => {
+    swipeRef.current = handlers;
+    return {};
+  },
 }));
 
 // Mock useI18n
@@ -365,6 +369,82 @@ describe("Dashboard", () => {
       expect(screen.queryByText("6H")).not.toBeInTheDocument();
       expect(screen.getByText("24H")).toBeInTheDocument();
       expect(screen.getByText("7D")).toBeInTheDocument();
+    });
+  });
+
+  describe("Analytics 滑动切换 (移动端, swipe handlers)", () => {
+    function renderMobile() {
+      return renderDashboard({}, { isMobile: true, isTablet: false, isDesktop: false, width: 375, breakpoint: "sm" } as ViewState);
+    }
+
+    /** swipe 指示点: active=w-5, 其余 w-1.5 (顺序 = ANALYTICS_TABS) */
+    function expectActiveDot(container: HTMLElement, idx: number) {
+      const dots = container.querySelectorAll("div.flex.items-center.justify-center.gap-2 > div");
+      expect(dots.length).toBe(3);
+      dots.forEach((d, i) => {
+        if (i === idx) expect(d.className).toContain("w-5");
+        else expect(d.className).toContain("w-1.5");
+      });
+    }
+
+    it("左滑应切换到下一 tab (150ms 动画后)", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = renderMobile();
+        expectActiveDot(container, 0);
+        act(() => swipeRef.current.onSwipedLeft!());
+        act(() => vi.advanceTimersByTime(150));
+        expectActiveDot(container, 1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("右滑应切换到上一 tab", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = renderMobile();
+        fireEvent.click(screen.getByText("monitor.performanceTab"));
+        expectActiveDot(container, 1);
+        act(() => swipeRef.current.onSwipedRight!());
+        act(() => vi.advanceTimersByTime(150));
+        expectActiveDot(container, 0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("第一个 tab 右滑不切换 (边界)", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = renderMobile();
+        act(() => swipeRef.current.onSwipedRight!());
+        act(() => vi.advanceTimersByTime(150));
+        expectActiveDot(container, 0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("最后一个 tab 左滑不切换 (边界)", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = renderMobile();
+        fireEvent.click(screen.getByText("monitor.predictionTab"));
+        act(() => swipeRef.current.onSwipedLeft!());
+        act(() => vi.advanceTimersByTime(150));
+        expectActiveDot(container, 2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  describe("实时操作跳转", () => {
+    it("「查看全部」应跳转 /audit", () => {
+      renderDashboard();
+      fireEvent.click(screen.getByText("monitor.viewAll"));
+      expect(mockNavigate).toHaveBeenCalledWith("/audit");
     });
   });
 });

@@ -250,6 +250,48 @@ describe("TopBar", () => {
       const logoutBtns = screen.getAllByText("common.logout");
       expect(logoutBtns.length).toBeGreaterThanOrEqual(1);
     });
+
+    it("抽屉底部点击登出应同时关闭菜单并登出", () => {
+      const onLogout = vi.fn();
+      const onToggleMobileMenu = vi.fn();
+      render(
+        <TopBar
+          {...defaultProps}
+          isMobile={true}
+          isTablet={false}
+          mobileMenuOpen={true}
+          onLogout={onLogout}
+          onToggleMobileMenu={onToggleMobileMenu}
+        />
+      );
+      fireEvent.click(screen.getAllByText("common.logout")[0]!);
+      expect(onLogout).toHaveBeenCalledTimes(1);
+      expect(onToggleMobileMenu).toHaveBeenCalledTimes(1);
+    });
+
+    it("抽屉分类点击展开其他分类时收起当前分类", () => {
+      mockPathname = "/";
+      render(<TopBar {...defaultProps} isMobile={true} isTablet={false} mobileMenuOpen={true} />);
+      // 初始: 当前路由 "/" 属 monitor 分类 → 展开态
+      expect(screen.getByText("nav.dataMonitor")).toBeInTheDocument();
+      // 点击 ops 分类 → monitor 收起 (setExpandedCatId(null→ops.id) 分支)
+      fireEvent.click(screen.getByText("nav.catOps"));
+      expect(screen.queryByText("nav.dataMonitor")).not.toBeInTheDocument();
+      // 再点击 monitor 分类 → 重新展开 (setExpandedCatId(id) 分支)
+      fireEvent.click(screen.getByText("nav.catMonitor"));
+      expect(screen.getByText("nav.dataMonitor")).toBeInTheDocument();
+    });
+
+    it("移动端通知面板: 点击遮罩应关闭面板", () => {
+      render(<TopBar {...defaultProps} isMobile={true} isTablet={false} />);
+      fireEvent.click(screen.getByText("3").closest("button")!);
+      expect(screen.getByText("common.notifications")).toBeInTheDocument();
+      // 移动端底部弹出面板带全屏遮罩 (isMobile && notifOpen 分支)
+      const backdrop = document.querySelector("div.z-40.fixed");
+      expect(backdrop).not.toBeNull();
+      fireEvent.click(backdrop!);
+      expect(screen.queryByText("common.notifications")).not.toBeInTheDocument();
+    });
   });
 
   describe("Ghost Mode", () => {
