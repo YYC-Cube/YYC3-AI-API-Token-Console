@@ -21,6 +21,11 @@ export default defineConfig({
   test: {
     globals: false,
     testTimeout: 10000,
+    // 并发收敛 (S4 留账落地, 2026-10-16): 多 worker 满并行 (16 核) 曾现一次性 16 用例
+    // 并发资源竞争 (单 worker 全套绿 + 嫌疑文件串行 3 连绿定性, R3 判例); 封顶 8 平衡
+    // 速度与稳定性, 本地/CI 同值 (本地绿=CI 绿红线)。若再现有界并发竞争, 收紧至 4 或
+    // 对 Family 系并发敏感文件 isolate。
+    maxWorkers: 8,
     projects: [
       {
         test: {
