@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getGatewayConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 
 export interface GatewayAuditLog {
   id: string;
@@ -106,7 +107,7 @@ export function useGatewayAudit(): GatewayAuditState {
     if (typeof fetch !== "function") return;
     try {
       const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
-      const r = await fetch(`${base}/v1/logs?minutes=1440&limit=200`, { signal: AbortSignal.timeout(8000) });
+      const r = await fetchWithTimeout(`${base}/v1/logs?minutes=1440&limit=200`, {}, 8000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = (await r.json()) as { ok?: boolean; total?: number; logs?: RawLog[] };
       const raws = Array.isArray(d.logs) ? d.logs : [];
@@ -139,7 +140,7 @@ export function useGatewayAudit(): GatewayAuditState {
   const traceRequestId = useCallback(async (requestId: string) => {
     try {
       const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
-      const r = await fetch(`${base}/v1/logs?minutes=1440&limit=10&request_id=${encodeURIComponent(requestId)}`, { signal: AbortSignal.timeout(8000) });
+      const r = await fetchWithTimeout(`${base}/v1/logs?minutes=1440&limit=10&request_id=${encodeURIComponent(requestId)}`, {}, 8000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = (await r.json()) as { total?: number; logs?: RawLog[] };
       const raws = d.logs ?? [];

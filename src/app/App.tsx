@@ -85,6 +85,8 @@ if (typeof window !== "undefined") {
 
   // Layer 0c: Suppress console.error noise from Figma platform errors
   // Some Figma errors bypass event listeners and get logged directly via console.error
+  // [S3 治理留账 B 甄别] 本块为全应用唯一合法 console 使用点 — 平台噪声过滤基础设施,
+  // 其余生产代码 console.* 须经 lib/error-handler (captureError) 或封装层
   const _origConsoleError = console.error;
   console.error = function (...args: unknown[]) {
     const joined = args.map(a => String(a ?? "")).join(" ").toLowerCase();

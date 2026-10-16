@@ -17,6 +17,7 @@ import {
   ShieldCheck, Video, Workflow,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { fetchWithTimeout } from "../../lib/http";
 import { FadeIn } from "./FadeIn";
 
 // ═══ 生产服务群（与 builtin-providers.json yyc3-* 对齐）═══
@@ -31,6 +32,8 @@ interface ServiceDef {
   role: string;
 }
 
+// [S3 治理留账 C] 本地管线服务健康检查清单 — localhost 服务由编排脚本拉起, 本表仅探测用;
+// 非跨机运行时端点配置 (公网/局域网端点以 lib/api-config 为权威源)
 const SERVICES: ServiceDef[] = [
   { id: "gateway",  label: "0379-World 网关",  url: "http://localhost:25080/healthz",  kind: "json",  role: "统一模型入口 / 路由熔断" },
   { id: "comfyui",  label: "ComfyUI 文生图",   url: "http://localhost:41888/healthz",  kind: "text",  role: "关键帧生成（fp16 预览）" },
@@ -45,7 +48,7 @@ async function probe(url: string, kind: "json" | "text"): Promise<boolean> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), PROBE_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: ctl.signal, mode: "cors" });
+    const res = await fetchWithTimeout(url, { signal: ctl.signal, mode: "cors" });
     if (!res.ok) return false;
     if (kind === "json") {
       await res.json();
@@ -73,7 +76,7 @@ async function fetchGatewayHealth(): Promise<GatewayMetrics | null> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), PROBE_TIMEOUT_MS);
   try {
-    const res = await fetch("http://localhost:25080/health", {
+    const res = await fetchWithTimeout("http://localhost:25080/health", {
       signal: ctl.signal, mode: "cors",
     });
     if (!res.ok) return null;

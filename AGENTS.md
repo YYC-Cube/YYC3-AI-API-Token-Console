@@ -49,6 +49,8 @@ components → hooks → lib → types
 - 入口: `src/main.tsx` → `src/app/App.tsx` → `src/app/routes.ts`（路由表唯一事实源）
 - 状态: localStorage（轻配置）+ IndexedDB（大数据，`src/app/lib/yyc3-storage.ts` 统一封装）
 - 违反分层 → CI 阻断（例外清单只减不增，见 `eslint.config.js` boundaries 段）
+- 域目录契约（六域治理, 2026-10-16）: 域目录（ai-family / ide / service-test / design-system 等）同属 components 层, 互引被层级契约允许; **跨域复用逻辑必须下沉 hooks/lib/types**（contracts）, 禁止域间复制粘贴实现; 网络请求统一走 `lib/http.ts`（fetchWithTimeout）或既有 lib 封装, 禁止组件/hooks 直连裸 fetch
+- 硬编码色值基线只减不增: `pnpm color:check`（存量 6080 冻结, 增量必须走 Design Tokens; 迁移批落地后人工下调 `scripts/color-budget.json`）
 
 ## 目录导读
 

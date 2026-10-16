@@ -20,6 +20,7 @@ import type { AlertSeverity, AlertRule, AlertEvent } from "../types";
 import { useWebSocketData } from "../hooks/useWebSocketData";
 import { CreateRuleModal } from "./CreateRuleModal";
 import { getGatewayConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 
 // ============================================================
 // Helpers
@@ -392,7 +393,7 @@ export function AlertRulesPanel() {
       if (typeof fetch !== "function") return;
       try {
         const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
-        const r = await fetch(`${base}/v1/admin/alerts`, { signal: AbortSignal.timeout(6000) });
+        const r = await fetchWithTimeout(`${base}/v1/admin/alerts`, {}, 6000);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = (await r.json()) as { alerts?: Array<{ source?: string; level?: string; title?: string; model?: string; at?: string }> };
         if (!alive) return;

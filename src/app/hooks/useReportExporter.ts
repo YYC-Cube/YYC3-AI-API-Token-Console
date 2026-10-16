@@ -15,6 +15,7 @@
 import { useCallback, useState } from "react";
 import { getAPIConfig, getGatewayConfig } from "../lib/api-config";
 import { activeNodesKpi, upstreamNodesFromRouterStats } from "../lib/device-inventory";
+import { fetchWithTimeout } from "../lib/http";
 import { usePersistedList } from "./usePersistedState";
 
 // ============================================================
@@ -68,7 +69,7 @@ const RANGE_DAYS: Record<TimeRange, number> = { "1h": 1, "6h": 1, "24h": 1, "7d"
 async function grab<T>(url: string, timeoutMs = 6000): Promise<T | null> {
   if (typeof fetch !== "function") return null;
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    const r = await fetchWithTimeout(url, {}, timeoutMs);
     if (!r.ok) return null;
     return (await r.json()) as T;
   } catch {

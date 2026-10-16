@@ -28,6 +28,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { idbGetAll, idbPut, idbPutMany, idbDelete, idbClear } from "../lib/yyc3-storage";
 import { getAPIConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import type {
   DatabaseType,
   DBConnection,
@@ -89,7 +90,7 @@ async function dbAPI<T = unknown>(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), config.timeout);
 
-      const res = await fetch(`${config.dbBase}/${endpoint}`, {
+      const res = await fetchWithTimeout(`${config.dbBase}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body ?? {}),

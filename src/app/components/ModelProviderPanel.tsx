@@ -24,6 +24,7 @@ import { useModelProvider } from "../hooks/useModelProvider";
 import { useI18n } from "../hooks/useI18n";
 import { ViewContext } from "../lib/view-context";
 import { getGatewayConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 
 /** YYC³ 网关实时状态（/v1/router/stats + /v1/models + /healthz，只读对接第 1 步） */
 interface GatewayLive {
@@ -50,13 +51,13 @@ async function pushProviderAsUpstream(p: {
     priority: 20,
   };
   try {
-    let r = await fetch(`${base}/v1/admin/upstreams`, {
-      method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
-    });
+    let r = await fetchWithTimeout(`${base}/v1/admin/upstreams`, {
+      method: "POST", headers, body: JSON.stringify(body),
+    }, 8000);
     if (r.status === 409) {
-      r = await fetch(`${base}/v1/admin/upstreams/${body.name}`, {
-        method: "PUT", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
-      });
+      r = await fetchWithTimeout(`${base}/v1/admin/upstreams/${body.name}`, {
+        method: "PUT", headers, body: JSON.stringify(body),
+      }, 8000);
     }
     if (!r.ok) {
       const d = await r.json().catch(() => ({}));
@@ -76,12 +77,12 @@ function useGatewayLive(): GatewayLive & { refresh: () => void } {  const [live,
     const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
     const adminHeaders = { "X-API-Key": cfg.gatewayAdminKey };
     const next: GatewayLive = { health: "checking", upstreams: [], poolModels: [], routerStats: null, fetchedAt: new Date().toLocaleTimeString() };
-    fetch(`${base}/healthz`, { signal: AbortSignal.timeout(6000) })
+    fetchWithTimeout(`${base}/healthz`, {}, 6000)
       .then((r) => { next.health = r.ok ? "up" : "down"; })
       .catch(() => { next.health = "down"; })
       .finally(() => setLive((p) => ({ ...p, health: next.health, fetchedAt: next.fetchedAt })));
     if (cfg.gatewayAdminKey) {
-      fetch(`${base}/v1/router/stats`, { headers: adminHeaders, signal: AbortSignal.timeout(6000) })
+      fetchWithTimeout(`${base}/v1/router/stats`, { headers: adminHeaders }, 6000)
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (!d) return;
@@ -96,7 +97,7 @@ function useGatewayLive(): GatewayLive & { refresh: () => void } {  const [live,
           setLive((p) => ({ ...p, upstreams: next.upstreams, routerStats: d }));
         })
         .catch(() => { /* 静默：无 admin key 或网络失败时显示占位 */ });
-      fetch(`${base}/v1/models`, { headers: adminHeaders, signal: AbortSignal.timeout(6000) })
+      fetchWithTimeout(`${base}/v1/models`, { headers: adminHeaders }, 6000)
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (!d) return;

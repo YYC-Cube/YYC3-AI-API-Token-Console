@@ -8,6 +8,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getAPIConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import { usePersistedList } from "./usePersistedState";
 import type {
   AlertData,
@@ -206,7 +207,7 @@ interface MetricsPayload {
  */
 async function fetchRealChecks(): Promise<PatrolCheckItem[] | null> {
   try {
-    const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(5000) });
+    const r = await fetchWithTimeout(getAPIConfig().metricsBase, {}, 5000);
     if (!r.ok) return null;
     const data = (await r.json()) as MetricsPayload;
     if (!Array.isArray(data.nodes) || data.nodes.length === 0) return null;

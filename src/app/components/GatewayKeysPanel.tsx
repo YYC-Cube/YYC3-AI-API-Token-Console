@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getGatewayConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import { GlassCard } from "./GlassCard";
 
 interface VK {
@@ -79,7 +80,7 @@ export function GatewayKeysPanel() {
     setLoading(true);
     setErr("");
     try {
-      const r = await fetch(`${base()}/v1/admin/virtual-keys`, { headers: headers(), signal: AbortSignal.timeout(8000) });
+      const r = await fetchWithTimeout(`${base()}/v1/admin/virtual-keys`, { headers: headers() }, 8000);
       if (r.status === 401 || r.status === 403) throw new Error("鉴权失败：请在系统设置填入网关 ADMIN 密钥（sk-admin…）");
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
@@ -99,7 +100,7 @@ export function GatewayKeysPanel() {
     if (!form.name.trim()) return;
     setBusyId("__create");
     try {
-      const r = await fetch(`${base()}/v1/admin/virtual-keys`, {
+      const r = await fetchWithTimeout(`${base()}/v1/admin/virtual-keys`, {
         method: "POST",
         headers: headers(),
         body: JSON.stringify({
@@ -127,7 +128,7 @@ export function GatewayKeysPanel() {
   const toggle = async (k: VK) => {
     setBusyId(k.id);
     try {
-      await fetch(`${base()}/v1/admin/virtual-keys/${k.id}`, {
+      await fetchWithTimeout(`${base()}/v1/admin/virtual-keys/${k.id}`, {
         method: "PATCH",
         headers: headers(),
         body: JSON.stringify({ status: k.status === "active" ? "disabled" : "active" }),
@@ -140,7 +141,7 @@ export function GatewayKeysPanel() {
     if (!window.confirm(`确认删除密钥「${k.name}」？此操作不可恢复。`)) return;
     setBusyId(k.id);
     try {
-      await fetch(`${base()}/v1/admin/virtual-keys/${k.id}`, { method: "DELETE", headers: headers() });
+      await fetchWithTimeout(`${base()}/v1/admin/virtual-keys/${k.id}`, { method: "DELETE", headers: headers() });
       await load();
     } finally { setBusyId(""); }
   };

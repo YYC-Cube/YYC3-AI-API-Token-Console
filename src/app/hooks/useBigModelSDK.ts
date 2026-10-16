@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { fetchWithTimeout } from "../lib/http";
 import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
 import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
@@ -350,7 +351,7 @@ export function useBigModelSDK() {
       const body = buildRequestBody(configuredModel, history, false, 0.7);
 
       abortRef.current = new AbortController();
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
@@ -535,7 +536,7 @@ export function useBigModelSDK() {
       const body = buildRequestBody(configuredModel, history, true, 0.7);
 
       abortRef.current = new AbortController();
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
@@ -665,9 +666,7 @@ export function useBigModelSDK() {
     try {
       if (configuredModel.providerId === "ollama") {
         const testUrl = buildTestUrl(configuredModel, "/api/tags");
-        const res = await fetch(testUrl, {
-          signal: AbortSignal.timeout(5000),
-        });
+        const res = await fetchWithTimeout(testUrl, {}, 5000);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return { success: true, latencyMs: Date.now() - start };
       }
@@ -682,12 +681,11 @@ export function useBigModelSDK() {
         0,
       );
 
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers,
         body: JSON.stringify({ ...body, max_tokens: 1 }),
-        signal: AbortSignal.timeout(10000),
-      });
+      }, 10000);
 
       if (!res.ok) {
         const text = await res.text();

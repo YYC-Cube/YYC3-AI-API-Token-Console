@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getGatewayConfig } from "../../lib/api-config";
+import { fetchWithTimeout } from "../../lib/http";
 import { FAMILY_MEMBERS, AI_RESPONSES, buildMemberSystemPrompt, memberModelId, hexToRgb, getMember } from "./shared";
 
 // ═══ P2 真实 LLM 对话 (2026-10-05) ═══
@@ -30,7 +31,7 @@ async function fetchMemberReply(
       role: m.sender === "user" ? "user" : "assistant",
       content: m.text,
     }));
-    const r = await fetch(`${gw.gatewayBase}/chat/completions`, {
+    const r = await fetchWithTimeout(`${gw.gatewayBase}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,8 +46,7 @@ async function fetchMemberReply(
         max_tokens: 300,
         temperature: 0.8,
       }),
-      signal: AbortSignal.timeout(20000),
-    });
+    }, 20000);
     if (!r.ok) return null;
     const data = (await r.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const text = data.choices?.[0]?.message?.content?.trim();

@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getAPIConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import { idbDelete, idbGetAll, idbPut, lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type { FileVersion, HostFileEntry } from "../types";
 
@@ -53,7 +54,7 @@ async function apiFallback<T>(
     return { ok: false, error: "后端 API 未启用 (enableBackend=false)" };
   }
   try {
-    const res = await fetch(`${config.fsBase}/${endpoint}`, {
+    const res = await fetchWithTimeout(`${config.fsBase}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body ?? {}),

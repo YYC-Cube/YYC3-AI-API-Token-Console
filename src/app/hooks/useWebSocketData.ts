@@ -47,6 +47,7 @@ import {
 } from "../lib/device-inventory";
 import type { DeviceParts } from "../lib/device-inventory";
 import { createGatewayFrameTranslator, parseGatewayFrame } from "../lib/gateway-adapter";
+import { fetchWithTimeout } from "../lib/http";
 import { nodeStore } from "../lib/nodes";
 import { getSettingsSnapshot } from "./useSettingsStore";
 
@@ -174,7 +175,7 @@ export function useWebSocketData(): WebSocketDataState {
 
   const pollRestMetrics = useCallback(async () => {
     try {
-      const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(4000) });
+      const r = await fetchWithTimeout(getAPIConfig().metricsBase, {}, 4000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = (await r.json()) as {
         activeCount?: string;
@@ -233,7 +234,7 @@ export function useWebSocketData(): WebSocketDataState {
     if (typeof fetch !== "function") return;
     try {
       const base = getGatewayConfig().gatewayBase;
-      const r = await fetch(`${base}/models/stats`, { signal: AbortSignal.timeout(5000) });
+      const r = await fetchWithTimeout(`${base}/models/stats`, {}, 5000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data: unknown = await r.json();
       let total = 0;
@@ -273,13 +274,13 @@ export function useWebSocketData(): WebSocketDataState {
     if (typeof fetch !== "function") return;
     try {
       const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
-      const r = await fetch(`${base}/v1/admin/a2a/agents`, { signal: AbortSignal.timeout(5000) });
+      const r = await fetchWithTimeout(`${base}/v1/admin/a2a/agents`, {}, 5000);
       if (r.ok) devicesRef.current.agents = agentNodesFromA2A(await r.json());
     } catch { /* 设备源降级不影响主链路 */ }
     const ws = wsRef.current;
     if (ws && (ws as { readyState?: number }).readyState === 1) {
       try {
-        const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(4000) });
+        const r = await fetchWithTimeout(getAPIConfig().metricsBase, {}, 4000);
         if (r.ok) {
           const d = (await r.json()) as {
             nodes?: Array<{ id?: string; status?: string; latencyMs?: number; models?: string[] }>;

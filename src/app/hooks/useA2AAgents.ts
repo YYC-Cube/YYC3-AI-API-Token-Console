@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getGatewayConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import type { A2AAgentCard } from "../lib/device-inventory";
 
 export interface AgentLive {
@@ -38,7 +39,7 @@ export function useA2AAgents(): {
     }
     try {
       const base = getGatewayConfig().gatewayBase.replace(/\/v1\/?$/, "");
-      const r = await fetch(`${base}/v1/admin/a2a/agents`, { signal: AbortSignal.timeout(6000) });
+      const r = await fetchWithTimeout(`${base}/v1/admin/a2a/agents`, {}, 6000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = (await r.json()) as { agents?: A2AAgentCard[] };
       setAgents(

@@ -1,0 +1,17 @@
+{
+  "baseline": 6080,
+  "lockedAt": "2026-10-16",
+  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明",
+  "topFiles": {
+    "src/app/components/NetworkConfig.tsx": 240,
+    "src/app/components/theme/theme-presets.ts": 190,
+    "src/app/components/SecurityMonitor.tsx": 163,
+    "src/app/components/Dashboard.tsx": 159,
+    "src/app/components/AIAssistant.tsx": 152,
+    "src/app/components/DatabaseManager.tsx": 149,
+    "src/app/components/ModelProviderPanel.tsx": 131,
+    "src/app/components/AlertRulesPanel.tsx": 126,
+    "src/app/components/OperationAudit.tsx": 120,
+    "src/app/components/NodeDetailModal.tsx": 110
+  }
+}

@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, HardDrive, MonitorCog, Plus, Save, Server, Trash2, UserCircle2 } from "lucide-react";
 import type { NodeData } from "../types";
 import { isConsoleDeployment } from "../lib/ollama-url";
+import { fetchWithTimeout } from "../lib/http";
 
 type NodeRow = { id: string; origin: string };
 
@@ -38,7 +39,7 @@ export function DeviceInventoryManager({ nodes }: { nodes: NodeData[] }) {
   const load = useCallback(async () => {
     if (typeof fetch !== "function") return;
     try {
-      const r = await fetch("/console/settings", { signal: AbortSignal.timeout(5000) });
+      const r = await fetchWithTimeout("/console/settings", {}, 5000);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = (await r.json()) as { ollamaNodes?: Record<string, string> };
       setRows(Object.entries(d.ollamaNodes ?? {}).map(([id, origin]) => ({ id, origin })));
@@ -82,12 +83,11 @@ export function DeviceInventoryManager({ nodes }: { nodes: NodeData[] }) {
     const map: Record<string, string> = {};
     for (const r of rows) map[r.id] = r.origin;
     try {
-      const r = await fetch("/console/settings", {
+      const r = await fetchWithTimeout("/console/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ollamaNodes: map }),
-        signal: AbortSignal.timeout(5000),
-      });
+      }, 5000);
       const d = (await r.json()) as { ok?: boolean; rejected?: string[] } | null;
       if (!r.ok || (d && Array.isArray(d.rejected) && d.rejected.includes("ollamaNodes"))) {
         throw new Error(d && Array.isArray(d.rejected) && d.rejected.length ? `被拒绝: ${d.rejected.join(",")}` : `HTTP ${r.status}`);

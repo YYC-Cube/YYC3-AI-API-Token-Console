@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import builtinProvidersJson from "../config/providers/builtin-providers.json";
 import { builtinProvidersSchema } from "../config/providers/provider-schema";
+import { fetchWithTimeout } from "../lib/http";
 import { getOllamaTagsUrl } from "../lib/ollama-url";
 import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
@@ -203,10 +204,7 @@ export function useModelProvider() {
     try {
       // 如果传入了自定义 baseUrl 则直连, 否则走同源代理
       const tagsUrl = baseUrl ? `${baseUrl.replace(/\/$/, "")}/api/tags` : getOllamaTagsUrl();
-      const res = await fetch(tagsUrl, {
-        method: "GET",
-        signal: AbortSignal.timeout(5000),
-      });
+      const res = await fetchWithTimeout(tagsUrl, { method: "GET" }, 5000);
 
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);

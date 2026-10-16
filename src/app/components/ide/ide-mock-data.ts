@@ -112,6 +112,8 @@ export function GlassCard({ children, className = "", glowColor, ...rest }: Glas
  * 30+ environment variables centrally managed
  */
 
+// [S3 治理留账 C] IDE 工作台演示用假环境面板 — 全部为展示文本 (含虚构内网地址), 非运行时配置;
+// 运行时端点以 lib/api-config / lib/env-config 为权威源
 export const ENV = {
   APP_NAME: "YYC3 CloudPivot Intelli-Matrix",
   APP_VERSION: "2.4.0",

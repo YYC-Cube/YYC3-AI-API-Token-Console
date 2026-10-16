@@ -33,6 +33,7 @@ import React, { useEffect, useState } from "react";
 import { useI18n } from "../hooks/useI18n";
 import { useSecurityMonitor } from "../hooks/useSecurityMonitor";
 import { getAPIConfig } from "../lib/api-config";
+import { fetchWithTimeout } from "../lib/http";
 import type { RiskLevel, SecurityTab, VitalRating } from "../types";
 import { GlassCard } from "./GlassCard";
 
@@ -653,7 +654,7 @@ export function SecurityMonitor() {
     const load = async () => {
       if (typeof fetch !== "function") return;
       try {
-        const r = await fetch(getAPIConfig().metricsBase, { signal: AbortSignal.timeout(6000) });
+        const r = await fetchWithTimeout(getAPIConfig().metricsBase, {}, 6000);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = (await r.json()) as { gateway?: { health?: typeof gatewayHealth } | null };
         if (alive && d.gateway?.health) setGatewayHealth(d.gateway.health);

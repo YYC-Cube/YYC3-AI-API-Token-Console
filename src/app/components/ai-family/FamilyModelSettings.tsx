@@ -50,6 +50,8 @@ interface ProviderDef {
   models: { id: string; name: string; desc: string; ctx?: string }[];
 }
 
+// [S3 治理留账 C] 公开服务商 API 目录默认值 — 均为各厂商公开文档 URL, 与 config/providers 声明一致;
+// 展示/新建表单默认值性质, 非运行时端点配置 (运行时端点以 lib/api-config 为权威源)
 const PROVIDERS: ProviderDef[] = [
   {
     id: "openai", name: "OpenAI", icon: Cloud, color: "#10b981",

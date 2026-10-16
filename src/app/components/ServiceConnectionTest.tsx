@@ -222,6 +222,7 @@ export function ServiceConnectionTest() {
           </div>
           <p className="text-[rgba(0,212,255,0.35)] mb-3" style={{ fontSize: "0.68rem" }}>
             浏览器安全策略禁止前端直接调用外部 API。配置 CORS 代理可绕过此限制。
+            {/* [S3 治理留账 C] 下方 URL 均为用户帮助文案示例 (placeholder/命令演示), 非运行时端点 */}
           </p>
           <div className="flex items-center gap-2 mb-2">
             <input
