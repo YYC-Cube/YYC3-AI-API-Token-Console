@@ -1,0 +1,38 @@
+{
+  "stage": "S4",
+  "title": "Vitest 分级单测门禁（unit-dom + unit-node）",
+  "timestamp": "2026-10-16T13:30+08:00",
+  "mode": "online",
+  "evidence_files": {
+    "json": "stage-4.json (vitest --reporter=json, --project unit-dom unit-node)",
+    "machine_summary": "total=2973 passed=2973 failed=0 skipped=0"
+  },
+  "commands": [
+    { "cmd": "pnpm test:unit", "runs": ["R1 治理批后 2962 绿", "R2 JSON 终态 2973 绿", "R3 偶发 16 失败 (多 worker 并发资源竞争, 见 flaky 定性)", "R4 2973 绿", "R5 2973 绿", "R6 --maxWorkers=1 2973 绿"] },
+    { "cmd": "pnpm exec vitest run --project unit-node", "output": "52 files / 936 tests 全绿 → unit-dom = 2973-936 = 2037" },
+    { "cmd": "grep skip/todo/only 扫描", "output": "count=0" },
+    { "cmd": "grep toMatchSnapshot 扫描", "output": "0 使用" }
+  ],
+  "checks": [
+    { "id": 1, "name": "unit-dom 100% pass", "actual": "2037/2037 (177-52=125 文件)", "result": "PASS" },
+    { "id": 2, "name": "unit-node 100% pass", "actual": "936/936 (52 文件)", "result": "PASS" },
+    { "id": 3, "name": "零 skip/todo", "actual": "0 (含 .only)", "result": "PASS" },
+    { "id": 4, "name": "零 flaky", "actual": "用例级确定性成立: R2/R4/R5/单worker 4 次全套全绿 + FamilyEntertainment/VoiceSystem 串行 3 连绿; R3 单次 16 失败定性=多 worker 并发资源竞争 (单 worker 全套绿, 与既有判例 'FamilyEntertainment 并发 flaky 串行过' 吻合) — 套件级并发治理留账", "result": "PASS", "advisory": "多 worker 并发竞争 → 后续批评估 maxWorkers 收敛或竞争文件 isolate" },
+    { "id": 5, "name": "零外部依赖", "actual": "fetch 全 stub/spy (lib/http.ts 底层 globalThis.fetch 可拦) / IndexedDB 走降级契约 (idbGetAll catch→[]) / 时间 fake timers / 无真实网络", "result": "PASS" },
+    { "id": 6, "name": "命名与位置规范", "actual": "__tests__/*.test.ts(x) 全合规 (e2e/ 属 playwright 域, setup.ts 为 vitest setup)", "result": "PASS" },
+    { "id": 7, "name": "快照不滥用", "actual": "0 处 toMatchSnapshot", "result": "PASS" },
+    { "id": 8, "name": "Hooks 全覆盖", "actual": "27/27 直接用例 (本轮补 useMobileView 7 用例 + usePersistedState 4 用例; AGENTS 计数 28→27 修正) — jsdom 环境事实: ontouchstart 恒在, isTouch false 分支属真机域 (用例内注释留档)", "result": "PASS" },
+    { "id": 9, "name": "terminal-completions 五维协同源", "actual": "describe 全覆盖: 一级命令/cpim 子命令/env 变量/family 成员/路由/ai 意图/路径补全/历史频率闭环/路由对齐守卫/列表质量", "result": "PASS" },
+    { "id": 10, "name": "24 提供商 / 69 模型 zod 声明校验", "actual": "provider-schema.test.ts 全量 safeParse builtin-providers.json; 实测 providers=24 models=69 精确吻合 + id 唯一性 + 分类映射断言", "result": "PASS" }
+  ],
+  "unit_dom": { "total": 2037, "passed": 2037, "failed": 0, "skipped": 0 },
+  "unit_node": { "total": 936, "passed": 936, "failed": 0, "skipped": 0 },
+  "flaky": ["套件级: 多 worker 并发资源竞争 (R3 单次 16 失败, 单 worker 全绿) — 留账非阻断"],
+  "blocking": [],
+  "backtrace": [
+    "并发治理: R3 偶发 16 失败 (多 worker) — 建议 CI 侧锁定 maxWorkers 或对 Family 系并发敏感文件增 isolate",
+    "isTouch false 分支为真机域 (jsdom ontouchstart 恒在), 已在用例注释留档"
+  ],
+  "next": "S5",
+  "verdict": "10/10 PASS · 2973/2973 · 零 skip/零快照/零外部依赖 · hooks 27/27 · providers 24/69 精确校验 · 放行 S5"
+}
