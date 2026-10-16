@@ -11,12 +11,17 @@
  * 用法: node scripts/guardrail-probe.mjs  (或 pnpm guardrail-probe)
  * 退出码: 0 = 全部拦截成功 / 1 = 存在门禁失效 (已知违规未被拦截)
  *
- * 探针清单:
+ * 探针清单 (2026-10-16 扩至 7 规则 × 双语言全覆盖, S7 留账闭环):
  *   1. ast-grep 裸 WebSocket (.ts)  → no-bare-websocket
  *   2. ast-grep 裸 WebSocket (.tsx) → no-bare-websocket-tsx
  *   3. eslint 分层契约 hooks→stores → boundaries/dependencies
  *   4. ast-grep 裸 localStorage (.ts)  → no-raw-localstorage
  *   5. ast-grep 裸 localStorage (.tsx) → no-raw-localstorage-tsx
+ *   6/7.  ast-grep document.write (.ts/.tsx)   → no-document-write(-tsx)
+ *   8/9.  ast-grep innerHTML 赋值 (.ts/.tsx)   → no-innerhtml-assignment(-tsx)
+ *   10/11. ast-grep 硬编码密钥 (.ts/.tsx)      → no-hardcoded-secret-literal(-tsx)
+ *   12/13. ast-grep process.env 直读 (.ts/.tsx) → no-process-env-in-src(-tsx)
+ *   14/15. ast-grep 字符串定时器 (.ts/.tsx)    → no-string-timer(-tsx)
  */
 
 import { execSync } from "node:child_process";
@@ -115,6 +120,52 @@ expectIntercepted(
   [{ name: "probe-ls.tsx", content: 'const v = localStorage.getItem("k");\nvoid v;\n' }],
   () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, "probe-ls.tsx"))}`)
 );
+
+// ── 探针 6/7: ast-grep document.write ──
+for (const ext of ["ts", "tsx"]) {
+  expectIntercepted(
+    `ast-grep document.write (.${ext})`,
+    [{ name: `probe-dw.${ext}`, content: 'document.write("<b>x</b>");\n' }],
+    () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-dw.${ext}`))}`)
+  );
+}
+
+// ── 探针 8/9: ast-grep innerHTML 赋值 ──
+for (const ext of ["ts", "tsx"]) {
+  expectIntercepted(
+    `ast-grep innerHTML 赋值 (.${ext})`,
+    [{ name: `probe-ih.${ext}`, content: 'const el = document.createElement("div");\nel.innerHTML = "<b>x</b>";\nvoid el;\n' }],
+    () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-ih.${ext}`))}`)
+  );
+}
+
+// ── 探针 10/11: ast-grep 硬编码密钥字面量 ──
+// 样本为规则 regex 的探测形态 (sk_live_ + 16 位), 非真实凭据 — 规则命中即证明拦截有效
+for (const ext of ["ts", "tsx"]) {
+  expectIntercepted(
+    `ast-grep 硬编码密钥 (.${ext})`,
+    [{ name: `probe-secret.${ext}`, content: 'const k = "sk_live_ABCDEFGHIJKLMNOPQRST";\nvoid k;\n' }],
+    () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-secret.${ext}`))}`)
+  );
+}
+
+// ── 探针 12/13: ast-grep process.env 直读 ──
+for (const ext of ["ts", "tsx"]) {
+  expectIntercepted(
+    `ast-grep process.env 直读 (.${ext})`,
+    [{ name: `probe-pe.${ext}`, content: 'const v = process.env.NODE_ENV;\nvoid v;\n' }],
+    () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-pe.${ext}`))}`)
+  );
+}
+
+// ── 探针 14/15: ast-grep 字符串定时器 ──
+for (const ext of ["ts", "tsx"]) {
+  expectIntercepted(
+    `ast-grep 字符串定时器 (.${ext})`,
+    [{ name: `probe-st.${ext}`, content: 'setTimeout("doWork()", 100);\n' }],
+    () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-st.${ext}`))}`)
+  );
+}
 
 // ── 报告 ──
 const ICON = { true: "✓", false: "✗" };
