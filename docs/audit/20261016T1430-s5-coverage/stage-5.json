@@ -1,0 +1,33 @@
+{
+  "stage": "S5",
+  "title": "覆盖率门禁（四阈值锁定 + 全量新鲜覆盖）",
+  "timestamp": "2026-10-16T14:30+08:00",
+  "mode": "online",
+  "commands": [
+    { "cmd": "pnpm test:coverage", "exit": 0, "summary": "vitest run --coverage, 阈值内建强制 (退化即阻断, COV_EXIT=0)" },
+    { "cmd": "grep thresholds vitest.config.ts", "summary": "lines 90 / functions 85 / branches 80 / statements 88 — 锁定实证 (vitest.config.ts:75-80)" },
+    { "cmd": "grep coverage .github/workflows/ci.yml", "summary": "ci.yml:125 同款命令 pnpm test:coverage — 本地绿=CI绿 等价性成立" }
+  ],
+  "checks": [
+    { "id": 1, "name": "lines ≥ 90", "actual": "92.26% (8390/9093)", "result": "PASS", "margin": "+2.26" },
+    { "id": 2, "name": "functions ≥ 85", "actual": "87.47% (2850/3258)", "result": "PASS", "margin": "+2.47" },
+    { "id": 3, "name": "branches ≥ 80", "actual": "80.44% (6366/7913)", "result": "PASS", "margin": "+0.44 (35 分支)" },
+    { "id": 4, "name": "statements ≥ 88", "actual": "89.94% (9405/10456)", "result": "PASS", "margin": "+1.94" },
+    { "id": 5, "name": "门槛锁定 (退化即阻断)", "actual": "thresholds 内建于 vitest.config.ts, CI 同款命令", "result": "PASS" }
+  ],
+  "trend": {
+    "note": "治理批 (fetch 封装+4 单测) 与 S4 hooks 补测 (11 用例) 的正效应",
+    "statements": "89.51 → 89.94",
+    "branches": "80.01 → 80.44 (余量 1 → 35 分支)",
+    "functions": "86.95 → 87.47",
+    "lines": "91.82 → 92.26"
+  },
+  "evidence": "stage-5.raw.log (全量覆盖报告) + 本文件",
+  "blocking": [],
+  "backtrace": [
+    "长尾治理留账 (branches <70% 热点, 非阻断): ai-family-doc 42.5% / Login 36.4% / ErrorBoundary 57.1% / MotionTemplate 58.3% / StatusPanel 58.8% / ModelProviderPanel 61.8% / ArchitectureAudit 65.6% / AlertBanner 66.7% / ViewSwitcher 66.7% / AIFamilyPage 68.3% / AIDiagnostics 68.6% / AlertRulesPanel 68.9% — 建议独立测试增量批按热点顺序推进",
+    "branches 余量 35 分支为四项中最薄, 大分支增量特性落地前建议先补热点"
+  ],
+  "next": "S6",
+  "verdict": "5/5 PASS · 四门槛全过且余量全面扩大 · 阈值锁定 + CI 等价实证 · 放行 S6"
+}
