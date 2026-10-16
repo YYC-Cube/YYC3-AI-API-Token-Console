@@ -282,11 +282,11 @@ describe("Dashboard", () => {
       const panoramaBtn = screen.getByText("monitor.panorama").closest("button")!;
 
       // 默认非激活
-      expect(panoramaBtn.className).toContain("bg-[rgba(0,212,255,0.08)]");
+      expect(panoramaBtn.className).toContain("bg-primary/8");
 
       // 点击激活
       fireEvent.click(panoramaBtn);
-      expect(panoramaBtn.className).toContain("bg-[rgba(0,212,255,0.15)]");
+      expect(panoramaBtn.className).toContain("bg-primary/15");
     });
   });
 
@@ -331,7 +331,7 @@ describe("Dashboard", () => {
       fireEvent.click(screen.getByText("monitor.performanceTab"));
       // The clicked tab should have active styling
       const tab = screen.getByText("monitor.performanceTab").closest("button")!;
-      expect(tab.className).toContain("text-[#00d4ff]");
+      expect(tab.className).toContain("text-primary");
     });
 
     it("移动端不应渲染全景按钮", () => {

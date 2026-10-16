@@ -1,12 +1,12 @@
 {
-  "baseline": 6080,
+  "baseline": 6011,
   "lockedAt": "2026-10-16",
-  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明",
+  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明。2026-10-16 首批迁移: Dashboard.tsx 硬编码色值 159→90 (#00d4ff→primary / #e0f0ff→foreground / #ff3366→destructive / #ffdd00→chart-5 / rgba(0,212,255,X)→primary/X), 基线 6080→6011",
   "topFiles": {
     "src/app/components/NetworkConfig.tsx": 240,
     "src/app/components/theme/theme-presets.ts": 190,
     "src/app/components/SecurityMonitor.tsx": 163,
-    "src/app/components/Dashboard.tsx": 159,
+    "src/app/components/Dashboard.tsx": 90,
     "src/app/components/AIAssistant.tsx": 152,
     "src/app/components/DatabaseManager.tsx": 149,
     "src/app/components/ModelProviderPanel.tsx": 131,

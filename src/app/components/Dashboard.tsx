@@ -70,8 +70,8 @@ function ChartTabBar({ active, onChange }: { active: AnalyticsTab; onChange: (t:
           onClick={() => onChange(tab.key)}
           className={`px-3 py-1.5 rounded-lg transition-all min-h-[36px] ${
             active === tab.key
-              ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-              : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+              ? "bg-primary/12 text-primary border border-primary/25"
+              : "text-primary/40 hover:text-primary border border-transparent"
           }`}
           style={{ fontSize: "0.75rem" }}
         >
@@ -167,7 +167,7 @@ export function Dashboard() {
               <div className="p-1.5 md:p-2 rounded-lg" style={{ backgroundColor: `${stat.color}15` }}>
                 <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
               </div>
-              <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded ${stat.up ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" : "bg-[rgba(255,51,102,0.1)] text-[#ff3366]"}`} style={{ fontSize: "0.65rem" }}>
+              <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded ${stat.up ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" : "bg-destructive/10 text-destructive"}`} style={{ fontSize: "0.65rem" }}>
                 {stat.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                 {stat.trend}
               </div>
@@ -175,7 +175,7 @@ export function Dashboard() {
             <div className="mt-1" style={{ fontSize: isMobile ? "1.2rem" : "1.5rem", color: stat.color, fontFamily: "'Orbitron', sans-serif" }}>
               {stat.value}
             </div>
-            <div className="text-[rgba(0,212,255,0.5)] mt-0.5" style={{ fontSize: "0.72rem" }}>{stat.label}</div>
+            <div className="text-primary/50 mt-0.5" style={{ fontSize: "0.72rem" }}>{stat.label}</div>
           </GlassCard>
         ))}
       </div>
@@ -186,18 +186,18 @@ export function Dashboard() {
         <GlassCard className={`p-3 md:p-4 ${isMobile ? "" : isTablet ? "col-span-7" : "col-span-8"}`}>
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#00d4ff]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("monitor.throughputChart")}</h3>
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <h3 className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("monitor.throughputChart")}</h3>
             </div>
             <div className="flex items-center gap-1 md:gap-2">
               {(isMobile ? ["24H", "7D"] : ["1H", "6H", "24H", "7D"]).map((period) => (
-                <button key={period} className={`px-2 py-1 rounded text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)] transition-all min-h-[32px] ${period === "24H" ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff]" : ""}`} style={{ fontSize: "0.68rem" }}>
+                <button key={period} className={`px-2 py-1 rounded text-primary/50 hover:text-primary hover:bg-primary/10 transition-all min-h-[32px] ${period === "24H" ? "bg-primary/12 text-primary" : ""}`} style={{ fontSize: "0.68rem" }}>
                   {period}
                 </button>
               ))}
               {!isMobile && (
-                <button className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all">
-                  <Maximize2 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+                <button className="p-1 rounded hover:bg-primary/10 transition-all">
+                  <Maximize2 className="w-3.5 h-3.5 text-primary/40" />
                 </button>
               )}
             </div>
@@ -233,7 +233,7 @@ export function Dashboard() {
         <GlassCard className={`p-3 md:p-4 ${isMobile ? "" : isTablet ? "col-span-5" : "col-span-4"}`}>
           <div className="flex items-center gap-2 mb-3 md:mb-4">
             <Layers className="w-4 h-4 text-[#aa55ff]" />
-            <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("monitor.modelLoadDist")}</h3>
+            <h3 className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("monitor.modelLoadDist")}</h3>
           </div>
           {(() => {
             const distData = modelDistStore.getAll();
@@ -253,7 +253,7 @@ export function Dashboard() {
                   {distData.map((item, i) => (
                     <div key={item.id} className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                      <span className="text-[rgba(0,212,255,0.6)] truncate" style={{ fontSize: "0.7rem" }}>{item.name}</span>
+                      <span className="text-primary/60 truncate" style={{ fontSize: "0.7rem" }}>{item.name}</span>
                       <span className="ml-auto shrink-0" style={{ fontSize: "0.7rem", color: PIE_COLORS[i % PIE_COLORS.length] }}>{item.value}%</span>
                     </div>
                   ))}
@@ -288,8 +288,8 @@ export function Dashboard() {
                 key={tab}
                 className={`rounded-full transition-all duration-300 ${
                   analyticsTab === tab
-                    ? "w-5 h-1.5 bg-[#00d4ff] shadow-[0_0_8px_rgba(0,212,255,0.4)]"
-                    : "w-1.5 h-1.5 bg-[rgba(0,212,255,0.2)]"
+                    ? "w-5 h-1.5 bg-primary shadow-[0_0_8px_rgba(0,212,255,0.4)]"
+                    : "w-1.5 h-1.5 bg-primary/20"
                 }`}
               />
             ))}
@@ -300,21 +300,21 @@ export function Dashboard() {
           <GlassCard className="col-span-4 p-4">
             <div className="flex items-center gap-2 mb-4">
               <Gauge className="w-4 h-4 text-[#00ff88]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("monitor.radarTitle")}</h3>
+              <h3 className="text-foreground" style={{ fontSize: "0.9rem" }}>{t("monitor.radarTitle")}</h3>
             </div>
             <RadarSection isMobile={false} />
           </GlassCard>
           <GlassCard className="col-span-4 p-4">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-[#ffdd00]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("monitor.performanceTitle")}</h3>
+              <TrendingUp className="w-4 h-4 text-chart-5" />
+              <h3 className="text-foreground" style={{ fontSize: "0.9rem" }}>{t("monitor.performanceTitle")}</h3>
             </div>
             <PerformanceSection isMobile={false} />
           </GlassCard>
           <GlassCard className="col-span-4 p-4">
             <div className="flex items-center gap-2 mb-4">
               <GitBranch className="w-4 h-4 text-[#ff6600]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("monitor.predictionTitle")}</h3>
+              <h3 className="text-foreground" style={{ fontSize: "0.9rem" }}>{t("monitor.predictionTitle")}</h3>
               <span className="ml-auto px-2 py-0.5 rounded bg-[rgba(255,102,0,0.1)] border border-[rgba(255,102,0,0.2)] text-[#ff6600]" style={{ fontSize: "0.65rem" }}>{t("monitor.aiPrediction")}</span>
             </div>
             <PredictionSection isMobile={false} />
@@ -328,11 +328,11 @@ export function Dashboard() {
         <GlassCard className={`p-3 md:p-4 ${isMobile ? "" : showAllNodes ? "" : isTablet ? "col-span-7" : "col-span-7"}`} data-testid="node-matrix-card">
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <Network className="w-4 h-4 text-[#00d4ff]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("monitor.nodeMatrix")}</h3>
+              <Network className="w-4 h-4 text-primary" />
+              <h3 className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("monitor.nodeMatrix")}</h3>
             </div>
             <div className="flex items-center gap-1.5">
-              <button className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all min-h-[32px]" style={{ fontSize: "0.7rem" }}>
+              <button className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all min-h-[32px]" style={{ fontSize: "0.7rem" }}>
                 <RefreshCw className="w-3 h-3" />
                 {!isMobile && t("monitor.refresh")}
               </button>
@@ -341,8 +341,8 @@ export function Dashboard() {
                   onClick={() => setShowAllNodes(!showAllNodes)}
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all min-h-[32px] ${
                     showAllNodes
-                      ? "bg-[rgba(0,212,255,0.15)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
-                      : "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)]"
+                      ? "bg-primary/15 border-primary/30 text-primary"
+                      : "bg-primary/8 border-primary/20 text-primary hover:bg-primary/15"
                   }`}
                   style={{ fontSize: "0.7rem" }}
                 >
@@ -369,12 +369,12 @@ export function Dashboard() {
         <GlassCard className={`p-3 md:p-4 ${isMobile ? "" : isTablet ? "col-span-5" : "col-span-5"}`}>
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#ffdd00]" />
-              <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("monitor.realtimeOps")}</h3>
+              <Activity className="w-4 h-4 text-chart-5" />
+              <h3 className="text-foreground" style={{ fontSize: "0.85rem" }}>{t("monitor.realtimeOps")}</h3>
             </div>
             <button
               onClick={() => navigate("/audit")}
-              className="text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-colors min-h-[32px]"
+              className="text-primary/50 hover:text-primary transition-colors min-h-[32px]"
               style={{ fontSize: "0.7rem" }}
             >
               {t("monitor.viewAll")}
@@ -385,36 +385,36 @@ export function Dashboard() {
               <div key={op.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-2.5 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all cursor-pointer">
                 <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${
                   op.status === "success" ? "bg-[rgba(0,255,136,0.1)]" :
-                  op.status === "running" ? "bg-[rgba(0,212,255,0.1)]" :
+                  op.status === "running" ? "bg-primary/10" :
                   op.status === "pending" ? "bg-[rgba(170,85,255,0.1)]" :
-                  "bg-[rgba(255,221,0,0.1)]"
+                  "bg-chart-5/10"
                 }`}>
                   {op.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff88]" /> :
-                   op.status === "running" ? <RefreshCw className="w-3.5 h-3.5 text-[#00d4ff] animate-spin" /> :
+                   op.status === "running" ? <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" /> :
                    op.status === "pending" ? <Clock className="w-3.5 h-3.5 text-[#aa55ff]" /> :
-                   <AlertTriangle className="w-3.5 h-3.5 text-[#ffdd00]" />}
+                   <AlertTriangle className="w-3.5 h-3.5 text-chart-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[#c0dcf0]" style={{ fontSize: "0.75rem" }}>{op.action}</span>
                     {!isMobile && (
-                      <span className="px-1.5 py-0.5 rounded text-[rgba(0,212,255,0.5)] bg-[rgba(0,212,255,0.05)]" style={{ fontSize: "0.58rem" }}>
+                      <span className="px-1.5 py-0.5 rounded text-primary/50 bg-primary/5" style={{ fontSize: "0.58rem" }}>
                         {op.user}
                       </span>
                     )}
                   </div>
-                  <p className="text-[rgba(0,212,255,0.4)] truncate" style={{ fontSize: "0.68rem" }}>{op.target}</p>
+                  <p className="text-primary/40 truncate" style={{ fontSize: "0.68rem" }}>{op.target}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <span className={`inline-block px-1.5 py-0.5 rounded ${
                     op.status === "success" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
-                    op.status === "running" ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" :
+                    op.status === "running" ? "bg-primary/10 text-primary" :
                     op.status === "pending" ? "bg-[rgba(170,85,255,0.1)] text-[#aa55ff]" :
-                    "bg-[rgba(255,221,0,0.1)] text-[#ffdd00]"
+                    "bg-chart-5/10 text-chart-5"
                   }`} style={{ fontSize: "0.6rem" }}>
                     {op.status === "success" ? t("monitor.statusDone") : op.status === "running" ? t("monitor.statusRunning") : op.status === "pending" ? t("monitor.statusPending") : t("monitor.statusAlert")}
                   </span>
-                  <p className="text-[rgba(0,212,255,0.3)] mt-0.5" style={{ fontSize: "0.6rem" }}>{op.time}</p>
+                  <p className="text-primary/30 mt-0.5" style={{ fontSize: "0.6rem" }}>{op.time}</p>
                 </div>
               </div>
             ))}
@@ -500,8 +500,8 @@ function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
         ${node.status === "active"
           ? "bg-[rgba(0,255,136,0.03)] border-[rgba(0,255,136,0.15)] hover:border-[rgba(0,255,136,0.3)]"
           : node.status === "warning"
-          ? "bg-[rgba(255,221,0,0.03)] border-[rgba(255,221,0,0.15)] hover:border-[rgba(255,221,0,0.3)]"
-          : "bg-[rgba(255,51,102,0.03)] border-[rgba(255,51,102,0.15)] hover:border-[rgba(255,51,102,0.3)]"
+          ? "bg-chart-5/3 border-chart-5/15 hover:border-chart-5/30"
+          : "bg-destructive/3 border-destructive/15 hover:border-destructive/30"
         }
       `}
     >
@@ -509,15 +509,15 @@ function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
         <span className="text-[#c0dcf0] truncate" style={{ fontSize: "0.7rem" }}>{node.id}</span>
         <div className={`w-2 h-2 rounded-full shrink-0 ${
           node.status === "active" ? "bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]"
-          : node.status === "warning" ? "bg-[#ffdd00] shadow-[0_0_6px_rgba(255,221,0,0.5)] animate-pulse"
-          : "bg-[#ff3366] shadow-[0_0_6px_rgba(255,51,102,0.5)]"
+          : node.status === "warning" ? "bg-chart-5 shadow-[0_0_6px_rgba(255,221,0,0.5)] animate-pulse"
+          : "bg-destructive shadow-[0_0_6px_rgba(255,51,102,0.5)]"
         }`} />
       </div>
       {/* GPU bar */}
       <div className="mb-1">
         <div className="flex justify-between mb-0.5">
-          <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>GPU</span>
-          <span style={{ fontSize: "0.58rem", color: node.gpu > 90 ? "#ff3366" : "#00d4ff" }}>{node.gpu}%</span>
+          <span className="text-primary/40" style={{ fontSize: "0.58rem" }}>GPU</span>
+          <span style={{ fontSize: "0.58rem", color: node.gpu > 90 ? "var(--destructive)" : "var(--primary)" }}>{node.gpu}%</span>
         </div>
         <div className="w-full h-1 rounded-full bg-[rgba(0,180,255,0.1)]">
           <div className="h-full rounded-full transition-all duration-500" style={{
@@ -529,8 +529,8 @@ function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
       {/* Mem bar */}
       <div>
         <div className="flex justify-between mb-0.5">
-          <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>MEM</span>
-          <span style={{ fontSize: "0.58rem", color: node.mem > 90 ? "#ff3366" : "#aa55ff" }}>{node.mem}%</span>
+          <span className="text-primary/40" style={{ fontSize: "0.58rem" }}>MEM</span>
+          <span style={{ fontSize: "0.58rem", color: node.mem > 90 ? "var(--destructive)" : "#aa55ff" }}>{node.mem}%</span>
         </div>
         <div className="w-full h-1 rounded-full bg-[rgba(0,180,255,0.1)]">
           <div className="h-full rounded-full transition-all duration-500" style={{
@@ -540,8 +540,8 @@ function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
         </div>
       </div>
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.56rem" }}>{node.model}</span>
-        <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.56rem" }}>{node.temp}°C</span>
+        <span className="text-primary/30" style={{ fontSize: "0.56rem" }}>{node.model}</span>
+        <span className="text-primary/30" style={{ fontSize: "0.56rem" }}>{node.temp}°C</span>
       </div>
     </div>
   );
