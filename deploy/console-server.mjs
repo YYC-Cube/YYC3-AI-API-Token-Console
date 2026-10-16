@@ -217,7 +217,14 @@ const server = http.createServer(async (req, res) => {
   // ── 服务端设置（P4 下发 / 2026-10-05）：GET|PUT /console/settings ──
   // 前端 settingsBus 白名单子集持久化（console-settings.json，运行时旁不入 git）;
   // PUT 为部分更新语义（merge），未知键 422 回执 rejected 清单。
-  if (pathname === "/console/settings" && (req.method === "GET" || req.method === "PUT")) {
+  // S11 判例 (2026-10-16): 本路径与 SPA 页面路由 /console/settings 同名冲突 — 浏览器导航
+  // (Accept: text/html) 曾拿到 JSON 文档致 #root 不存在; 内容协商分流: 导航走 SPA 静态壳,
+  // fetch (Accept: */* 或 application/json) 走 API, 双端零破坏。
+  if (
+    pathname === "/console/settings" &&
+    (req.method === "GET" || req.method === "PUT") &&
+    !(req.method === "GET" && String(req.headers.accept ?? "").includes("text/html"))
+  ) {
     if (AUTH_ENABLED && !verifyToken(AUTH_SECRET, parseCookies(req.headers.cookie)[SESSION_COOKIE])) return denyUnauthenticated();
     const file = consoleSettingsFile(__dirname);
     if (req.method === "GET") {

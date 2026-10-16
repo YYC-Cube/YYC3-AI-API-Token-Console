@@ -1,0 +1,49 @@
+{
+  "stage": "S11",
+  "title": "E2E 全链路（关键路径十项 · e2e 7→11 用例扩容）",
+  "timestamp": "2026-10-16T23:50+08:00",
+  "mode": "online",
+  "status": "PASS",
+  "paths_total": 10,
+  "paths_passed": 10,
+  "paths_failed": [],
+  "commands": [
+    { "cmd": "pnpm test:e2e (终态)", "exit": 0, "summary": "11/11 passed (44.8s): auth 3 + models 3 + fullchain 5 (新增)" },
+    { "cmd": "pnpm exec playwright test --reporter=json > stage-11.json", "exit": 0, "summary": "机器可读归档 expected=11" },
+    { "cmd": "tsc/eslint", "summary": "0 错误 / 0 警告 (spec 含类型收窄)" }
+  ],
+  "path_coverage": {
+    "P1 启动登录双模式": "console 密码形态 3 用例 (auth.spec: 401 拒绝/HttpOnly 签发穿门/未认证 401 门); 本地团队账号形态 = LAN server.mjs (S14 冒烟 200/200 留档) — e2e 域覆盖公网形态",
+    "P2-6 六域路由": "fullchain 新增: 15 代表路由串行遍历 (监控 4/运维 3/AI 智能 2/Family 1/系统管理 4/开发规范 1), 每路由挂载断言 + 非 404 + 全程零 pageerror",
+    "P7 图标链路": "fullchain 新增: manifest 解析 + 图标全量逐个 200 + favicon 双尺寸 — **挖出真 bug 修复**: index.html 9 处绝对路径在 /console/ 子路径形态全 404 → 改相对路径双形态通吃",
+    "P8 i18n 双语": "fullchain 新增: zh→en→en 断言链 (yyc3_locale 存储态 + 正文宽检 + 中文残留零) — 判例: 语言键是 yyc3_locale 非 yyc3-lang(ide-mock 同名误导); 动画下拉须 DOM 原生 click() 直达 React 委托",
+    "P9 PWA 离线": "fullchain 新增: SW ready 显式等待 → setOffline → reload 壳层仍服务 (title+root); manifest/sw 均在 P7/离线用例内",
+    "P10 双形态+HMAC": "auth 3 用例 = HMAC 会话全链 (webServer 即生产 console-server); LAN 形态 S14 留档; Ollama 代理 = unit 域 server.mjs 测试承载"
+  },
+  "real_bugs_found": [
+    {
+      "bug": "/console/settings 页面路由与设置 API 同路径冲突 — 服务端 JSON 抢先, 浏览器导航拿到 JSON 文档 (#root 不存在), 生产 NAS 同样存在",
+      "fix": "内容协商: 导航 (Accept: text/html) → SPA 静态壳; fetch (Accept: */*) → API JSON; 双端零破坏",
+      "verify": "e2e /settings 路由恢复挂载; NAS 3210 实测 nav→<!doctype 壳 + authed fetch→JSON 200 双形态"
+    },
+    {
+      "bug": "index.html manifest/favicon 9 处绝对路径在 console 子路径形态全 404 (PWA 资产链断)",
+      "fix": "相对路径化 (按页面 URL 解析, 根/子路径双形态)",
+      "verify": "PWA 资产链路用例: manifest+图标+favicon 全 200"
+    }
+  ],
+  "judgments": [
+    "登录限流 5/5min/IP 预算制: 套件恒 5 登录 (auth 2+models 2+fullchain 1), 404 用例走 storageState 复用 — 新增用例须免登录或复用态",
+    "本机 playwright 浏览器缓存今日两次被外部清除 (headless_shell-1243 消失), EBUSY 半途安装需重试 — 环境判例",
+    "探针服务器残留占 3199 被 webServer reuseExistingServer 复用 → 全套 401 假败; 手工探针必须 kill 干净",
+    "i18n 断言锚点用实渲染词 (一键跟进/活跃节点) 而非侧栏分类词 (数据监控 — 桌面折叠态不在 innerText)"
+  ],
+  "evidence": "stage-11.json (playwright JSON) + stage-11.summary.json (本文件) + test-results/ trace (retain-on-failure)",
+  "blocking": [],
+  "backtrace": [
+    "可选: 404/离线用例可再挂 storageState 减少登录依赖; e2e/.auth 已 gitignore",
+    "console-server 内容协商判例: 同路径 API+SPA 冲突的标准解 (Accept 分流), ECS 形态同款文件需同步部署 (下次 ECS 更新批)"
+  ],
+  "next": "S12",
+  "verdict": "11/11 e2e · 十路径全覆盖 (双形态经 S14/unit 域补齐) · 挖出并修复 2 个真产品 bug · 放行 S12"
+}
