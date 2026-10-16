@@ -51,25 +51,25 @@
 
 ## ✨ 核心特性 | Core Features
 
-| # | 中文 | English |
-| --- | ------ | --------- |
-| 1 | **六大功能域**：监控 / 运维 / AI 智能 / AI Family / 开发规范 / 系统管理 | **Six Domains**: Monitoring / Ops / AI / AI Family / Dev Standards / Admin |
-| 2 | **全端图标体系**：Android / Web / iOS / macOS / watchOS 五平台 36 PNG 全链路对齐 | **Full-Platform Icons**: 5 platforms, 36 PNGs, end-to-end aligned |
-| 3 | **PWA 全链路**：manifest + 运行时 head 注入 + CDN 回退 + 安装引导 | **PWA Full-Chain**: manifest + runtime head injection + CDN fallback + install prompt |
-| 4 | **双语 i18n**：zh-CN / en-US 全量语言包一致性测试保障 | **Bilingual i18n**: zh-CN / en-US packs guarded by consistency tests |
-| 5 | **质量门禁**：TypeScript strict + Vitest 分级测试（2986+ 用例）+ 覆盖率门槛锁定（lines 90）+ a11y 审计 | **Quality Gates**: TS strict + tiered Vitest (2986+ tests) + locked coverage thresholds (lines 90) + a11y audit |
-| 6 | **闭环 CI/CD**：Typecheck → Lint(边界) → Unit+Coverage → Security → E2E → Build(纪律四件套) 六阶段流水线 | **Closed-Loop CI/CD**: Typecheck → Lint(boundaries) → Unit+Coverage → Security → E2E → Build(discipline) |
-| 7 | **零依赖部署**：Node 原生模块部署服务器（LAN/公网双形态 + HMAC 鉴权）+ Ollama 反向代理 | **Zero-Dep Deploy**: native Node servers (LAN/public + HMAC auth) + Ollama reverse proxy |
-| 8 | **设计系统内嵌**：Design Tokens / 组件展示 / 阶段评审一体化 | **Embedded Design System**: tokens / showcase / stage review in one |
-| 9 | **智能化终端补全闭环**：上下文感知引擎 × 五维协同源（节点/模型/家族成员/路由/环境变量）× 历史-频率反馈进化 | **Intelligent Terminal Completion**: context-aware engine × 5-dimension sources × frequency-ranked feedback loop |
+| #   | 中文　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 | English                                                                                                          |
+| -----| ------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------------------------------------------------------------|
+| 1   | **六大功能域**：监控 / 运维 / AI 智能 / AI Family / 开发规范 / 系统管理　　　　　　　　　　　　　　　　　　| **Six Domains**: Monitoring / Ops / AI / AI Family / Dev Standards / Admin                                       |
+| 2   | **全端图标体系**：Android / Web / iOS / macOS / watchOS 五平台 29 PNG 全链路对齐　　　　　　　　　　　　　 | **Full-Platform Icons**: 5 platforms, 29 PNGs, end-to-end aligned                                                |
+| 3   | **PWA 全链路**：manifest + 运行时 head 注入 + CDN 回退 + 安装引导　　　　　　　　　　　　　　　　　　　　　| **PWA Full-Chain**: manifest + runtime head injection + CDN fallback + install prompt                            |
+| 4   | **双语 i18n**：zh-CN / en-US 全量语言包一致性测试保障　　　　　　　　　　　　　　　　　　　　　　　　　　　| **Bilingual i18n**: zh-CN / en-US packs guarded by consistency tests                                             |
+| 5   | **质量门禁**：TS strict 双旗标 + 分级测试（3230+ 用例）+ 覆盖率 86+ / 悬空 Promise 零容忍 + 色值/重复/体量/死代码四基线　　 | **Quality Gates**: strict dual-flag TS + tiered tests (3230+) + coverage 86+ / floating-promise zero / color·dup·size·knip baselines |
+| 6   | **闭环 CI/CD**：Typecheck → Lint(边界) → Unit+Coverage → Security → E2E → Build(纪律四件套) 六阶段流水线　 | **Closed-Loop CI/CD**: Typecheck → Lint(boundaries) → Unit+Coverage → Security → E2E → Build(discipline)         |
+| 7   | **零依赖部署**：Node 原生（LAN/公网双形态 + HMAC+jti 吊销 + gzip + 审计日志 + 运维台）+ Ollama 反向代理　 | **Zero-Dep Deploy**: native Node (LAN/public + HMAC+jti revocation + gzip + audit log + ops console) + Ollama reverse proxy |
+| 8   | **设计系统内嵌**：Design Tokens / 组件展示 / 阶段评审一体化　　　　　　　　　　　　　　　　　　　　　　　　| **Embedded Design System**: tokens / showcase / stage review in one                                              |
+| 9   | **智能化终端补全闭环**：上下文感知引擎 × 五维协同源（节点/模型/家族成员/路由/环境变量）× 历史-频率反馈进化 | **Intelligent Terminal Completion**: context-aware engine × 5-dimension sources × frequency-ranked feedback loop |
 
 ## 📦 环境前置依赖 | Prerequisites
 
-| 依赖 Dependency | 最低版本 Min Version | 用途 Purpose |
-| ----------------- | --------------------- | -------------- |
-| Node.js | 22+ | 运行时 Runtime |
-| pnpm | 11+ | 包管理 Package manager |
-| Git | 2.40+ | 版本管理 Version control |
+| 依赖 Dependency | 最低版本 Min Version | 用途 Purpose　　　　　　 |
+| -----------------| ----------------------| --------------------------|
+| Node.js　　　　 | 22+　　　　　　　　　| 运行时 Runtime　　　　　 |
+| pnpm　　　　　　| 11+　　　　　　　　　| 包管理 Package manager　 |
+| Git　　　　　　 | 2.40+　　　　　　　　| 版本管理 Version control |
 
 ## 🚀 快速开始 | Quick Start
 
@@ -128,15 +128,24 @@ YYC3-AI-API-Token-Console/
 │   ├── 404.html                    # SPA 404 回退 (静态资源不回退 + 深链还原; 经 Vite 进 dist)
 │   ├── CNAME                       # 自定义域名 token.yyc3.vip
 │   ├── yyc3-Family.png             # README 顶图 / 品牌主视觉 (1800×450)
-│   └── yyc3-icons/                 # 全端图标体系 (5 平台 36 PNG)
+│   └── yyc3-icons/                 # 全端图标体系 (5 平台 29 PNG)
 ├── deploy/
 │   ├── server.mjs                  # 零依赖部署服务器 (LAN 形态, 默认 3118) + Ollama 反向代理
-│   └── console-server.mjs          # 公网形态 + HMAC 令牌鉴权 + 多节点代理
+│   ├── console-server.mjs          # 公网形态 (gzip + settings 内容协商) + HMAC 鉴权 + 多节点代理
+│   ├── console-auth.mjs            # 鉴权内核 (HMAC 签名 + jti 吊销 + 登录限流)
+│   ├── console-metrics.mjs         # 网关指标聚合 (四源设备清单)
+│   ├── console-ws-relay.mjs        # WS 中继 (手写 RFC 6455 最小实现)
+│   └── pm2-YYC3.service            # systemd 留档 (fnOS 放开后可切)
 ├── scripts/
-│   ├── ast-grep/                   # 结构化反模式守护 (7 条规则 × ts/tsx)
+│   ├── ast-grep/                   # 结构化反模式守护 (7 条规则 × ts/tsx, 全 error 级)
 │   ├── check-size.mjs              # 体量门禁 (阈值 + 基线)
+│   ├── check-color-budget.mjs      # 色值基线门禁 (只减不增, 5486 冻结)
+│   ├── check-dup-budget.mjs        # 重复代码基线门禁 (jscpd, 生产码口径)
 │   ├── knip-check.mjs              # knip 基线门禁
-│   ├── guardrail-probe.mjs         # 门禁有效性探针 (meta-gate)
+│   ├── guardrail-probe.mjs         # 门禁有效性探针 (20 探针 × 双跑)
+│   ├── nas-console-ops.mjs         # NAS console 运维交互台 (status/verify/heal/boot)
+│   ├── bundle-stats.mjs            # 构建产物体积统计 (zlib gzip)
+│   ├── chain-verify.mjs            # PWA/i18n/图标三链一致性校验 (dist 实证)
 │   ├── inject-precache.mjs         # SW 预缓存产物清单注入 (build 后置)
 │   ├── doctor.mjs                  # 环境自诊断 (12 项)
 │   └── check_mermaid.py            # Mermaid 代码块开闭校验（pre-commit 闸）
@@ -146,11 +155,11 @@ YYC3-AI-API-Token-Console/
 │   └── app/
 │       ├── App.tsx                 # 根组件 (ErrorBoundary + Auth + i18n + 404 深链还原)
 │       ├── routes.ts               # 路由表 (六大功能域)
-│       ├── components/             # 60+ 业务组件
-│       ├── hooks/                  # 28 自定义 Hooks (AGENTS.md 细则)
+│       ├── components/             # 116 业务组件 (零孤儿)
+│       ├── hooks/                  # 27 自定义 Hooks (全部有直接单测, AGENTS.md 细则)
 │       ├── config/providers/       # 提供商声明式配置 (JSON + zod, 24 提供商/69 模型)
 │       ├── lib/                    # yyc3-icons / 存储 / 网络工具 / terminal-completions 智能补全引擎 / batch 检查点
-│       └── __tests__/              # 170 测试文件 · 2986 用例 (AGENTS.md 细则)
+│       └── __tests__/              # 190 测试文件 · 3230 用例 (AGENTS.md 细则)
 └── docs/                           # 文档体系（讲 why）
     ├── YYC3-全量落地实施总结与衔接报告.md   # 分析+规划+交付单一事实源 (Phase 1-4)
     ├── archive/                     # 历史文档归档 (深度分析/审计/规划原文)
@@ -159,13 +168,13 @@ YYC3-AI-API-Token-Console/
 
 ## 🎨 全端图标体系 | Full-Platform Icon System
 
-| 平台 Platform | 尺寸覆盖 Sizes | 关键用途 Key Usage |
-| ------------- | -------------- | ------------------ |
-| Web App | 16 / 32 / 180 / 192 / 512 | favicon · apple-touch · PWA |
-| Android | 48–512 (mdpi→Play Store) | 启动器 · 商店 |
-| iOS | 20–1024 (iPhone/iPad) | 主屏 · 通知 · Spotlight |
-| macOS | 16–1024 | 桌面 · Dock · About |
-| watchOS | 48–1024 | 表盘 · Short Look |
+| 平台 Platform | 尺寸覆盖 Sizes　　　　　　| 关键用途 Key Usage　　　　　|
+| ---------------| ---------------------------| -----------------------------|
+| Web App　　　 | 16 / 32 / 180 / 192 / 512 | favicon · apple-touch · PWA |
+| Android　　　 | 48–512 (mdpi→Play Store)　| 启动器 · 商店　　　　　　　 |
+| iOS　　　　　 | 20–1024 (iPhone/iPad)　　 | 主屏 · 通知 · Spotlight　　 |
+| macOS　　　　 | 16–1024　　　　　　　　　 | 桌面 · Dock · About　　　　 |
+| watchOS　　　 | 48–1024　　　　　　　　　 | 表盘 · Short Look　　　　　 |
 
 > 链路: `public/yyc3-icons/` → `index.html` favicon 链 → `manifest.json` → `useYYC3Head` 运行时注入 → `yyc3-icons.ts` CDN 回退
 > Chain: `public/yyc3-icons/` → `index.html` favicons → `manifest.json` → `useYYC3Head` runtime injection → `yyc3-icons.ts` CDN fallback
@@ -174,18 +183,23 @@ YYC3-AI-API-Token-Console/
 
 ## 🏷️ 质量门禁 | Quality Gates
 
-| 检查项 Gate | 工具 Tool | 通过标准 Standard |
-| ----------- | --------- | ----------------- |
-| 类型检查 | `tsc --noEmit` | 0 errors (strict) |
-| 代码规范 | `eslint` (ESLint 9 + boundaries) | 0 errors · import 分层契约 |
-| 单元测试 | `vitest --project unit-dom unit-node` | 100% pass (2986+ 用例) |
-| 覆盖率 | `vitest --coverage` | ≥ 门槛 90/85/80/88 (lines/funcs/branches/stmts, 已锁定) |
-| 安全扫描 | `gitleaks` | 0 secrets leaked |
-| 反模式守护 | `ast-grep` (7 条规则 × ts/tsx) | 0 命中 |
-| 体量门禁 | `check-size.mjs` | 基线文件只减不增 |
-| 死代码盘点 | `knip-check.mjs` | 基线只减不增 |
-| 环境自诊断 | `doctor.mjs` | 12/12 通过 |
-| 构建验证 | `vite build` | 产物完整可部署 |
+| 检查项 Gate | 工具 Tool　　　　　　　　　　　　　　 | 通过标准 Standard　　　　　　　　　　　　　　　　　　　 |
+| -------------| ---------------------------------------| ---------------------------------------------------------|
+| 类型检查　　| `tsc --noEmit` (strict 双旗标)　　　　| 0 errors (noUncheckedIndexedAccess + exactOptionalPropertyTypes) |
+| 代码规范　　| `eslint` (boundaries 分层契约)　　　　| 0 errors · import 分层契约　　　　　　　　　　　　　　　|
+| 悬空 Promise| `lint:fp` (type-aware 专项)　　　　　　| 0 悬空 (78→0 已固化)　　　　　　　　　　　　　　　　　　 |
+| 单元测试　　| `vitest --project unit-dom unit-node` | 100% pass (3230+ 用例, maxWorkers=8)　　　　　　　　　　|
+| 覆盖率　　　| `vitest --coverage`　　　　　　　　　 | ≥ 门槛 90/85/80/88 (实测 95.19/90.92/86.22/93.21)　　　|
+| E2E　　　　 | `playwright` (13 用例)　　　　　　　　| 11 功能 + Lighthouse ≥90 (实测 98) + 离线多路由　　　　 |
+| 安全扫描　　| `gitleaks` (全历史 + 工作树双模式)　　| 0 secrets leaked　　　　　　　　　　　　　　　　　　　　|
+| 反模式守护　| `ast-grep` (7 规则 × ts/tsx, 全 error) | 0 命中　　　　　　　　　　　　　　　　　　　　　　　　　|
+| 体量门禁　　| `check-size.mjs`　　　　　　　　　　　| 基线文件只减不增 + 函数 ≤800 行　　　　　　　　　　　　 |
+| 色值基线　　| `check-color-budget.mjs`　　　　　　　| 5486 冻结 (增量必须走 Design Tokens)　　　　　　　　　 |
+| 重复基线　　| `check-dup-budget.mjs` (jscpd)　　　　| 生产码 15 克隆 / 237 行冻结 (测试域豁免)　　　　　　　 |
+| 死代码盘点　| `knip-check.mjs`　　　　　　　　　　　| 基线只减不增 (devDeps 3)　　　　　　　　　　　　　　　　|
+| 元门禁　　　| `guardrail-probe.mjs` (20 探针)　　　| 双跑全拦截 (ast-grep×14 + eslint×1 + 复合×5)　　　　　 |
+| 环境自诊断　| `doctor.mjs`　　　　　　　　　　　　　| 12/12 通过　　　　　　　　　　　　　　　　　　　　　　　|
+| 构建验证　　| `vite build` + `bundle-stats.mjs`　　| 产物完整零密钥 (90 chunks / 909KB gzip)　　　　　　　　|
 
 ## 🤝 贡献指南 | Contributing
 
@@ -201,12 +215,12 @@ YYC3-AI-API-Token-Console/
 
 > 完整说明见 [CICD.md](./docs/YYC3-开发者文档/CICD.md)；工作流定义 [`.github/workflows/`](./.github/workflows/)。
 
-| 事件 Event | 工作流 Workflow | 说明 Description |
-| ----------- | ---------------- | ------------------ |
-| `push` → `main` / `develop` | `ci.yml` | 全量门禁（typecheck / lint / unit-test / scan / build+纪律三件套） |
-| `pull_request` → `main` / `develop` | `ci.yml` | PR 必需状态检查 |
-| CI 成功后自动 | `pages.yml` | GitHub Pages 部署 → <https://token.yyc3.vip> |
-| `push` tag `v*.*.*` | `release.yml` | 版本发布流水线（GitHub Release + 制品归档） |
+| 事件 Event　　　　　　　　　　　　　| 工作流 Workflow | 说明 Description　　　　　　　　　　　　　　　　　　　　　　　　　 |
+| -------------------------------------| -----------------| --------------------------------------------------------------------|
+| `push` → `main` / `develop`　　　　 | `ci.yml`　　　　| 全量门禁（typecheck / lint / unit-test / scan / build+纪律三件套） |
+| `pull_request` → `main` / `develop` | `ci.yml`　　　　| PR 必需状态检查　　　　　　　　　　　　　　　　　　　　　　　　　　|
+| CI 成功后自动　　　　　　　　　　　 | `pages.yml`　　 | GitHub Pages 部署 → <https://token.yyc3.vip>　　　　　　　　　　　 |
+| `push` tag `v*.*.*`　　　　　　　　 | `release.yml`　 | 版本发布流水线（GitHub Release + 制品归档）　　　　　　　　　　　　|
 
 ## 🏷️ 仓库标签规范 | Labeling Policy
 
@@ -229,13 +243,13 @@ YYC3-AI-API-Token-Console/
 
 ## � 联系方式 | Contact
 
-| 邮箱 Email | 用途 Purpose |
-| ----------- | -------------- |
-| <dev@yanyucloud.com> | 开发通用 Development general |
-| <docs@yanyucloud.com> | 文档与知识库 Docs & knowledge base |
-| <ops@yanyucloud.com> | 运维 Operations |
-| <admin@yanyucloud.com> | 管理员 Administration |
-| <sec@yanyucloud.com> | 安全报告 Security reports（请勿公开披露） |
+| 邮箱 Email　　　　　　 | 用途 Purpose　　　　　　　　　　　　　　　|
+| ------------------------| -------------------------------------------|
+| <dev@yanyucloud.com>　 | 开发通用 Development general　　　　　　　|
+| <docs@yanyucloud.com>　| 文档与知识库 Docs & knowledge base　　　　|
+| <ops@yanyucloud.com>　 | 运维 Operations　　　　　　　　　　　　　 |
+| <admin@yanyucloud.com> | 管理员 Administration　　　　　　　　　　 |
+| <sec@yanyucloud.com>　 | 安全报告 Security reports（请勿公开披露） |
 
 ## ⚖️ 开源协议 | License
 
