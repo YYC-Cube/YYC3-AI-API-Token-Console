@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-10-16T15:08:30.300Z",
+  "chunks": 90,
+  "totalRawKb": 2990.3,
+  "totalGzipKb": 909,
+  "largest": {
+    "file": "editor-DsJFlUq5.js",
+    "rawKb": 692.1,
+    "gzipKb": 241.5
+  },
+  "top5": [
+    {
+      "file": "editor-DsJFlUq5.js",
+      "rawKb": 692.1,
+      "gzipKb": 241.5
+    },
+    {
+      "file": "charts-BFX3T_-r.js",
+      "rawKb": 567.2,
+      "gzipKb": 157.1
+    },
+    {
+      "file": "index-BBoeqkpi.js",
+      "rawKb": 412.9,
+      "gzipKb": 130.6
+    },
+    {
+      "file": "index-B06_gXyf.css",
+      "rawKb": 172.1,
+      "gzipKb": 24.9
+    },
+    {
+      "file": "react-ClkCRG4l.js",
+      "rawKb": 143.8,
+      "gzipKb": 49.2
+    }
+  ]
+}

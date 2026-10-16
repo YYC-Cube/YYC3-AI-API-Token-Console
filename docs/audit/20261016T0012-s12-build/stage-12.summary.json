@@ -1,0 +1,40 @@
+{
+  "stage": "S12",
+  "title": "构建验证（产物完整 + 纪律四件套 + 十维）",
+  "timestamp": "2026-10-17T00:12+08:00",
+  "mode": "online",
+  "status": "PASS",
+  "build_time_ms": 34060,
+  "bundle_size_kb": { "total": 2990.3, "total_gzip": 909, "largest": 692.1, "budget": 6144, "budget_source": "inject-precache 预热阈值 6MB (预热实测 2.92MB PASS)" },
+  "chunks": 90,
+  "lighthouse_perf": null,
+  "commands": [
+    { "cmd": "/usr/bin/time -p pnpm build", "exit": 0, "summary": "34.06s real; 唯一警告 = vite 标准 >500KB chunk 提示 (editor 692/charts 567, 均为 manualChunks 按需异步库块, 非首屏) — 白名单级" },
+    { "cmd": "产物完整性 ls", "summary": "index.html + 404.html + CNAME(token.yyc3.vip) + manifest.json + assets(89 js/1 css) + sw.js 全在位" },
+    { "cmd": "node scripts/bundle-stats.mjs > stage-12.bundle.json", "summary": "90 chunks / 2990KB raw / 909KB gzip; source-map-explorer 不适用 (生产无 sourcemap 属策略, 见维度 6)" },
+    { "cmd": "pnpm size:check && pnpm knip", "summary": "0 error / 基线 0 error (S8 终态延续)" },
+    { "cmd": "gitleaks detect --no-git --source dist", "exit": 0, "summary": "no leaks — 产物零密钥" }
+  ],
+  "checks": [
+    { "id": 1, "name": "0 构建错误", "actual": "exit 0", "result": "PASS" },
+    { "id": 2, "name": "0 构建警告 (白名单外)", "actual": "唯一警告 = vite chunkSize 提示; editor(CodeMirror 全家)/charts(Recharts) 为 manualChunks 显式拆分的按需库块 — 非缺陷, 白名单登记", "result": "PASS" },
+    { "id": 3, "name": "路由级 Code-Splitting", "actual": "89 个异步 chunk 按模块命名 (SystemSettings/usePersistedState/circle/mic/... 对应 lazyEl 路由与组件级懒加载); 入口 index 单块 413KB", "result": "PASS" },
+    { "id": 4, "name": "图表/编辑器/虚拟滚动按需", "actual": "editor-*.js(692KB) / charts-*.js(567KB) 独立异步块, 仅对应路由加载; 首屏入口不含二者", "result": "PASS" },
+    { "id": 5, "name": "Lighthouse ≥90 (本地)", "actual": "无法量化: pnpm dlx lighthouse 被供应链守卫拦截 (bidi@157 包接管疑警 ERR_PNPM_TRUST_DOWNGRADE 级信号, 全文见本文件 backtrace) — 不绕过供应链策略; 与 S9 perf 0.80 评分一致留 WARN", "result": "WARN", "note": "改进计划已有: S9 P1 (e2e lighthouse 插件, 0.5d) — 届时以 devDep 精确锁定方式引入" },
+    { "id": 6, "name": "dist 不含 sourcemap", "actual": "find dist *.map = 0 (生产策略无 map; bundle 统计改用 zlib gzip 自算)", "result": "PASS" },
+    { "id": 7, "name": "dist 不含密钥", "actual": "gitleaks --no-git --source dist: no leaks", "result": "PASS" },
+    { "id": 8, "name": "favicon/manifest 链完整", "actual": "index.html 10 处链路 (S11 相对路径化后双形态可及; e2e PWA 资产用例全 200 实证)", "result": "PASS" },
+    { "id": 9, "name": "404 SPA 回退", "actual": "404.html 深链 ?yyc3_fallback= 机制在位 (注释实证) + App.tsx 启动还原 (unit 测试域覆盖) + e2e 404 兜底用例绿", "result": "PASS" },
+    { "id": 10, "name": "CNAME", "actual": "token.yyc3.vip", "result": "PASS" },
+    { "id": "extra", "name": "SW 预缓存注入", "actual": "inject-precache 90 项 → sw.js, 预热 2.92MB ≤ 6MB", "result": "PASS" }
+  ],
+  "evidence": ["stage-12.build.log (带计时全输出)", "stage-12.bundle.json (90 chunks gzip 统计)", "stage-12.summary.json (本文件)"],
+  "blocking": [],
+  "backtrace": [
+    "Lighthouse 缺量化 (WARN): dlx 拦截证据 — pnpm 报 bidi@157.0.8090-0 'possible package takeover'; 改进 = S9 P1 以 devDep 精确锁定 lighthouse + e2e 集成 (0.5d)",
+    "editor chunk 692KB 为 CodeMirror 全语言包 — 后续可选按语言动态 import (lang-python 等懒加载) 再省 ~300KB, 非紧迫 (首屏不含)",
+    "bundle-stats.mjs 已入 scripts/ 可复用 (替代 map 依赖的 explorer)"
+  ],
+  "next": "S13",
+  "verdict": "11 维度 10 PASS + 1 WARN (Lighthouse 工具被供应链策略拦截, 与 S9 改进计划合流) · 产物完整零密钥 · 34s · 放行 S13"
+}
