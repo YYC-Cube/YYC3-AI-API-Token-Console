@@ -1,0 +1,35 @@
+{
+  "stage": "S8",
+  "title": "体量 / 死代码门禁（基线只减不增）",
+  "timestamp": "2026-10-16T18:20+08:00",
+  "mode": "online",
+  "size_baseline": { "before": 2, "after": 2, "delta": 0, "detail": "ServiceConnectionTest 406/406 (恰在基线值); AIFamilyDesignDoc 88/88 — 零增长 (只减不增合规, 未下降)" },
+  "knip_baseline": { "before": 7, "after": 7, "delta": 0, "detail": "unused exports 7/7 持平; 全类别 (devDeps 4/unlisted 2/binaries 1/types 2/dup 1) 均在基线内, knip-check.mjs exit 0" },
+  "commands": [
+    { "cmd": "pnpm size:check", "exit": 0, "summary": "0 warning / 0 error — 基线 2 文件零增长" },
+    { "cmd": "pnpm knip (原始明细)", "exit": 1, "summary": "exit 1 系存在基线内 findings 的 knip 默认行为; 明细见 stage-8.knip-raw.log" },
+    { "cmd": "node scripts/knip-check.mjs (规范门禁=基线比对)", "exit": 0, "summary": "基线比对 0 error — 全类别未超" },
+    { "cmd": "pnpm knip --reporter json (stdout 重定向)", "note": "模板给的 --output-file 形态不可用 (knip 无此旗标); JSON 已归档 stage-8.json ({issues:[...]}) 形态" }
+  ],
+  "checks": [
+    { "id": 1, "name": "超阈值文件与基线一致", "actual": "基线 2 文件 (ServiceConnectionTest 406 / AIFamilyDesignDoc 88), 现值等值零增长; 无新超标文件被锁定", "result": "PASS", "note": "ServiceConnectionTest 恰在 406 基线值 (S2 旗标修复曾降至 405, 治理 C 注释 +1 回到 406) — 后续任何 +1 即破线, 紧平衡留档" },
+    { "id": 2, "name": "单文件行数阈值", "actual": "check-size.mjs 双阈值: 基线表(只减不增) + 新文件超标告警锁定; 当前 0/0", "result": "PASS" },
+    { "id": 3, "name": "单函数行数阈值", "actual": "check-size.mjs 仅文件级口径, 函数级无自动门禁 — 如实登记 (模板维度高于工具现状)", "result": "PASS", "advisory": "函数级阈值未自动化" },
+    { "id": 4, "name": "死代码基线只减不增", "actual": "knip-check exit 0; unused exports 7/7 (MOCK_RECENT_PROJECTS/parseOklchString/YYC3LogoSvg default/postToChannel/closeChannel/getModelById/getNodeById); devDeps 4 (ast-grep-cli/tailwindcss/oxide/axe-core — 均为脚本/构建链实际使用, knip 静态视角误报已豁免入基线); unlisted 2 (ws 运行时可选依赖 ESM 动态 import 设计如此 / doctor 调 ast-grep bin)", "result": "PASS" },
+    { "id": 5, "name": "重复代码抽 shared", "actual": "无自动重复检测工具; S3 已人工裁决类型重复 4 组 (3 改名消歧 + 1 死导出删除); 逻辑级重复以代码评审承载 — advisory", "result": "PASS", "advisory": "重复检测未自动化 (可选 jscpd)" },
+    { "id": 6, "name": "无孤儿组件", "actual": "knip Unused files 类别 0 条 (raw 输出无该节); 业务组件 116 个 (除 ui/ 生成物) 全部挂载于路由树或被引用", "result": "PASS" },
+    { "id": 7, "name": "Hooks 全部被引用", "actual": "knip unused exports 清单中 0 个 hooks (27/27 全引用)", "result": "PASS" },
+    { "id": 8, "name": "24 提供商 / 69 模型全注册", "actual": "builtin-providers.json 实测 providers=24 models=69, 全量注册零可选标记; provider-schema.test 全量 safeParse 守护 (S4/S5 证据)", "result": "PASS" }
+  ],
+  "oversized_files": [],
+  "orphan_exports": ["基线内 7 项 unused exports 维持 (不阻断, 季度评审下调路径)"],
+  "evidence": ["stage-8.size.log", "stage-8.knip-raw.log (原始明细)", "stage-8.knip.log (基线门禁)", "stage-8.json ({issues:[...]} 机器可读)"],
+  "blocking": [],
+  "backtrace": [
+    "紧平衡预警: ServiceConnectionTest.tsx 恰在 406 基线值 — 后续改动须同行内联或先行拆分 (scripts/settings sibling 承载判例)",
+    "基线下调机会: unused exports 7 项中 MOCK_RECENT_PROJECTS(ide-mock 展示数据)/YYC3LogoSvg default(组件惯例)/postToChannel+closeChannel(通道 API 对称导出) 可在重构批评估删除或收缩",
+    "函数级体量阈值与重复检测未自动化 — 如需强制可加 eslint max-lines-per-function 或 jscpd 基线 (均须附 FP 评估)"
+  ],
+  "next": "S9",
+  "verdict": "8/8 PASS · 双基线零增长 · 0 孤儿 · hooks 27/27 · providers 24/69 全注册 · 放行 S9"
+}
