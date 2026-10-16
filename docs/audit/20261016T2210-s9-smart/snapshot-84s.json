@@ -1,0 +1,105 @@
+{
+  "_type": "yyc3-smart-audit",
+  "generatedAt": "2026-10-16T13:44:25.876Z",
+  "git": {
+    "node": "22.22.3"
+  },
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "passRate": 100,
+    "totalMs": 104038
+  },
+  "dimensions": [
+    {
+      "id": "typecheck",
+      "name": "TypeScript strict",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 7689,
+      "metrics": {}
+    },
+    {
+      "id": "lint",
+      "name": "ESLint + boundaries",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 3675,
+      "metrics": {}
+    },
+    {
+      "id": "test-coverage",
+      "name": "单测 + 覆盖率 (智能合并)",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 80183,
+      "metrics": {
+        "testsPassed": 3228,
+        "testsTotal": 3228,
+        "durationS": 79.59,
+        "lines": 95.19,
+        "linesThreshold": 90,
+        "functions": 90.92,
+        "functionsThreshold": 85,
+        "branches": 86.22,
+        "branchesThreshold": 80,
+        "statements": 93.2,
+        "statementsThreshold": 88
+      }
+    },
+    {
+      "id": "build",
+      "name": "Vite 生产构建 + 预缓存注入",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 6177,
+      "metrics": {
+        "precacheItems": 90,
+        "precacheKB": 2990.6,
+        "prewarmMB": 2.92,
+        "prewarmThresholdMB": 6
+      }
+    },
+    {
+      "id": "astgrep",
+      "name": "ast-grep 反模式 (7 规则)",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 142,
+      "metrics": {}
+    },
+    {
+      "id": "size",
+      "name": "文件体量门禁",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 1263,
+      "metrics": {}
+    },
+    {
+      "id": "knip",
+      "name": "死代码基线",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 1483,
+      "metrics": {}
+    },
+    {
+      "id": "guardrail",
+      "name": "门禁有效性探针",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 798,
+      "metrics": {}
+    },
+    {
+      "id": "doctor",
+      "name": "环境自诊断 (12 项)",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 2624,
+      "metrics": {}
+    }
+  ]
+}
