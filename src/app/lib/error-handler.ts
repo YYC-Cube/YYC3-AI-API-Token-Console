@@ -177,6 +177,7 @@ export function captureError(
     severity?: ErrorSeverity;
     source?: string;
     userAction?: string;
+    traceId?: string; // L-05: 具名请求上下文注入 (如网关 request_id); 缺省自动生成 8 位
     silent?: boolean; // 静默模式（不打印到控制台）
   } = {}
 ): AppError {
@@ -189,6 +190,8 @@ export function captureError(
     severity: options.severity || auto.severity,
     message: extractMessage(error),
     ...(stack !== undefined && { stack }),
+    // L-05 全局追踪: 8 位短标识 (crypto.randomUUID 前缀, 人可 grep); 注入优先
+    traceId: options.traceId ?? globalThis.crypto?.randomUUID?.().slice(0, 8) ?? generateErrorId().slice(-6),
     ...(options.source !== undefined && { source: options.source }),
     ...(options.userAction !== undefined && { userAction: options.userAction }),
     timestamp: Date.now(),

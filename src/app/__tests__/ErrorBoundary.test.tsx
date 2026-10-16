@@ -361,6 +361,7 @@ describe("ErrorBoundary", () => {
         const report = writeText.mock.calls[0]![0];
         expect(report).toContain("=== CP-IM 错误报告 ===");
         expect(report).toContain("错误ID: err_test_001");
+        expect(report).toContain("追踪:"); // L-05: 全局 traceId 露出 (自动生成或 N/A 兜底)
         expect(report).toContain("分类: RUNTIME");
         expect(report).toContain("消息: copy me");
         expect(report).toContain("ThrowingComponent");

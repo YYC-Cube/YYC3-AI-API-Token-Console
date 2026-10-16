@@ -115,6 +115,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       `=== CP-IM 错误报告 ===`,
       `时间: ${new Date().toISOString()}`,
       `错误ID: ${appError?.id || "N/A"}`,
+      `追踪: ${appError?.traceId || "N/A"}`,
       `分类: ${appError?.category || "RUNTIME"}`,
       `消息: ${error?.message || "未知错误"}`,
       ``,

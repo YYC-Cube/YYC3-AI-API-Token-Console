@@ -114,6 +114,9 @@ export interface AppError {
   detail?: string;
   source?: string;
   stack?: string;
+  /** 全局追踪标识 (L-05, 2026-10-17): captureError 自动生成 8 位短标识; 调用方具名请求
+   *  上下文 (如网关 request_id) 可经 options.traceId 注入对齐 — 错误报告与流水检索的关联锚点 */
+  traceId?: string;
   timestamp: number;
   resolved: boolean;
   userAction?: string;

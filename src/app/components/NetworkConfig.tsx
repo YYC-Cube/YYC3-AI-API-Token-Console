@@ -63,20 +63,20 @@ function StatusBadge({ status }: { status: TestStatus }) {
   if (status === "idle") return null;
   const map = {
     testing: {
-      bg: "bg-[rgba(0,212,255,0.15)]",
-      text: "text-[#00d4ff]",
+      bg: "bg-primary/15",
+      text: "text-primary",
       label: "测试中...",
       icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
     },
     success: {
-      bg: "bg-[rgba(0,255,136,0.15)]",
-      text: "text-[#00ff88]",
+      bg: "bg-chart-2/15",
+      text: "text-chart-2",
       label: "连接成功",
       icon: <Check className="w-3.5 h-3.5" />,
     },
     failed: {
-      bg: "bg-[rgba(255,51,102,0.15)]",
-      text: "text-[#ff3366]",
+      bg: "bg-destructive/15",
+      text: "text-destructive",
       label: "连接失败",
       icon: <AlertTriangle className="w-3.5 h-3.5" />,
     },
@@ -126,7 +126,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
     if (updated) {
       setArConfig(updated);
       toast.success("自动重连设置已保存", {
-        style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
+        style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "var(--foreground)" },
       });
     }
   };
@@ -165,7 +165,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
     refreshWifiFromStore();
     setWifiScanning(false);
     toast.success("扫描完成，发现 " + scannedList.length + " 个网络", {
-      style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
+      style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "var(--foreground)" },
     });
   };
 
@@ -190,7 +190,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
     setWifiPassword("");
     refreshWifiFromStore();
     toast.success(`已连接到 ${ssid}`, {
-      style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
+      style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "var(--foreground)" },
     });
   };
 
@@ -212,7 +212,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
       style: {
         background: "rgba(8, 25, 55, 0.95)",
         border: "1px solid rgba(0, 255, 136, 0.3)",
-        color: "#e0f0ff",
+        color: "var(--foreground)",
       },
     });
   };
@@ -224,7 +224,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
         style: {
           background: "rgba(8, 25, 55, 0.95)",
           border: "1px solid rgba(0, 255, 136, 0.3)",
-          color: "#e0f0ff",
+          color: "var(--foreground)",
         },
       });
     } else {
@@ -232,7 +232,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
         style: {
           background: "rgba(8, 25, 55, 0.95)",
           border: "1px solid rgba(255, 51, 102, 0.3)",
-          color: "#e0f0ff",
+          color: "var(--foreground)",
         },
       });
     }
@@ -251,9 +251,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[rgba(0,180,255,0.1)]">
           <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-[#00d4ff]" />
+            <Globe className="w-5 h-5 text-primary" />
             <h2
-              className="text-[#e0f0ff]"
+              className="text-foreground"
               style={{ fontSize: "1rem" }}
             >
               网络连接配置
@@ -261,9 +261,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)] transition-all"
+            className="p-1.5 rounded-lg hover:bg-primary/10 transition-all"
           >
-            <X className="w-5 h-5 text-[rgba(0,212,255,0.5)]" />
+            <X className="w-5 h-5 text-primary/50" />
           </button>
         </div>
 
@@ -277,8 +277,8 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 updateConfig({ mode: tab.id === "wifi" ? "wifi" : tab.id === "manual" ? "manual" : "auto" });
               }}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${activeTab === tab.id
-                ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]"
-                : "text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.05)] border border-transparent"
+                ? "bg-primary/15 text-primary border border-primary/30"
+                : "text-primary/50 hover:text-primary hover:bg-primary/5 border border-transparent"
                 }`}
               style={{ fontSize: "0.8rem" }}
             >
@@ -296,7 +296,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                 <div className="flex items-center justify-between mb-3">
                   <span
-                    className="text-[rgba(0,212,255,0.6)]"
+                    className="text-primary/60"
                     style={{ fontSize: "0.78rem" }}
                   >
                     自动检测 (WebRTC)
@@ -304,7 +304,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                   <button
                     onClick={detectNetwork}
                     disabled={detecting}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all disabled:opacity-50"
                     style={{ fontSize: "0.72rem" }}
                   >
                     <RefreshCw
@@ -317,13 +317,13 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span
-                      className="text-[rgba(0,212,255,0.4)]"
+                      className="text-primary/40"
                       style={{ fontSize: "0.75rem" }}
                     >
                       本机 IP
                     </span>
                     <span
-                      className="text-[#00d4ff] font-mono"
+                      className="text-primary font-mono"
                       style={{ fontSize: "0.8rem" }}
                     >
                       {localIP}
@@ -336,7 +336,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                       className="flex items-center justify-between"
                     >
                       <span
-                        className="text-[rgba(0,212,255,0.4)]"
+                        className="text-primary/40"
                         style={{ fontSize: "0.75rem" }}
                       >
                         {iface.name} ({iface.type})
@@ -350,8 +350,8 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                         </span>
                         <div
                           className={`w-2 h-2 rounded-full ${iface.status === "active"
-                            ? "bg-[#00ff88]"
-                            : "bg-[#ff3366]"
+                            ? "bg-chart-2"
+                            : "bg-destructive"
                             }`}
                         />
                       </div>
@@ -363,19 +363,19 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                 <div className="flex items-center gap-2 mb-2">
                   {navigator.onLine ? (
-                    <Wifi className="w-4 h-4 text-[#00ff88]" />
+                    <Wifi className="w-4 h-4 text-chart-2" />
                   ) : (
-                    <WifiOff className="w-4 h-4 text-[#ff3366]" />
+                    <WifiOff className="w-4 h-4 text-destructive" />
                   )}
                   <span
-                    className={navigator.onLine ? "text-[#00ff88]" : "text-[#ff3366]"}
+                    className={navigator.onLine ? "text-chart-2" : "text-destructive"}
                     style={{ fontSize: "0.78rem" }}
                   >
                     {navigator.onLine ? "网络已连接" : "网络未连接"}
                   </span>
                 </div>
                 <span
-                  className="text-[rgba(0,212,255,0.35)]"
+                  className="text-primary/35"
                   style={{ fontSize: "0.68rem" }}
                 >
                   检测到的网络类型：{(navigator as NavigatorWithConnection).connection?.effectiveType || "未知"}
@@ -389,9 +389,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
             <div className="space-y-3">
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                 <div className="flex items-center gap-2 mb-3">
-                  <Wifi className="w-4 h-4 text-[#00d4ff]" />
+                  <Wifi className="w-4 h-4 text-primary" />
                   <span
-                    className="text-[rgba(0,212,255,0.6)]"
+                    className="text-primary/60"
                     style={{ fontSize: "0.78rem" }}
                   >
                     WiFi 网络信息
@@ -405,7 +405,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     { label: "RTT", value: `${(navigator as NavigatorWithConnection).connection?.rtt || "~50"} ms` },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between">
-                      <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.75rem" }}>
+                      <span className="text-primary/40" style={{ fontSize: "0.75rem" }}>
                         {item.label}
                       </span>
                       <span className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>
@@ -416,17 +416,17 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[rgba(0,212,255,0.03)] border border-[rgba(0,180,255,0.08)]">
-                <p className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.7rem" }}>
+              <div className="p-3 rounded-xl bg-primary/3 border border-[rgba(0,180,255,0.08)]">
+                <p className="text-primary/40" style={{ fontSize: "0.7rem" }}>
                   WiFi 配置将自动使用检测到的网络接口。在 M4 Max 主节点和 iMac 辅助节点之间自动路由。
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                 <div className="flex items-center gap-2 mb-3">
-                  <Wifi className="w-4 h-4 text-[#00d4ff]" />
+                  <Wifi className="w-4 h-4 text-primary" />
                   <span
-                    className="text-[rgba(0,212,255,0.6)]"
+                    className="text-primary/60"
                     style={{ fontSize: "0.78rem" }}
                   >
                     WiFi 网络扫描
@@ -435,7 +435,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 <button
                   onClick={scanWifi}
                   disabled={wifiScanning}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all disabled:opacity-50"
                   style={{ fontSize: "0.72rem" }}
                 >
                   <RefreshCw
@@ -447,9 +447,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
 
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                 <div className="flex items-center gap-2 mb-3">
-                  <Wifi className="w-4 h-4 text-[#00d4ff]" />
+                  <Wifi className="w-4 h-4 text-primary" />
                   <span
-                    className="text-[rgba(0,212,255,0.6)]"
+                    className="text-primary/60"
                     style={{ fontSize: "0.78rem" }}
                   >
                     WiFi 网络列表
@@ -457,19 +457,19 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 </div>
                 <div className="space-y-2">
                   {wifiNetworks.length === 0 && (
-                    <p className="text-[rgba(0,212,255,0.3)] text-center py-3" style={{ fontSize: "0.72rem" }}>
+                    <p className="text-primary/30 text-center py-3" style={{ fontSize: "0.72rem" }}>
                       请点击"扫描网络"发现可用 WiFi
                     </p>
                   )}
                   {wifiNetworks.map((network) => (
-                    <div key={network.id} className={`flex items-center justify-between p-2 rounded-lg transition-all ${network.connected ? "bg-[rgba(0,255,136,0.05)] border border-[rgba(0,255,136,0.15)]" : "hover:bg-[rgba(0,212,255,0.03)]"}`}>
+                    <div key={network.id} className={`flex items-center justify-between p-2 rounded-lg transition-all ${network.connected ? "bg-chart-2/5 border border-chart-2/15" : "hover:bg-primary/3"}`}>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${network.connected ? "bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]" : "bg-[rgba(0,212,255,0.2)]"}`} />
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${network.connected ? "bg-chart-2 shadow-[0_0_6px_rgba(0,255,136,0.5)]" : "bg-primary/20"}`} />
                         <div className="min-w-0">
-                          <span className={`block truncate ${network.connected ? "text-[#00ff88]" : "text-[rgba(0,212,255,0.5)]"}`} style={{ fontSize: "0.75rem" }}>
+                          <span className={`block truncate ${network.connected ? "text-chart-2" : "text-primary/50"}`} style={{ fontSize: "0.75rem" }}>
                             {network.ssid}
                           </span>
-                          <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+                          <span className="text-primary/30" style={{ fontSize: "0.6rem" }}>
                             {network.security} · {network.signal}%
                             {network.lastConnectedAt ? ` · 上次连接: ${new Date(network.lastConnectedAt).toLocaleString("zh-CN")}` : ""}
                           </span>
@@ -479,14 +479,14 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                         {/* Signal bars */}
                         <div className="flex items-end gap-0.5 h-3.5">
                           {[20, 40, 60, 80].map((threshold, i) => (
-                            <div key={i} className={`w-1 rounded-sm ${network.signal >= threshold ? "bg-[#00d4ff]" : "bg-[rgba(0,212,255,0.15)]"}`}
+                            <div key={i} className={`w-1 rounded-sm ${network.signal >= threshold ? "bg-primary" : "bg-primary/15"}`}
                               style={{ height: `${40 + i * 20}%` }} />
                           ))}
                         </div>
                         {network.connected ? (
                           <button
                             onClick={() => disconnectWifi(network.ssid)}
-                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(255,51,102,0.08)] border border-[rgba(255,51,102,0.2)] text-[#ff3366] hover:bg-[rgba(255,51,102,0.15)] transition-all"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-destructive/8 border border-destructive/20 text-destructive hover:bg-destructive/15 transition-all"
                             style={{ fontSize: "0.68rem" }}
                           >
                             断开
@@ -494,7 +494,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                         ) : (
                           <button
                             onClick={() => setEditingWifi(network.ssid)}
-                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all"
                             style={{ fontSize: "0.68rem" }}
                           >
                             <Radio className="w-3 h-3" />
@@ -510,9 +510,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
               {editingWifi && (
                 <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                   <div className="flex items-center gap-2 mb-3">
-                    <Wifi className="w-4 h-4 text-[#00d4ff]" />
+                    <Wifi className="w-4 h-4 text-primary" />
                     <span
-                      className="text-[rgba(0,212,255,0.6)]"
+                      className="text-primary/60"
                       style={{ fontSize: "0.78rem" }}
                     >
                       输入密码
@@ -523,12 +523,12 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     value={wifiPassword}
                     onChange={(e) => setWifiPassword(e.target.value)}
                     placeholder="WiFi 密码"
-                    className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] font-mono focus:outline-none focus:border-[rgba(0,212,255,0.5)] focus:shadow-[0_0_10px_rgba(0,180,255,0.1)]"
+                    className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-primary/20 text-primary font-mono focus:outline-none focus:border-primary/50 focus:shadow-[0_0_10px_rgba(0,180,255,0.1)]"
                     style={{ fontSize: "0.8rem" }}
                   />
                   <button
                     onClick={() => connectWifi(editingWifi)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all"
                     style={{ fontSize: "0.8rem" }}
                   >
                     <Radio className="w-4 h-4" />
@@ -570,7 +570,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                   className="p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <field.icon className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+                    <field.icon className="w-3.5 h-3.5 text-primary/40" />
                     <span className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>
                       {field.label}
                     </span>
@@ -580,7 +580,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     value={field.value}
                     onChange={(e) => updateConfig({ [field.key]: e.target.value })}
                     placeholder={field.placeholder}
-                    className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] font-mono focus:outline-none focus:border-[rgba(0,212,255,0.5)] focus:shadow-[0_0_10px_rgba(0,180,255,0.1)]"
+                    className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-primary/20 text-primary font-mono focus:outline-none focus:border-primary/50 focus:shadow-[0_0_10px_rgba(0,180,255,0.1)]"
                     style={{ fontSize: "0.8rem" }}
                   />
                 </div>
@@ -589,11 +589,11 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
               {/* Auto-generated WebSocket URL */}
               <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                 <div className="flex items-center gap-2 mb-2">
-                  <Globe className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+                  <Globe className="w-3.5 h-3.5 text-primary/40" />
                   <span className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>
                     WebSocket URL
                   </span>
-                  <span className="text-[rgba(0,212,255,0.25)] ml-auto" style={{ fontSize: "0.65rem" }}>
+                  <span className="text-primary/25 ml-auto" style={{ fontSize: "0.65rem" }}>
                     自动生成
                   </span>
                 </div>
@@ -601,7 +601,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                   type="text"
                   value={config.wsUrl}
                   onChange={(e) => updateConfig({ wsUrl: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] font-mono focus:outline-none focus:border-[rgba(0,212,255,0.5)]"
+                  className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-primary/20 text-primary font-mono focus:outline-none focus:border-primary/50"
                   style={{ fontSize: "0.8rem" }}
                 />
               </div>
@@ -621,8 +621,8 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 {/* Auto-reconnect settings */}
                 <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                   <div className="flex items-center gap-2 mb-3">
-                    <RotateCcw className="w-4 h-4 text-[#00d4ff]" />
-                    <span className="text-[rgba(0,212,255,0.6)]" style={{ fontSize: "0.78rem" }}>
+                    <RotateCcw className="w-4 h-4 text-primary" />
+                    <span className="text-primary/60" style={{ fontSize: "0.78rem" }}>
                       自动重连设置
                     </span>
                   </div>
@@ -631,21 +631,21 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     <div className="flex items-center justify-between p-2 rounded-lg bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                       <div>
                         <p className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>自动重连</p>
-                        <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>
+                        <p className="text-primary/30" style={{ fontSize: "0.62rem" }}>
                           断开后自动尝试重连上次成功的网络
                         </p>
                       </div>
                       <button
                         onClick={() => updateArSetting("enabled", !arConfig.enabled)}
                         className={`relative w-9 h-5 rounded-full transition-all ${arConfig.enabled
-                          ? "bg-[rgba(0,255,136,0.3)] border border-[rgba(0,255,136,0.4)]"
-                          : "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.15)]"
+                          ? "bg-chart-2/30 border border-chart-2/40"
+                          : "bg-primary/10 border border-primary/15"
                           }`}
                         title={arConfig.enabled ? "已启用 - 点击关闭" : "已关闭 - 点击启用"}
                       >
                         <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all ${arConfig.enabled
-                          ? "left-[18px] bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]"
-                          : "left-0.5 bg-[rgba(0,212,255,0.3)]"
+                          ? "left-[18px] bg-chart-2 shadow-[0_0_6px_rgba(0,255,136,0.5)]"
+                          : "left-0.5 bg-primary/30"
                           }`} />
                       </button>
                     </div>
@@ -653,21 +653,21 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     <div className="flex items-center justify-between p-2 rounded-lg bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                       <div>
                         <p className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>优先信号最强</p>
-                        <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>
+                        <p className="text-primary/30" style={{ fontSize: "0.62rem" }}>
                           优先连接信号最强的已知网络
                         </p>
                       </div>
                       <button
                         onClick={() => updateArSetting("preferStrongestSignal", !arConfig.preferStrongestSignal)}
                         className={`relative w-9 h-5 rounded-full transition-all ${arConfig.preferStrongestSignal
-                          ? "bg-[rgba(0,255,136,0.3)] border border-[rgba(0,255,136,0.4)]"
-                          : "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.15)]"
+                          ? "bg-chart-2/30 border border-chart-2/40"
+                          : "bg-primary/10 border border-primary/15"
                           }`}
                         title={arConfig.preferStrongestSignal ? "已启用" : "已关闭"}
                       >
                         <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all ${arConfig.preferStrongestSignal
-                          ? "left-[18px] bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]"
-                          : "left-0.5 bg-[rgba(0,212,255,0.3)]"
+                          ? "left-[18px] bg-chart-2 shadow-[0_0_6px_rgba(0,255,136,0.5)]"
+                          : "left-0.5 bg-primary/30"
                           }`} />
                       </button>
                     </div>
@@ -675,7 +675,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                     <div className="flex items-center justify-between p-2 rounded-lg bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                       <div>
                         <p className="text-[#c0dcf0]" style={{ fontSize: "0.78rem" }}>优先网络</p>
-                        <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.62rem" }}>
+                        <p className="text-primary/30" style={{ fontSize: "0.62rem" }}>
                           指定优先连接的 SSID（留空则自动选择）
                         </p>
                       </div>
@@ -684,7 +684,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                         value={arConfig.preferredSsid}
                         onChange={(e) => updateArSetting("preferredSsid", e.target.value)}
                         placeholder={connectedNetwork?.ssid || historyNetworks[0]?.ssid || "自动"}
-                        className="w-28 px-2 py-1 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] font-mono text-right focus:outline-none focus:border-[rgba(0,212,255,0.5)]"
+                        className="w-28 px-2 py-1 rounded-lg bg-[rgba(0,40,80,0.4)] border border-primary/20 text-primary font-mono text-right focus:outline-none focus:border-primary/50"
                         style={{ fontSize: "0.72rem" }}
                       />
                     </div>
@@ -694,15 +694,15 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => updateArSetting("intervalSeconds", Math.max(1, arConfig.intervalSeconds - 1))}
-                          className="w-5 h-5 rounded bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all flex items-center justify-center"
+                          className="w-5 h-5 rounded bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all flex items-center justify-center"
                           style={{ fontSize: "0.72rem" }}
                         >-</button>
-                        <span className="text-[#00d4ff] font-mono w-8 text-center" style={{ fontSize: "0.72rem" }}>
+                        <span className="text-primary font-mono w-8 text-center" style={{ fontSize: "0.72rem" }}>
                           {arConfig.intervalSeconds}s
                         </span>
                         <button
                           onClick={() => updateArSetting("intervalSeconds", Math.min(60, arConfig.intervalSeconds + 1))}
-                          className="w-5 h-5 rounded bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all flex items-center justify-center"
+                          className="w-5 h-5 rounded bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all flex items-center justify-center"
                           style={{ fontSize: "0.72rem" }}
                         >+</button>
                       </div>
@@ -713,23 +713,23 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => updateArSetting("maxRetries", Math.max(1, arConfig.maxRetries - 1))}
-                          className="w-5 h-5 rounded bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all flex items-center justify-center"
+                          className="w-5 h-5 rounded bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all flex items-center justify-center"
                           style={{ fontSize: "0.72rem" }}
                         >-</button>
-                        <span className="text-[#00d4ff] font-mono w-8 text-center" style={{ fontSize: "0.72rem" }}>
+                        <span className="text-primary font-mono w-8 text-center" style={{ fontSize: "0.72rem" }}>
                           {arConfig.maxRetries}
                         </span>
                         <button
                           onClick={() => updateArSetting("maxRetries", Math.min(50, arConfig.maxRetries + 1))}
-                          className="w-5 h-5 rounded bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all flex items-center justify-center"
+                          className="w-5 h-5 rounded bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all flex items-center justify-center"
                           style={{ fontSize: "0.72rem" }}
                         >+</button>
                       </div>
                     </div>
                     {/* 上次更新时间 */}
                     <div className="flex items-center justify-end gap-1 pt-1">
-                      <Clock className="w-2.5 h-2.5 text-[rgba(0,212,255,0.2)]" />
-                      <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: "0.58rem" }}>
+                      <Clock className="w-2.5 h-2.5 text-primary/20" />
+                      <span className="text-primary/25" style={{ fontSize: "0.58rem" }}>
                         上次保存: {new Date(arConfig.lastUpdatedAt).toLocaleString("zh-CN")}
                       </span>
                     </div>
@@ -738,21 +738,21 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
 
                 {/* Current connection */}
                 {connectedNetwork && (
-                  <div className="p-3 rounded-xl bg-[rgba(0,255,136,0.03)] border border-[rgba(0,255,136,0.15)]">
+                  <div className="p-3 rounded-xl bg-chart-2/3 border border-chart-2/15">
                     <div className="flex items-center gap-2 mb-2">
-                      <Wifi className="w-4 h-4 text-[#00ff88]" />
-                      <span className="text-[#00ff88]" style={{ fontSize: "0.78rem" }}>当前连接</span>
+                      <Wifi className="w-4 h-4 text-chart-2" />
+                      <span className="text-chart-2" style={{ fontSize: "0.78rem" }}>当前连接</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[#e0f0ff]" style={{ fontSize: "0.82rem" }}>{connectedNetwork.ssid}</p>
-                        <p className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.62rem" }}>
+                        <p className="text-foreground" style={{ fontSize: "0.82rem" }}>{connectedNetwork.ssid}</p>
+                        <p className="text-primary/35" style={{ fontSize: "0.62rem" }}>
                           {connectedNetwork.security} · 信号强度 {connectedNetwork.signal}%
                         </p>
                       </div>
                       <div className="flex items-end gap-0.5 h-4">
                         {[20, 40, 60, 80].map((threshold, i) => (
-                          <div key={i} className={`w-1.5 rounded-sm ${connectedNetwork.signal >= threshold ? "bg-[#00ff88]" : "bg-[rgba(0,255,136,0.15)]"}`}
+                          <div key={i} className={`w-1.5 rounded-sm ${connectedNetwork.signal >= threshold ? "bg-chart-2" : "bg-chart-2/15"}`}
                             style={{ height: `${40 + i * 20}%` }} />
                         ))}
                       </div>
@@ -763,34 +763,34 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 {/* Connection history */}
                 <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)]">
                   <div className="flex items-center gap-2 mb-3">
-                    <History className="w-4 h-4 text-[#00d4ff]" />
-                    <span className="text-[rgba(0,212,255,0.6)]" style={{ fontSize: "0.78rem" }}>
+                    <History className="w-4 h-4 text-primary" />
+                    <span className="text-primary/60" style={{ fontSize: "0.78rem" }}>
                       连接历史记录
                     </span>
-                    <span className="text-[rgba(0,212,255,0.25)] ml-auto" style={{ fontSize: "0.62rem" }}>
+                    <span className="text-primary/25 ml-auto" style={{ fontSize: "0.62rem" }}>
                       {historyNetworks.length} 条记录
                     </span>
                   </div>
                   <div className="space-y-2">
                     {historyNetworks.length === 0 && (
-                      <p className="text-[rgba(0,212,255,0.3)] text-center py-4" style={{ fontSize: "0.72rem" }}>
+                      <p className="text-primary/30 text-center py-4" style={{ fontSize: "0.72rem" }}>
                         暂无连接历史记录
                       </p>
                     )}
                     {historyNetworks.map((network) => (
                       <div key={network.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all">
                         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${network.connected ? "bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]" : "bg-[rgba(0,212,255,0.15)]"}`} />
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${network.connected ? "bg-chart-2 shadow-[0_0_6px_rgba(0,255,136,0.5)]" : "bg-primary/15"}`} />
                           <div className="min-w-0">
-                            <span className={`block truncate ${network.connected ? "text-[#00ff88]" : "text-[#c0dcf0]"}`} style={{ fontSize: "0.78rem" }}>
+                            <span className={`block truncate ${network.connected ? "text-chart-2" : "text-[#c0dcf0]"}`} style={{ fontSize: "0.78rem" }}>
                               {network.ssid}
                             </span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+                              <span className="text-primary/30" style={{ fontSize: "0.6rem" }}>
                                 {network.security}
                               </span>
-                              <Clock className="w-2.5 h-2.5 text-[rgba(0,212,255,0.2)]" />
-                              <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+                              <Clock className="w-2.5 h-2.5 text-primary/20" />
+                              <span className="text-primary/30" style={{ fontSize: "0.6rem" }}>
                                 {network.lastConnectedAt
                                   ? new Date(network.lastConnectedAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
                                   : "--"}
@@ -805,8 +805,8 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                           }}
                           disabled={network.connected}
                           className={`shrink-0 ml-2 px-2.5 py-1 rounded-lg transition-all ${network.connected
-                            ? "bg-[rgba(0,255,136,0.05)] border border-[rgba(0,255,136,0.15)] text-[#00ff88] cursor-default"
-                            : "bg-[rgba(0,212,255,0.06)] border border-[rgba(0,212,255,0.15)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.12)]"
+                            ? "bg-chart-2/5 border border-chart-2/15 text-chart-2 cursor-default"
+                            : "bg-primary/6 border border-primary/15 text-primary hover:bg-primary/12"
                             }`}
                           style={{ fontSize: "0.65rem" }}
                         >
@@ -824,22 +824,22 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
           {testStatus !== "idle" && (
             <div
               className={`p-3 rounded-xl border ${testStatus === "success"
-                ? "bg-[rgba(0,255,136,0.05)] border-[rgba(0,255,136,0.2)]"
+                ? "bg-chart-2/5 border-chart-2/20"
                 : testStatus === "failed"
-                  ? "bg-[rgba(255,51,102,0.05)] border-[rgba(255,51,102,0.2)]"
-                  : "bg-[rgba(0,212,255,0.05)] border-[rgba(0,212,255,0.2)]"
+                  ? "bg-destructive/5 border-destructive/20"
+                  : "bg-primary/5 border-primary/20"
                 }`}
             >
               <div className="flex items-center justify-between">
                 <StatusBadge status={testStatus} />
                 {testLatency > 0 && (
-                  <span className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.72rem" }}>
+                  <span className="text-primary/50" style={{ fontSize: "0.72rem" }}>
                     延迟: {testLatency}ms
                   </span>
                 )}
               </div>
               {testError && (
-                <p className="text-[#ff3366] mt-1.5" style={{ fontSize: "0.72rem" }}>
+                <p className="text-destructive mt-1.5" style={{ fontSize: "0.72rem" }}>
                   {testError}
                 </p>
               )}
@@ -852,7 +852,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
           <button
             onClick={handleTest}
             disabled={testStatus === "testing"}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 transition-all disabled:opacity-50"
             style={{ fontSize: "0.8rem" }}
           >
             {testStatus === "testing" ? (
@@ -864,7 +864,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[rgba(0,212,255,0.15)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.25)] transition-all shadow-[0_0_15px_rgba(0,180,255,0.1)]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-all shadow-[0_0_15px_rgba(0,180,255,0.1)]"
             style={{ fontSize: "0.8rem" }}
           >
             <Check className="w-4 h-4" />
@@ -872,7 +872,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
           </button>
           <button
             onClick={reset}
-            className="ml-auto text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] transition-all"
+            className="ml-auto text-primary/40 hover:text-primary transition-all"
             style={{ fontSize: "0.75rem" }}
           >
             重置默认

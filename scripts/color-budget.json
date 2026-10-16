@@ -1,17 +1,17 @@
 {
-  "baseline": 6011,
+  "baseline": 5841,
   "lockedAt": "2026-10-16",
-  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明。2026-10-16 首批迁移: Dashboard.tsx 硬编码色值 159→90 (#00d4ff→primary / #e0f0ff→foreground / #ff3366→destructive / #ffdd00→chart-5 / rgba(0,212,255,X)→primary/X), 基线 6080→6011",
+  "note": "色值基线只减不增 (scripts/check-color-budget.mjs 口径); 下调须附迁移批说明。2026-10-16 首批迁移: Dashboard.tsx 硬编码色值 159→90 (#00d4ff→primary / #e0f0ff→foreground / #ff3366→destructive / #ffdd00→chart-5 / rgba(0,212,255,X)→primary/X), 基线 6080→6011。2026-10-16 二批迁移: NetworkConfig.tsx 硬编码色值 240→70 (同映射 + #00ff88/rgba(0,255,136,X)→chart-2; 保留: rgba(0,180,255,X) 23 处无精确 token / rgba(0,40,80,X) 20 处 / #c0dcf0 10 处映射表外 / toast 内联与 shadow 任意值 rgba 17 处), 基线 6011→5841",
   "topFiles": {
-    "src/app/components/NetworkConfig.tsx": 240,
     "src/app/components/theme/theme-presets.ts": 190,
     "src/app/components/SecurityMonitor.tsx": 163,
-    "src/app/components/Dashboard.tsx": 90,
     "src/app/components/AIAssistant.tsx": 152,
     "src/app/components/DatabaseManager.tsx": 149,
     "src/app/components/ModelProviderPanel.tsx": 131,
     "src/app/components/AlertRulesPanel.tsx": 126,
     "src/app/components/OperationAudit.tsx": 120,
-    "src/app/components/NodeDetailModal.tsx": 110
+    "src/app/components/NodeDetailModal.tsx": 110,
+    "src/app/components/ai-family-doc/sections-a.tsx": 109,
+    "src/app/components/ai-family/FamilyActivityCenter.tsx": 101
   }
 }

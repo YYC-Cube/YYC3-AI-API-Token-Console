@@ -233,6 +233,34 @@ describe("error-handler", () => {
     });
   });
 
+  // ============================================================
+  // L-05 全局 traceId (2026-10-17)
+  // ============================================================
+  describe("captureError traceId 全局追踪", () => {
+    it("自动生成 8 位短标识", () => {
+      const e = captureError(new Error("x"), { silent: true });
+      expect(e.traceId).toMatch(/^[0-9a-f-]{6,8}$/);
+    });
+
+    it("每次生成互异", () => {
+      const a = captureError(new Error("x"), { silent: true });
+      const b = captureError(new Error("y"), { silent: true });
+      expect(a.traceId).not.toBe(b.traceId);
+    });
+
+    it("options.traceId 注入优先 (网关 request 上下文对齐)", () => {
+      const e = captureError(new Error("x"), { silent: true, traceId: "req-abc123" });
+      expect(e.traceId).toBe("req-abc123");
+    });
+
+    it("随日志持久化", () => {
+      clearErrorLog();
+      const e = captureError(new Error("x"), { silent: true });
+      const log = getErrorLog();
+      expect(log[log.length - 1]?.traceId).toBe(e.traceId);
+    });
+  });
+
   describe("trySafeSync", () => {
     it("成功时应返回 [data, null]", () => {
       const [data, error] = trySafeSync(() => "hello");
