@@ -1,0 +1,28 @@
+{
+  "stage": 2,
+  "title": "修复 — 服务拉活 + 开机自愈钩子永久化",
+  "timestamp": "2026-10-16T08:33:24+08:00",
+  "commands": [
+    {
+      "cmd": "ssh -p 9557 yyc3-45 'pm2 resurrect && sleep 3'",
+      "result": "进程 online, ss -tln 显示 0.0.0.0:3210 LISTEN, /console/auth/status → {\"enabled\":true}（环境变量随 dump 完整恢复）"
+    },
+    {
+      "cmd": "pm2 startup systemd（多条变体尝试）",
+      "result": "PM2 7.0.4 仅打印建议命令不执行（且建议 --hp /root 有误）；手工 systemd unit 经 sudo cp 亦被 fnOS 拒绝（root 写 /etc/systemd/system 返回 Permission Denied）；loginctl enable-linger 被 polkit 拦（Interactive authentication required）→ 系统级自启三条路全封"
+    },
+    {
+      "cmd": "ssh -p 9557 yyc3-45 'crontab -l' && pgrep -x cron",
+      "result": "CRON_RUNNING；此前「NAS 无 cron」记录有误，实为 /usr/bin/crontab 存在且守护在跑"
+    },
+    {
+      "cmd": "安装 @reboot 条目",
+      "result": "crontab 新增: @reboot sleep 20 && /mnt/volume2/.nvm/versions/node/v24.18.0/bin/pm2 resurrect >> /home/YYC3/.pm2/boot.log 2>&1 # yyc3-console-nas boot resurrect → CRONTAB_INSTALLED"
+    }
+  ],
+  "status": "PASS",
+  "verdict": "服务已复活；开机自愈经 crontab @reboot 永久化（sleep 20 等磁盘/网络就绪，产物 deploy/pm2-YYC3.service 留档备用——fnOS 放开系统目录保护后可切换 systemd 形态）。",
+  "evidence": ["本文件 commands 数组", "deploy/pm2-YYC3.service（仓库留档）", "NAS crontab -l 含 yyc3-console-nas 标记行"],
+  "blocking": [],
+  "next": "stage-3-verify"
+}

@@ -1,0 +1,28 @@
+{
+  "stage": 1,
+  "title": "诊断 — 「http://192.168.3.45:3210/console 打不开」根因定位",
+  "timestamp": "2026-10-16T08:32:45+08:00",
+  "commands": [
+    {
+      "cmd": "curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://192.168.3.45:3210/console",
+      "result": "code=000, exit=7 (connection refused) — /console/ 与 /console/auth/status 同样 000"
+    },
+    {
+      "cmd": "ssh -p 9557 yyc3-45 'ss -tln | grep 3210'",
+      "result": "PORT_3210_NOT_LISTENING"
+    },
+    {
+      "cmd": "ssh -p 9557 yyc3-45 'pm2 ls'",
+      "result": "[PM2] Spawning PM2 daemon — 守护进程不在运行（ls 触发新拉守护，进程表为空）"
+    },
+    {
+      "cmd": "ssh -p 9557 yyc3-45 'uptime -s'",
+      "result": "boot_time=2026-10-16 08:08:43（探测前 24 分钟发生重启）"
+    }
+  ],
+  "status": "PASS",
+  "verdict": "根因 = NAS 08:08:43 重启 → PM2 守护进程随宿主消亡且无开机自启钩子（R9 留账第 1 条兑现）→ 3210 无人监听 → 连接拒绝。非服务端代码缺陷：/console 免尾斜杠路径本身有 301→200 正常行为（服务存活时验证）。",
+  "evidence": ["本文件 commands 数组", "docs/YYC3-双端联通实施日志.md R9 留账第 1 条（重启后需手动 resurrect 的预判）"],
+  "blocking": [],
+  "next": "stage-2-heal"
+}

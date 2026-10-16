@@ -1,0 +1,24 @@
+{
+  "stage": 4,
+  "title": "交付 — 运维交互台 + 留档 + 门禁全绿 + 提交",
+  "timestamp": "2026-10-16T09:0x+08:00",
+  "deliverables": [
+    { "path": "scripts/nas-console-ops.mjs", "desc": "NAS console 运维交互台（零依赖 Node: status/verify/heal/logs/restart/stop/boot + TTY 菜单; 主机白名单 + 凭据仅读 cred 文件 + http-upgrade 原生 WS 探针）" },
+    { "path": "deploy/pm2-YYC3.service", "desc": "systemd unit 留档（fnOS 系统目录保护下暂不可用, 放开后可切换形态）" },
+    { "path": "NAS:/Volume2/yyc3-console/ops.mjs", "desc": "运维台 NAS 副本（scp 部署, 冒烟 status/verify 双绿）" },
+    { "path": "NAS:crontab @reboot resurrect", "desc": "开机自愈钩子（sleep 20, 日志 ~/.pm2/boot.log）" }
+  ],
+  "gates": [
+    { "gate": "eslint scripts/nas-console-ops.mjs", "result": "0 errors" },
+    { "gate": "pnpm typecheck", "result": "tsc --noEmit 通过" },
+    { "gate": "pnpm astgrep", "result": "scan 通过" },
+    { "gate": "pnpm size:check", "result": "0 warning(s), 0 error(s)" },
+    { "gate": "node scripts/knip-check.mjs", "result": "基线比对 0 error(s)" },
+    { "gate": "pnpm test:unit", "result": "174 files / 2945 tests passed, exit 0" }
+  ],
+  "status": "PASS",
+  "verdict": "放行。事件闭环: 根因定位（重启无自启）→ resurrect 救活 → @reboot 永久化 → 运维台固化诊断/自愈/验证能力 → 六门禁绿 + 单测全量绿。",
+  "evidence": ["本文件", "stage-1~3.json", "git log 提交（见实施日志 R10）"],
+  "blocking": [],
+  "next": null
+}

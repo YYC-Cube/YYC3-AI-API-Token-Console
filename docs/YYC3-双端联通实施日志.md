@@ -6,6 +6,24 @@
 
 ---
 
+## 批次 R10（已完成 · 2026-10-16）: 「打不开」事件闭环 — 重启自愈 + 运维交互台
+
+**范围**: 用户报障 `http://192.168.3.45:3210/console 打不开`。链式诊断（证据链 `docs/audit/20261016T0832-nas-console-incident/stage-1~4.json`）→ 修复 → 运维脚本固化。
+
+### 诊断与修复 ✅
+
+- **根因**: NAS 08:08:43 重启 → PM2 守护随宿主消亡且无开机钩子（R9 留账第 1 条兑现）→ 3210 拒连（curl exit 7）。非代码缺陷——服务存活时 `/console` 免尾斜杠本就 301→200。
+- **救活**: `pm2 resurrect`（env 随 dump 完整恢复, auth enabled 实证）→ 七项验证重新全绿（含 WS 101）。
+- **开机自愈永久化**: 三条系统级路径全被 fnOS 封锁（PM2 7 startup 只打印不执行且建议 `--hp /root` 有误; root 写 `/etc/systemd/system` 亦 Permission Denied; `loginctl enable-linger` 被 polkit 拦）→ 改走 **crontab `@reboot` resurrect**（`sleep 20` 等就绪, 日志 `~/.pm2/boot.log`）。修正旧档「NAS 无 cron」——实为 crontab 存在且守护在跑。`deploy/pm2-YYC3.service` 留档备用（fnOS 放开保护后可切 systemd）。
+- **运维交互台**: `scripts/nas-console-ops.mjs`（零依赖 Node, 已部署 NAS `/Volume2/yyc3-console/ops.mjs`）——status / verify（七项, WS 用 node:http 原生 upgrade 探针）/ heal（resurrect → 失败则解析 console.env 免 shell 全新拉起）/ logs / restart / stop / boot + TTY 交互菜单; 主机白名单 {127.0.0.1/::1/192.168.3.45} 拒绝任意目标（exit 2 实证）, 凭据仅读 `~/.yyc3-console-cred`。
+
+### 留账
+
+1. `@reboot` 自愈钩子依赖 fnOS cron 守护（当前在跑）; 钩子生效须等下次真实重启验证, `ops.mjs boot` 可随时体检。
+2. `ops.mjs` 在非 NAS 机器上 3~7 项因无凭据文件显示跳过+FAIL（exit 1）——语义为「凭据缺失不完整」, NAS 上运行才是完整七项。
+
+---
+
 ## 批次 R9（已完成 · 2026-10-16）: NAS 本机 console 部署 —— 部署手册第三节执行
 
 **范围**: B端 console 服务器直接落 NAS（局域网第二形态, 与 ECS 公网形态并存）。用户确认 NAS 自带「Web Server」套件（静态 Apache/nginx+PHP 主机）对本项目无用——console 是 Node 服务端（WS 中继/密钥注入代理/Cookie 鉴权）, 走独立部署。
