@@ -1,0 +1,45 @@
+{
+  "stage": "S10",
+  "title": "元门禁验证（guardrail-probe 20 探针 · 植入违规断言真实拦截）",
+  "timestamp": "2026-10-16T22:50+08:00",
+  "mode": "online",
+  "status": "PASS",
+  "probes_total": 20,
+  "probes_passed": 20,
+  "probes_failed": [],
+  "commands": [
+    { "cmd": "pnpm guardrail-probe (扩容后首跑)", "exit": 0, "summary": "20/20 门禁有效" },
+    { "cmd": "pnpm guardrail-probe (二跑稳定性)", "exit": 0, "summary": "20/20, diff 逐行一致" },
+    { "cmd": "git status 污染检查", "summary": "探针后工作区仅探针脚本自身 (+既有 README 脏改) — 零样本残留" }
+  ],
+  "probe_expansion": {
+    "note": "S10 维度清单要求五类复合门禁探针 (tsc/gitleaks/size/knip/coverage), 原脚本仅 ast-grep×14+eslint×1 — 本轮扩 5 类至 20, 全部与真实门禁同源 (同一命令/同一 config)",
+    "new_probes": [
+      { "id": 16, "gate": "pnpm typecheck", "sample": "项目内类型错误赋值 (number = string) → exit 2 拦截" },
+      { "id": 17, "gate": "gitleaks detect --no-git --config .gitleaks.toml (同款)", "sample": "隔离 tmpdir 内 ghp_+高熵 37 位 → leaks found 拦截" },
+      { "id": 18, "gate": "node scripts/knip-check.mjs", "sample": "孤儿导出 export const → exports 基线外+1 → exit 1 拦截" },
+      { "id": 19, "gate": "node scripts/check-size.mjs", "sample": "基线文件 ServiceConnectionTest 受控 +1 行 (备份→断言→finally 恢复) → exit 1 拦截" },
+      { "id": 20, "gate": "vitest --coverage --thresholds=100 (同执链)", "sample": "阈值抬至 100 单文件子集必不达 → exit 1 拦截 (与 R8 生产 78.3% 阻断同机制)" }
+    ]
+  },
+  "checks": [
+    { "id": 1, "name": "ast-grep 7 规则全拦截", "actual": "14/14 探针 (双语言) 全 exit 1", "result": "PASS" },
+    { "id": 2, "name": "eslint 边界拦截跨层", "actual": "hooks→stores 样本 exit 1", "result": "PASS" },
+    { "id": 3, "name": "tsc 拦截类型错误", "actual": "探针 16 exit 2 (注: 显式 any 由 eslint 承载 — 职责分层非缺口; @ts-ignore 无错时 tsc 报 Unused 已由白名单纪律管理)", "result": "PASS" },
+    { "id": 4, "name": "gitleaks 拦截 secret", "actual": "探针 17 拦截; 两判例沉淀: ①ghp_ 规则 ≥36 位 (与 ast-grep 30+ 阈值不同库不同值) ②字母表序列低熵样本被 stopwords 反误报机制豁免 — 样本须高熵", "result": "PASS" },
+    { "id": 5, "name": "size 拦截超阈值", "actual": "探针 19: 基线+1 行 → 只减不增铁律 exit 1 (受控变异 finally 恢复; size 走 git ls-files 故新文件探针不可见 — 判例)", "result": "PASS" },
+    { "id": 6, "name": "knip 拦截孤儿导出", "actual": "探针 18: exports 7→8 超基线 exit 1", "result": "PASS" },
+    { "id": 7, "name": "coverage 拦截退化", "actual": "探针 20: 阈值执法同链 exit 1 + R8 生产实证 (branches 78.3% 真阻断过)", "result": "PASS" },
+    { "id": 8, "name": "探针可重复执行", "actual": "双跑 20/20 diff 逐行一致", "result": "PASS" },
+    { "id": 9, "name": "不污染真实仓库", "actual": "PROBE_DIR rm-on-finally + tmpdir 隔离 + size 变异 finally 恢复; git status 零样本残留", "result": "PASS" },
+    { "id": 10, "name": "探针失败=硬阻断", "actual": "脚本任一未拦截 → exit 1 + 失败输出转储 (本轮扩容过程 gitleaks 两度抓到探针自身样本缺陷 — 32 位不够长/低熵被豁免 — 探针质量本身被门禁反验)", "result": "PASS" }
+  ],
+  "evidence": "stage-10.json (本文件) + /tmp/probe-r1.log r2.log 双跑输出 + 脚本本体 scripts/guardrail-probe.mjs",
+  "blocking": [],
+  "backtrace": [
+    "探针样本判例入档: gitleaks 样本须高熵无序列且 ≥36 位; size 门禁 git ls-files 口径 — 探针须走受控变异",
+    "可选后续: dup/color 负例探针并入脚本 (本轮为一次性手工验证, 机制同 probe 18/19)"
+  ],
+  "next": "S11",
+  "verdict": "20/20 全拦截 · 双跑稳定 · 零污染 · 五类复合门禁同源探针补齐 · 放行 S11"
+}

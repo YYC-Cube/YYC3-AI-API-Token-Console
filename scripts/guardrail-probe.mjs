@@ -22,10 +22,16 @@
  *   10/11. ast-grep 硬编码密钥 (.ts/.tsx)      → no-hardcoded-secret-literal(-tsx)
  *   12/13. ast-grep process.env 直读 (.ts/.tsx) → no-process-env-in-src(-tsx)
  *   14/15. ast-grep 字符串定时器 (.ts/.tsx)    → no-string-timer(-tsx)
+ * 复合门禁探针 (S10 扩容, 2026-10-16 — 与真实门禁同源):
+ *   16. tsc 类型错误样本 (双旗标项目内)         → pnpm typecheck
+ *   17. gitleaks secret 样本 (隔离 tmpdir+仓库 config) → 同款命令
+ *   18. knip 孤儿导出样本 (exports 基线外+1)    → node scripts/knip-check.mjs
+ *   19. size 基线文件 +1 行 (受控变异→断言→恢复) → pnpm size:check
+ *   20. coverage 阈值抬至 100 (子集必不达)      → vitest --coverage thresholds
  */
 
 import { execSync } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 // 探针样本统一放在 hooks element 下 (临时创建 + 强制清理, 不进 git):
@@ -165,6 +171,56 @@ for (const ext of ["ts", "tsx"]) {
     [{ name: `probe-st.${ext}`, content: 'setTimeout("doWork()", 100);\n' }],
     () => run(`${ASTGREP} scan -c scripts/ast-grep/sgconfig.yml ${relative(process.cwd(), join(PROBE_DIR, `probe-st.${ext}`))}`)
   );
+}
+
+// ── 探针 16: tsc 类型错误样本 (项目内, 双旗标真拦截) ──
+expectIntercepted(
+  "tsc 类型错误样本",
+  [{ name: "probe-tsc.ts", content: "export const __probeTypeErr: number = \"not-a-number\";\n" }],
+  () => run("pnpm exec tsc --noEmit --pretty false")
+);
+
+// ── 探针 17: gitleaks secret 样本 (隔离 tmpdir, 与生产同 config 同源) ──
+{
+  // 样本为规则探测形态 (ghp_+高熵随机串), 非真实凭据。判例 (S10, 2026-10-16):
+  // ① gitleaks GitHub Old Token 规则要求 ≥36 位 (ast-grep 侧 30+, 两库阈值不同);
+  // ② 含字母表序列的低熵样本会被 gitleaks stopwords 反误报机制豁免 — 样本必须高熵无序列。
+  // allowlist 不覆盖 ghp_ 形态 → 必须命中。
+  const GL_DIR = "/tmp/__guardrail_gl_probe__";
+  rmSync(GL_DIR, { recursive: true, force: true });
+  mkdirSync(GL_DIR, { recursive: true });
+  writeFileSync(join(GL_DIR, "leak.txt"), 'token = "ghp_7xQm2Kv9Zb4Nt8Fs3Jp6Hy1Cd5Rg0Lw2VnQ5e"\n', "utf8");
+  const r17 = run(`gitleaks detect --no-git --source ${GL_DIR} --config .gitleaks.toml --no-banner --redact`);
+  results.push({ name: "gitleaks secret 样本", ok: r17.exit !== 0, detail: r17.exit !== 0 ? `已拦截 (exit ${r17.exit})` : "⚠️ 未拦截 — 门禁失效!", output: r17.output });
+  rmSync(GL_DIR, { recursive: true, force: true });
+}
+
+// ── 探针 18: knip 孤儿导出样本 (exports 基线 7 外 +1) ──
+expectIntercepted(
+  "knip 孤儿导出样本",
+  [{ name: "probe-knip.ts", content: "export const __probeUnusedExport = 1;\n" }],
+  () => run("node scripts/knip-check.mjs")
+);
+
+// ── 探针 19: size 基线文件受控变异 (+1 行 → 断言 → finally 恢复原文) ──
+// size 门禁走 git ls-files, 探针新文件不可见 — 唯一同源形态是临时改动基线内受跟踪文件
+{
+  const TARGET = join(process.cwd(), "src/app/components/ServiceConnectionTest.tsx");
+  const original = readFileSync(TARGET, "utf8");
+  try {
+    writeFileSync(TARGET, `${original}\n`, "utf8");
+    const r19 = run("node scripts/check-size.mjs");
+    results.push({ name: "size 基线 +1 行样本", ok: r19.exit !== 0, detail: r19.exit !== 0 ? `已拦截 (exit ${r19.exit})` : "⚠️ 未拦截 — 门禁失效!", output: r19.output });
+  } finally {
+    writeFileSync(TARGET, original, "utf8");
+  }
+}
+
+// ── 探针 20: coverage 阈值执法 (阈值抬至 100, 单文件子集必不达) ──
+{
+  // 与生产同执链 (vitest thresholds 强制): 覆盖率退化在真实门禁同样 exit≠0 (R8 判例 78.3% 阻断)
+  const r20 = run("pnpm exec vitest run src/app/__tests__/http.test.ts --coverage --coverage.thresholds.lines=100 --coverage.thresholds.branches=100 --coverage.reporter=text-summary");
+  results.push({ name: "coverage 阈值执法样本", ok: r20.exit !== 0, detail: r20.exit !== 0 ? `已拦截 (exit ${r20.exit})` : "⚠️ 未拦截 — 门禁失效!", output: r20.output });
 }
 
 // ── 报告 ──
