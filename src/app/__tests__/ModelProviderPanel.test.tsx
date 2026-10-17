@@ -345,7 +345,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
         });
       }
       if (url.includes("/v1/models")) return okRes({ data: [{ id: "gw-chat" }, {}] });
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({ models: [] });
     }));
     renderPanel();
@@ -364,7 +364,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
       if (url.includes("/v1/router/stats")) {
         return okRes({ upstreams: [{ name: "alt-upstream", base_url: "https://alt.example", models: ["only-one"] }] });
       }
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -376,7 +376,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/router/stats")) return badRes(403, {});
       if (url.includes("/v1/models")) return badRes(500, {});
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({ models: [] });
     }));
     renderPanel();
@@ -389,7 +389,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("/v1/models 直接返回数组时应计入池模型", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/models")) return okRes([{ id: "arr-model" }]);
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -403,7 +403,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
         adminCalls.push([init?.method ?? "", url]);
         return init?.method === "POST" ? badRes(409, {}) : okRes({});
       }
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -418,7 +418,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("推送失败应透出响应体 detail 错误信息", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/admin/upstreams")) return badRes(503, { detail: "上游配额不足" });
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -430,7 +430,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("推送失败且响应体非法 JSON 时应回退 HTTP 状态码", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/admin/upstreams")) return badJsonRes(502);
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -442,7 +442,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("推送网络异常 (Error) 应展示错误消息", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/admin/upstreams")) return "reject-error";
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -454,7 +454,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("推送抛出非 Error 值应字符串化展示", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/admin/upstreams")) return "reject-string";
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();
@@ -463,18 +463,17 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
     expect(await screen.findByText(/plain-failure/)).toBeInTheDocument();
   });
 
-  it("未配置 ADMIN 密钥: 推送应直接提示且管理面接口不被拉取", async () => {
+  it("未配置 ADMIN 密钥: 推送应直接提示且管理面接口不带密钥 (S22 探测语义)", async () => {
     let statsCalls = 0;
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/router/stats")) { statsCalls += 1; return okRes({}); }
       if (url.includes("/v1/models")) return okRes({ data: [] });
-      if (url.endsWith("/healthz")) return okRes({});
       return okRes({ models: [] });
     }));
     setGatewayConfig({ gatewayAdminKey: "" });
     renderPanel();
+    // S22 新探测语义: 可达性探测本身用 /v1/router/stats (无密钥也发起, 401 亦证明网关在)
     expect(await screen.findByText("0379-World · 在线")).toBeInTheDocument();
-    expect(statsCalls).toBe(0); // adminKey 空 → /v1/router/stats 未发起
     fireEvent.click(screen.getByText("展开"));
     fireEvent.click(screen.getAllByTitle(/推送到网关上游池/)[0]!);
     expect(await screen.findByText(/未配置网关 ADMIN 密钥/)).toBeInTheDocument();
@@ -497,7 +496,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
         pushBody = String(init.body ?? "");
         return okRes({});
       }
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({ models: [] });
     }));
     renderPanel();
@@ -610,9 +609,9 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
     }
   });
 
-  it("healthz 网络拒绝时应显示网关不可达 (catch 降级)", async () => {
+  it("可达性探测网络拒绝时应显示网关不可达 (catch 降级, S22 探测语义)", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
-      if (url.endsWith("/healthz")) return "reject-error";
+      if (url.includes("/v1/router/stats")) return "reject-error";
       return okRes({ models: [] });
     }));
     renderPanel();
@@ -620,22 +619,22 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
     expect(await screen.findByText("0379-World · 离线")).toBeInTheDocument();
   });
 
-  it("router/stats 与 /v1/models 网络拒绝时应静默保持空态", async () => {
+  it("可达性探测(兼数据流水)网络拒绝时应离线并保持空态 (S22 探测语义)", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/router/stats")) return "reject-error";
       if (url.includes("/v1/models")) return "reject-error";
-      if (url.endsWith("/healthz")) return okRes({});
       return okRes({ models: [] });
     }));
     renderPanel();
-    expect(await screen.findByText("0379-World · 在线")).toBeInTheDocument();
+    // 探测与数据流水是同一次 stats 请求: 网络拒绝 → health=down (真实不可达语义)
+    expect(await screen.findByText("0379-World · 离线")).toBeInTheDocument();
     expect(screen.queryByText(/池模型/)).not.toBeInTheDocument();
   });
 
   it("推送成功 4s 后应清空网关消息", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("/v1/admin/upstreams")) return okRes({});
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({ models: [] });
     }));
     vi.useFakeTimers();
@@ -668,7 +667,7 @@ describe("ModelProviderPanel 网关管理面与数据长尾覆盖", () => {
   it("点击 Ollama 刷新按钮应触发本地模型拉取且不崩溃", async () => {
     vi.stubGlobal("fetch", makeFetch((url) => {
       if (url.includes("tags")) return okRes({ models: [] });
-      if (url.endsWith("/healthz")) return okRes({});
+      if (url.includes("/v1/router/stats")) return okRes({});
       return okRes({});
     }));
     renderPanel();

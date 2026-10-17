@@ -37,9 +37,26 @@ const DEFAULTS: APIEndpoints = {
 /** YYC³ 网关（0379-World）配置：默认走同源 /console/gw 服务端代理
  *  （生产部署 console-server.mjs 注入 ADMIN key，浏览器零暴露）；
  *  内网直连可改为 http://192.168.3.45:8000/v1 + 真实 sk-admin 密钥 */
+
+// S22 用户报障修复 (2026-10-17): gatewayBase 默认曾固定指向 ECS 公网代理——
+// 从 NAS/LAN 形态访问时跨端 + 无会话, 模型管理"API 网关实时状态"恒显离线。
+// 改为按访问形态自适应: 本地部署 (192.168.*/10.*/172.*/localhost) → 同源 /console/gw/v1
+// (Cookie 随同源自动携带, 零 CORS); 公网域名 → ECS 代理 (原默认)。
+const ECS_GATEWAY_BASE = "https://api.0379.world/console/gw/v1";
+const LOCAL_GATEWAY_BASE = (() => {
+  try {
+    const h = window.location.hostname;
+    const isLocal =
+      h === "localhost" || h === "127.0.0.1" ||
+      h.startsWith("192.168.") || h.startsWith("10.") || h.startsWith("172.");
+    if (isLocal) return `${window.location.origin}/console/gw/v1`;
+  } catch { /* SSR/无窗口环境回落公网默认 */ }
+  return ECS_GATEWAY_BASE;
+})();
+
 export const GATEWAY_DEFAULTS = {
-  /** OpenAI 兼容 base（默认=服务端代理同源路径） */
-  gatewayBase: "https://api.0379.world/console/gw/v1",
+  /** OpenAI 兼容 base（默认=按访问形态自适应: 本地同源代理 / 公网 ECS 代理） */
+  gatewayBase: LOCAL_GATEWAY_BASE,
   /** 管理面密钥：代理模式下填任意占位（服务端覆盖）；直连模式填真实 sk-admin */
   gatewayAdminKey: "proxy",
   /** OpenAI 兼容调用密钥（chat 用） */
@@ -50,7 +67,15 @@ const GATEWAY_KEY = "yyc3_gateway_config";
 let _gateway: typeof GATEWAY_DEFAULTS = (() => {
   try {
     const raw = localStorage.getItem(GATEWAY_KEY);
-    if (raw) return { ...GATEWAY_DEFAULTS, ...JSON.parse(raw) };
+    if (raw) {
+      const restored = { ...GATEWAY_DEFAULTS, ...JSON.parse(raw) };
+      // 迁移 (S22 判例): 存量用户 localStorage 中固定指向 ECS 公网的旧默认值
+      // 置换为形态自适应新默认 (显式改过其他值的用户不受影响)
+      if (restored.gatewayBase === ECS_GATEWAY_BASE && LOCAL_GATEWAY_BASE !== ECS_GATEWAY_BASE) {
+        restored.gatewayBase = LOCAL_GATEWAY_BASE;
+      }
+      return restored;
+    }
   } catch { /* ignore */ }
   return { ...GATEWAY_DEFAULTS };
 })();

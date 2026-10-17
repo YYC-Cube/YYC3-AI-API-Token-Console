@@ -77,8 +77,10 @@ function useGatewayLive(): GatewayLive & { refresh: () => void } {  const [live,
     const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
     const adminHeaders = { "X-API-Key": cfg.gatewayAdminKey };
     const next: GatewayLive = { health: "checking", upstreams: [], poolModels: [], routerStats: null, fetchedAt: new Date().toLocaleTimeString() };
-    fetchWithTimeout(`${base}/healthz`, {}, 6000)
-      .then((r) => { next.health = r.ok ? "up" : "down"; })
+    fetchWithTimeout(`${base}/v1/router/stats`, { headers: adminHeaders }, 6000)
+      // S22 修复 (2026-10-17): 可达性探测改用 /v1/router/stats (网关无 /v1/healthz, 原探针恒 404→假"离线");
+      // 判据 = 收到 HTTP 响应即网关可达 (401 = key 错但网关在), 网络错误/超时才 down
+      .then((r) => { next.health = r.status < 500 ? "up" : "down"; })
       .catch(() => { next.health = "down"; })
       .finally(() => setLive((p) => ({ ...p, health: next.health, fetchedAt: next.fetchedAt })));
     if (cfg.gatewayAdminKey) {
