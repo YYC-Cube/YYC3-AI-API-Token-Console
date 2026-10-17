@@ -297,6 +297,14 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── 裸根路径重定向 (S22 用户报障, 2026-10-17): SPA basename=/console/, RouterProvider
+  // 在 basename 外 (/) 静默渲染 null (rootLen=0 零报错) —— 用户输裸 IP:PORT 即空白页。
+  // 服务端 302 → /console/ (与 Pages 404 回退同家族的服务端职责)。
+  if (pathname === "/" && req.method === "GET") {
+    res.writeHead(302, { Location: "/console/" });
+    return res.end();
+  }
+
   // ── 静态文件（SPA：未命中回退 index.html） ──
   let filePath = path.join(DIST, path.normalize(pathname).replace(/^(\.\.[/\\])+/, ""));
   if (!filePath.startsWith(DIST)) { res.writeHead(403); return res.end(); }
