@@ -107,7 +107,7 @@ describe("useWebSocketData", () => {
     it("应以 api-config 的 wsEndpoint 建立连接", () => {
       renderHook(() => useWebSocketData());
       expect(instances.length).toBe(1);
-      expect(instances[0]?.url).toBe("wss://api.0379.world/console/ws/monitor");
+      expect(instances[0]?.url).toBe("wss://localhost:3000/console/ws/monitor");
     });
   });
 
@@ -882,7 +882,7 @@ describe("P2 端点热重建", () => {
     // 初始连接: 默认端点
     expect(instances.length).toBeGreaterThanOrEqual(1);
     const oldWs = instances[0]!;
-    expect(oldWs.url).toBe("wss://api.0379.world/console/ws/monitor");
+    expect(oldWs.url).toBe("wss://localhost:3000/console/ws/monitor");
 
     // 模拟设置页编辑端点 (双写 api-config)
     act(() => {

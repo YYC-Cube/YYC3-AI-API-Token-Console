@@ -25,7 +25,7 @@ describe("RF-001: WebSocket URL 三源统一", () => {
   describe("api-config 权威源", () => {
     it("默认 wsEndpoint 应为 console-server 网关中继（双端联通 P0-1）", async () => {
       const { getAPIConfig } = await import("../lib/api-config");
-      expect(getAPIConfig().wsEndpoint).toBe("wss://api.0379.world/console/ws/monitor");
+      expect(getAPIConfig().wsEndpoint).toBe("wss://localhost:3000/console/ws/monitor");
     });
 
     it("setAPIConfig 应能修改 wsEndpoint", async () => {

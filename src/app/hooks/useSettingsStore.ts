@@ -126,7 +126,13 @@ const DEFAULT_VALUES: SettingsValues = {
   healthCheckInterval: "30",
   scaleUpThreshold: "85",
   scaleDownThreshold: "30",
-  wsEndpoint: "wss://api.0379.world/console/ws/monitor",
+  // S22 形态自适应: 与 api-config 同一判定 (本地部署 → 本机中继; 公网 → ECS 中继)
+  wsEndpoint: typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ||
+     window.location.hostname.startsWith("192.168.") || window.location.hostname.startsWith("10.") ||
+     window.location.hostname.startsWith("172."))
+    ? `wss://${window.location.host}/console/ws/monitor`
+    : "wss://api.0379.world/console/ws/monitor",
   wsReconnectInterval: "5000",
   wsMaxReconnect: "10",
   wsHeartbeatInterval: "30000",

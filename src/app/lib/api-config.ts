@@ -23,9 +23,19 @@ export type { APIEndpoints };
 const DEFAULTS: APIEndpoints = {
   fsBase: "/api/fs",
   dbBase: "/api/db",
-  // 双端联通 P0-1/P0-2: 默认指向 console-server 网关 WS 中继（Cookie 会话鉴权,
-  // 网关 /ws/monitor 的 token 由服务端注入; 帧经 gateway-adapter 翻译）
-  wsEndpoint: "wss://api.0379.world/console/ws/monitor",
+  // 双端联通 P0-1/P0-2 + S22 形态自适应 (2026-10-17): WS 中继同源化——本地部署形态
+  // (192.168.*/10.*/172.*/localhost) 走本机 console-server 中继 (wss, Cookie 同源);
+  // 公网域名形态走 ECS 中继。与 gatewayBase 同一判定函数, 消除"网关在线/WS 离线"分裂。
+  wsEndpoint: ((): string => {
+    try {
+      const h = window.location.hostname;
+      const isLocal =
+        h === "localhost" || h === "127.0.0.1" ||
+        h.startsWith("192.168.") || h.startsWith("10.") || h.startsWith("172.");
+      if (isLocal) return `wss://${window.location.host}/console/ws/monitor`;
+    } catch { /* SSR 回落公网 */ }
+    return "wss://api.0379.world/console/ws/monitor";
+  })(),
   aiBase: "https://api.openai.com/v1",
   clusterBase: "/api/cluster",
   metricsBase: "/console/metrics",

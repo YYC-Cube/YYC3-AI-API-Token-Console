@@ -390,7 +390,7 @@ export function ModelProviderPanel() {
           <div className="p-3 rounded-lg bg-[rgba(0,40,80,0.12)] border border-[rgba(0,180,255,0.08)]">
             <p className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.62rem" }}>
               {gw.health !== "up"
-                ? "网关不可达：检查 gatewayBase（默认 http://192.168.3.45:8000/v1，公网用 https://api.0379.world/v1）"
+                ? `网关不可达：当前 gatewayBase=${getGatewayConfig().gatewayBase}（可在系统设置中修改；本地部署形态默认走同源 /console/gw 代理）`
                 : "在系统设置中填入 ADMIN 密钥（sk-admin…）以拉取上游池与模型清单（/v1/router/stats、/v1/models 为管理面）"}
             </p>
             <p className="text-[rgba(170,119,255,0.5)] font-mono mt-1" style={{ fontSize: "0.56rem" }}>
