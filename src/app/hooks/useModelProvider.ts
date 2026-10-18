@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import builtinProvidersJson from "../config/providers/builtin-providers.json";
 import { builtinProvidersSchema } from "../config/providers/provider-schema";
 import { fetchWithTimeout } from "../lib/http";
-import { getOllamaTagsUrl } from "../lib/ollama-url";
+import { getGatewayConfig } from "../lib/api-config";
 import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
   ConfiguredModel,
@@ -195,6 +195,9 @@ export function useModelProvider() {
   }, []);
 
   // ========== Ollama 自动识别 ==========
+  // S22 真实化重构 (2026-10-17, 用户报障): 数据源改为网关自动扫描产物 (upstream_pool 中
+  // Ollama 设备 = yyc3-77/yyc3-22 等, ADR-002 硬约束①)——原实现 fetch 失败时填充 30 行
+  // 硬编码 Mock 数组 (用户标注"几乎都是模拟"的核心证据之一), 现真实化铁则: 拉不到 → 空态+错误, 不造数。
   const fetchOllamaModels = useCallback(async (baseUrl?: string) => {
     const ollamaProvider = providers.find((p) => p.id === "ollama");
     const url = baseUrl || ollamaProvider?.baseUrl || "http://localhost:11434";
@@ -202,95 +205,52 @@ export function useModelProvider() {
     setOllamaError(null);
 
     try {
-      // 如果传入了自定义 baseUrl 则直连, 否则走同源代理
-      const tagsUrl = baseUrl ? `${baseUrl.replace(/\/$/, "")}/api/tags` : getOllamaTagsUrl();
-      const res = await fetchWithTimeout(tagsUrl, { method: "GET" }, 5000);
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+      // 显式传入自定义 baseUrl → 直连该 Ollama 实例 (保留: 高级用法)
+      if (baseUrl) {
+        const tagsUrl = `${baseUrl.replace(/\/$/, "")}/api/tags`;
+        const res = await fetchWithTimeout(tagsUrl, { method: "GET" }, 5000);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: OllamaTagsResponse = await res.json();
+        const models = data.models || [];
+        setOllamaModels(models);
+        if (models.length > 0) {
+          setProviders((prev) => prev.map((p) => (p.id === "ollama" ? { ...p, models: models.map((m) => m.name), baseUrl: url } : p)));
+        }
+        setOllamaLoading(false);
+        return models;
       }
 
-      const data: OllamaTagsResponse = await res.json();
-      const models = data.models || [];
+      // 默认链路: 网关自动扫描产物 (upstream_pool 中 Ollama 设备, 经 /console/gw 同源代理)
+      const cfg = getGatewayConfig();
+      const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
+      const res = await fetchWithTimeout(`${base}/v1/router/stats`, { headers: { "X-API-Key": cfg.gatewayAdminKey } }, 6000);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const stats = (await res.json()) as { upstream_pool?: Array<{ base_url?: string; models?: string[] }>; upstreams?: Array<{ base_url?: string; models?: string[] }> };
+      const pool = stats.upstream_pool ?? stats.upstreams ?? [];
+      const ollamaEntries = pool.filter((u) => (u.base_url ?? "").includes(":11434"));
+      const models: OllamaModel[] = ollamaEntries.flatMap((u) =>
+        (u.models ?? []).map((name) => ({
+          name,
+          model: name,
+          modified_at: "",
+          size: 0,
+          digest: "",
+          details: { parent_model: "", format: "", family: "", parameter_size: "", quantization_level: "" },
+        }))
+      );
       setOllamaModels(models);
-
-      // 自动同步 Ollama provider 的 models 列表
       if (models.length > 0) {
-        setProviders((prev) =>
-          prev.map((p) =>
-            p.id === "ollama"
-              ? { ...p, models: models.map((m) => m.name), baseUrl: url }
-              : p
-          )
-        );
+        setProviders((prev) => prev.map((p) => (p.id === "ollama" ? { ...p, models: models.map((m) => m.name) } : p)));
+      } else {
+        setOllamaError("网关自动扫描未发现 Ollama 设备 (检查 yyc3-77/yyc3-22 Ollama 服务与 Tailscale 连通)");
       }
-
+      setOllamaLoading(false);
       return models;
     } catch (err) {
-      // Mock fallback for development
-      const mockModels: OllamaModel[] = [
-        {
-          name: "codegeex4:latest",
-          model: "codegeex4:latest",
-          modified_at: "2026-02-22T00:55:15.920502035+08:00",
-          size: 5455323291,
-          digest: "867b8e81d03898ac2289d809edb718d67a6d706d6a644bb1a922ee1607c7e5ed",
-          details: { parent_model: "", format: "gguf", family: "chatglm", parameter_size: "9.4B", quantization_level: "Q4_0" },
-        },
-        {
-          name: "qwen2.5:7b",
-          model: "qwen2.5:7b",
-          modified_at: "2026-02-22T00:28:20.785576365+08:00",
-          size: 4683087332,
-          digest: "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
-          details: { parent_model: "", format: "gguf", family: "qwen2", parameter_size: "7.6B", quantization_level: "Q4_K_M" },
-        },
-        {
-          name: "gpt-oss:120b-cloud",
-          model: "gpt-oss:120b-cloud",
-          modified_at: "2026-02-20T19:35:46.930016073+08:00",
-          size: 384,
-          digest: "569662207105c69bb0eca2f79a3fdf8691ad6301def477a5ec66f8e8bae237e3",
-          details: { parent_model: "", format: "", family: "gptoss", parameter_size: "116.8B", quantization_level: "MXFP4" },
-        },
-        {
-          name: "nomic-embed-text:latest",
-          model: "nomic-embed-text:latest",
-          modified_at: "2026-02-17T22:24:23.909072343+08:00",
-          size: 274302450,
-          digest: "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
-          details: { parent_model: "", format: "gguf", family: "nomic-bert", parameter_size: "137M", quantization_level: "F16" },
-        },
-        {
-          name: "deepseek-v3.1:671b-cloud",
-          model: "deepseek-v3.1:671b-cloud",
-          modified_at: "2025-12-11T12:32:45.905310644+08:00",
-          size: 405,
-          digest: "d3749919e45f955731da7a7e76849e20f7ed310725d3b8b52822e811f55d0a90",
-          details: { parent_model: "", format: "", family: "deepseek2", parameter_size: "671.0B", quantization_level: "FP8_E4M3" },
-        },
-        {
-          name: "qwen2.5-coder:1.5b",
-          model: "qwen2.5-coder:1.5b",
-          modified_at: "2025-09-26T03:48:11.422863972+08:00",
-          size: 986062089,
-          digest: "d7372fd828518a4d38b1eb196c673c31a85f2ed302b3d1e406c4c2d1b64a0668",
-          details: { parent_model: "", format: "gguf", family: "qwen2", parameter_size: "1.5B", quantization_level: "Q4_K_M" },
-        },
-      ];
-      setOllamaModels(mockModels);
-      setOllamaError(`连接失败 (Mock 模式): ${err instanceof Error ? err.message : String(err)}`);
-
-      // Mock 模式也同步
-      setProviders((prev) =>
-        prev.map((p) =>
-          p.id === "ollama"
-            ? { ...p, models: mockModels.map((m) => m.name) }
-            : p
-        )
-      );
-
-      return mockModels;
+      // 真实化铁则: 失败 → 空态 + 错误信息, 禁止 Mock 造数 (原 30 行硬编码假模型已移除)
+      setOllamaModels([]);
+      setOllamaError(`网关自动扫描不可达: ${err instanceof Error ? err.message : String(err)}`);
+      return [];
     } finally {
       setOllamaLoading(false);
     }
