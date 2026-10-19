@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useModelProvider, MODEL_PROVIDERS } from "../hooks/useModelProvider";
+import { setEnvConfig, resetEnvConfig } from "../lib/env-config";
 import type { ModelProviderDef, OllamaModel } from "../types";
 
 describe("useModelProvider", () => {
@@ -145,7 +146,7 @@ describe("useModelProvider", () => {
       expect(result.current.stats.providers).toBe(2);
     });
 
-    it("fetchOllamaModels 应从网关自动扫描聚合 Ollama 设备模型 (S22 真实化)", async () => {
+    it("fetchOllamaModels 网关聚合兜底可独立供数 (本地无 tags 数据时)", async () => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
@@ -155,7 +156,7 @@ describe("useModelProvider", () => {
       await act(async () => {
         await result.current.fetchOllamaModels();
       });
-      // 真实化铁则: 数据来自网关自动扫描 (yyc3-77/yyc3-22 设备), 失败 → 空态不造数
+      // 真实化铁则: 数据来自真实扫描 (本地 tags 无 models → 网关聚合兜底), 失败 → 空态不造数
       expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["qwen3-coder-30b", "bge-m3"]);
       vi.unstubAllGlobals();
     });
@@ -215,7 +216,7 @@ describe("useModelProvider 覆盖率补测", () => {
 
   beforeEach(() => {
     localStorage.clear();
-    // 挂载 effect 的 Ollama 拉取默认快速失败 → Mock fallback (无定时器开销)
+    // 挂载 effect 的 Ollama 双链路拉取默认快速失败 → 空态+错误 (无定时器开销)
     fetchMock.mockReset().mockRejectedValue(new Error("offline"));
     vi.stubGlobal("fetch", fetchMock);
     // jsdom 无 AbortSignal.timeout 时补齐 (fetch mock 不消费 signal)
@@ -386,12 +387,13 @@ describe("useModelProvider 覆盖率补测", () => {
   // ----------------------------------------------------------
 
   describe("Ollama fetch 路径", () => {
-    it("真实响应成功: 从网关自动扫描聚合并同步 ollama provider", async () => {
+    it("本地链路成功: 从设置变量驱动的 tags 直取并同步 ollama provider (原设计主链路)", async () => {
       const result = await mount();
+      // 本地链路 (jsdom localhost → 同源代理 /api/v1/llm/ollama/tags) 直取 tags
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ upstream_pool: [{ base_url: "http://100.98.206.18:11434", models: ["llama3:8b", "qwen2:7b"] }] }),
+        json: async () => ({ models: [OM("llama3:8b"), OM("qwen2:7b")] }),
       });
 
       let models: OllamaModel[] | undefined;
@@ -399,12 +401,61 @@ describe("useModelProvider 覆盖率补测", () => {
         models = await result.current.fetchOllamaModels();
       });
 
-      expect(models?.length).toBe(2);
+      expect(fetchMock).toHaveBeenCalledWith("/api/v1/llm/ollama/tags", expect.anything());
+      expect(models?.map((m) => m.name)).toEqual(["llama3:8b", "qwen2:7b"]);
       expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["llama3:8b", "qwen2:7b"]);
+      // 本地链路已取到模型, 网关聚合失败不升格为错误
       expect(result.current.ollamaError).toBeNull();
       expect(result.current.ollamaLoading).toBe(false);
       expect(result.current.providers.find((p) => p.id === "ollama")?.models).toEqual(["llama3:8b", "qwen2:7b"]);
       expect(result.current.stats.ollamaCount).toBe(2);
+    });
+
+    it("网关聚合兜底: 本地链路失败时从 upstream_pool 取 yyc3-77/yyc3-22 设备模型", async () => {
+      const result = await mount();
+      fetchMock
+        .mockRejectedValueOnce(new Error("offline"))
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ upstream_pool: [{ base_url: "http://100.98.206.18:11434", models: ["qwen3-coder-30b", "bge-m3"] }] }),
+        });
+
+      let models: OllamaModel[] | undefined;
+      await act(async () => {
+        models = await result.current.fetchOllamaModels();
+      });
+
+      expect(models?.map((m) => m.name)).toEqual(["qwen3-coder-30b", "bge-m3"]);
+      expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["qwen3-coder-30b", "bge-m3"]);
+      expect(result.current.ollamaError).toBeNull();
+    });
+
+    it("宿主机协同: 本地与网关双链路并集去重", async () => {
+      const result = await mount();
+      fetchMock
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ models: [OM("llama3:8b"), OM("qwen2:7b")] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            upstream_pool: [
+              { base_url: "http://100.98.206.18:11434", models: ["qwen2:7b", "qwen3-coder-30b"] },
+              { base_url: "http://100.76.167.103:11434", models: [] },
+            ],
+          }),
+        });
+
+      await act(async () => {
+        await result.current.fetchOllamaModels();
+      });
+
+      // qwen2:7b 两路重复 → 去重保留一份; 空设备不计入
+      expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["llama3:8b", "qwen2:7b", "qwen3-coder-30b"]);
     });
 
     it("自定义 baseUrl 直连并剥尾部斜杠", async () => {
@@ -419,9 +470,9 @@ describe("useModelProvider 覆盖率补测", () => {
       expect(result.current.providers.find((p) => p.id === "ollama")?.baseUrl).toBe("http://192.168.3.9:11434/");
     });
 
-    it("自动扫描空池 (无 :11434 设备) 不回写 provider models 且报错 (S22 真实化)", async () => {
+    it("网关空池 (无 :11434 设备) 且本地无数据 → 不回写 provider models 且报错", async () => {
       const result = await mount();
-      fetchMock.mockResolvedValueOnce({
+      fetchMock.mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => ({ upstream_pool: [{ base_url: "http://100.65.64.49:8001", models: ["deepseek-v4*"] }] }),
@@ -436,9 +487,22 @@ describe("useModelProvider 覆盖率补测", () => {
       expect(result.current.providers.find((p) => p.id === "ollama")!.models.length).toBe(0);
     });
 
+    it("双链路全失败 → 空态+聚合错误, 禁 Mock 造数 (真实化铁则)", async () => {
+      const result = await mount();
+
+      await act(async () => {
+        await result.current.fetchOllamaModels();
+      });
+
+      expect(result.current.ollamaModels).toEqual([]);
+      expect(result.current.ollamaError).toContain("本地链路");
+      expect(result.current.ollamaError).toContain("网关聚合");
+      expect(result.current.providers.find((p) => p.id === "ollama")!.models.length).toBe(0);
+    });
+
     it("HTTP 非 2xx 报错并保持空态 (不回退 Mock, S22 真实化)", async () => {
       const result = await mount();
-      fetchMock.mockResolvedValueOnce({ ok: false, status: 503 });
+      fetchMock.mockResolvedValue({ ok: false, status: 503 });
 
       await act(async () => {
         await result.current.fetchOllamaModels();
@@ -450,13 +514,33 @@ describe("useModelProvider 覆盖率补测", () => {
 
     it("非 Error 拒绝原因 String() 化", async () => {
       const result = await mount();
-      fetchMock.mockRejectedValueOnce("boom-string");
+      fetchMock.mockRejectedValue("boom-string");
 
       await act(async () => {
         await result.current.fetchOllamaModels();
       });
 
       expect(result.current.ollamaError).toContain("boom-string");
+    });
+
+    it("变量填写就生效: 系统设置改 Ollama 变量 → 无需刷新自动重扫 (原设计归位)", async () => {
+      const result = await mount();
+      fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ models: [OM("m-live")] }) });
+
+      act(() => {
+        setEnvConfig({ OLLAMA_PROXY_PATH: "/console/ollama/n2/api" });
+      });
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0));
+      });
+
+      // 重扫端点跟随新设置变量 (同源代理路径即时生效)
+      expect(fetchMock.mock.calls.some((c) => String(c[0]) === "/console/ollama/n2/api/tags")).toBe(true);
+      expect(result.current.ollamaModels.map((m) => m.name)).toContain("m-live");
+
+      act(() => {
+        resetEnvConfig();
+      });
     });
   });
 
@@ -471,11 +555,11 @@ describe("useModelProvider 覆盖率补测", () => {
         result.current.addModel("openai", "gpt-4o", "k");
         result.current.addModel("ollama", "codegeex4:latest", "");
       });
-      // S22 真实化: live Ollama 模型经网关自动扫描注入 (原 Mock fallback 6 模型已移除)
+      // S22 真实化: live Ollama 模型经本地链路 tags 注入 (原 Mock fallback 6 模型已移除)
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ upstream_pool: [{ base_url: "http://100.98.206.18:11434", models: ["qwen2.5:7b", "qwen3-coder-30b"] }] }),
+        json: async () => ({ models: [OM("qwen2.5:7b"), OM("qwen3-coder-30b")] }),
       });
       await act(async () => {
         await result.current.fetchOllamaModels();
@@ -754,19 +838,20 @@ describe("useModelProvider 覆盖率补测", () => {
       });
       expect(result.current.providers.find((p) => p.id === "ollama")).toBeUndefined();
 
-      fetchMock.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ upstream_pool: [{ base_url: "http://100.98.206.18:11434", models: ["llama3:8b"] }] }),
-      });
+      fetchMock
+        .mockRejectedValueOnce(new Error("offline"))
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ upstream_pool: [{ base_url: "http://100.98.206.18:11434", models: ["llama3:8b"] }] }),
+        });
       await act(async () => {
         await result.current.fetchOllamaModels();
       });
 
-      // 服务商缺省 → 默认链路走网关自动扫描 (stats), 无 tags 地址依赖
-      const mountCallCount = 1; // 挂载 effect 已消耗一次 (reject)
-      expect(fetchMock).toHaveBeenCalledTimes(mountCallCount + 1);
-      expect(String(fetchMock.mock.calls[mountCallCount]?.[0])).toContain("/v1/router/stats");
+      // 服务商缺省不碍事: 每轮扫描固定双链路 (本地 tags + 网关 stats) — 挂载 2 次 + 显式 2 次
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(String(fetchMock.mock.calls[3]?.[0])).toContain("/v1/router/stats");
       expect(result.current.ollamaModels.map((m) => m.name)).toEqual(["llama3:8b"]);
       expect(result.current.ollamaError).toBeNull();
     });

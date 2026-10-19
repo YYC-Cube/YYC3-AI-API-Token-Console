@@ -15,6 +15,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import builtinProvidersJson from "../config/providers/builtin-providers.json";
 import { builtinProvidersSchema } from "../config/providers/provider-schema";
 import { fetchWithTimeout } from "../lib/http";
+import { env, subscribeEnvConfig } from "../lib/env-config";
+import { getOllamaTagsUrl } from "../lib/ollama-url";
 import { getGatewayConfig } from "../lib/api-config";
 import { lsGet, lsSetJSON } from "../lib/yyc3-storage";
 import type {
@@ -195,12 +197,12 @@ export function useModelProvider() {
   }, []);
 
   // ========== Ollama 自动识别 ==========
-  // S22 真实化重构 (2026-10-17, 用户报障): 数据源改为网关自动扫描产物 (upstream_pool 中
-  // Ollama 设备 = yyc3-77/yyc3-22 等, ADR-002 硬约束①)——原实现 fetch 失败时填充 30 行
-  // 硬编码 Mock 数组 (用户标注"几乎都是模拟"的核心证据之一), 现真实化铁则: 拉不到 → 空态+错误, 不造数。
+  // 原设计归位 (2026-10-20, 用户澄清): 本地存储架构 / 宿主机协同 / 本地化运维——
+  // 系统设置填变量即生效, Ollama 自动扫描本地模型; 网关仅是聚合兜底而非前提。
+  // 扫描链: ①本地/宿主机链路 (ollama-url 阶梯: console 反代 > 同源代理 > 直连
+  // 设置变量 OLLAMA_BASE_URL, 随系统设置即时生效) → ②网关聚合 (upstream_pool 中
+  // yyc3-77/yyc3-22 等设备自动扫描产物)。两路并集去重; 全失败 → 空态+错误, 不造数。
   const fetchOllamaModels = useCallback(async (baseUrl?: string) => {
-    const ollamaProvider = providers.find((p) => p.id === "ollama");
-    const url = baseUrl || ollamaProvider?.baseUrl || "http://localhost:11434";
     setOllamaLoading(true);
     setOllamaError(null);
 
@@ -214,52 +216,90 @@ export function useModelProvider() {
         const models = data.models || [];
         setOllamaModels(models);
         if (models.length > 0) {
-          setProviders((prev) => prev.map((p) => (p.id === "ollama" ? { ...p, models: models.map((m) => m.name), baseUrl: url } : p)));
+          setProviders((prev) => prev.map((p) => (p.id === "ollama" ? { ...p, models: models.map((m) => m.name), baseUrl } : p)));
         }
         setOllamaLoading(false);
         return models;
       }
 
-      // 默认链路: 网关自动扫描产物 (upstream_pool 中 Ollama 设备, 经 /console/gw 同源代理)
-      const cfg = getGatewayConfig();
-      const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
-      const res = await fetchWithTimeout(`${base}/v1/router/stats`, { headers: { "X-API-Key": cfg.gatewayAdminKey } }, 6000);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const stats = (await res.json()) as { upstream_pool?: Array<{ base_url?: string; models?: string[] }>; upstreams?: Array<{ base_url?: string; models?: string[] }> };
-      const pool = stats.upstream_pool ?? stats.upstreams ?? [];
-      const ollamaEntries = pool.filter((u) => (u.base_url ?? "").includes(":11434"));
-      const models: OllamaModel[] = ollamaEntries.flatMap((u) =>
-        (u.models ?? []).map((name) => ({
-          name,
-          model: name,
-          modified_at: "",
-          size: 0,
-          digest: "",
-          details: { parent_model: "", format: "", family: "", parameter_size: "", quantization_level: "" },
-        }))
-      );
-      setOllamaModels(models);
+      const models: OllamaModel[] = [];
+      const seen = new Set<string>();
+      const errors: string[] = [];
+      const ingest = (names: string[]) => {
+        for (const name of names) {
+          if (seen.has(name)) continue;
+          seen.add(name);
+          models.push({
+            name,
+            model: name,
+            modified_at: "",
+            size: 0,
+            digest: "",
+            details: { parent_model: "", format: "", family: "", parameter_size: "", quantization_level: "" },
+          });
+        }
+      };
+
+      // 1) 本地/宿主机链路 — 端点由部署形态与系统设置变量共同决定 (ollama-url 阶梯)
+      try {
+        const res = await fetchWithTimeout(getOllamaTagsUrl(), { method: "GET" }, 5000);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: OllamaTagsResponse = await res.json();
+        ingest((data.models ?? []).map((m) => m.name));
+      } catch (err) {
+        errors.push(`本地链路(${getOllamaTagsUrl()}): ${err instanceof Error ? err.message : String(err)}`);
+      }
+
+      // 2) 网关聚合兜底 — 宿主机协同 (网关 OLLAMA_DISCOVER_CIDR 自动扫描产物)
+      try {
+        const cfg = getGatewayConfig();
+        const base = cfg.gatewayBase.replace(/\/v1\/?$/, "");
+        const res = await fetchWithTimeout(`${base}/v1/router/stats`, { headers: { "X-API-Key": cfg.gatewayAdminKey } }, 6000);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const stats = (await res.json()) as { upstream_pool?: Array<{ base_url?: string; models?: string[] }>; upstreams?: Array<{ base_url?: string; models?: string[] }> };
+        const pool = stats.upstream_pool ?? stats.upstreams ?? [];
+        ingest(pool.filter((u) => (u.base_url ?? "").includes(":11434")).flatMap((u) => u.models ?? []));
+      } catch (err) {
+        errors.push(`网关聚合: ${err instanceof Error ? err.message : String(err)}`);
+      }
+
       if (models.length > 0) {
+        setOllamaModels(models);
         setProviders((prev) => prev.map((p) => (p.id === "ollama" ? { ...p, models: models.map((m) => m.name) } : p)));
       } else {
-        setOllamaError("网关自动扫描未发现 Ollama 设备 (检查 yyc3-77/yyc3-22 Ollama 服务与 Tailscale 连通)");
+        // 真实化铁则: 双链路全失败/无数据 → 空态 + 错误信息, 禁止 Mock 造数
+        setOllamaModels([]);
+        setOllamaError(errors.length > 0 ? errors.join("; ") : "Ollama 自动扫描未发现模型 (本地与网关双链路均无数据)");
       }
-      setOllamaLoading(false);
       return models;
     } catch (err) {
-      // 真实化铁则: 失败 → 空态 + 错误信息, 禁止 Mock 造数 (原 30 行硬编码假模型已移除)
       setOllamaModels([]);
-      setOllamaError(`网关自动扫描不可达: ${err instanceof Error ? err.message : String(err)}`);
+      setOllamaError(`Ollama 自动扫描失败: ${err instanceof Error ? err.message : String(err)}`);
       return [];
     } finally {
       setOllamaLoading(false);
     }
-  }, [providers]);
+  }, []);
 
-  // ========== 初始化时自动获取 Ollama 模型 ==========
+  // ========== 挂载时自动扫描 Ollama 模型 ==========
   useEffect(() => {
-    // fetchOllamaModels 内部 try/catch 自兜底 (失败回退 Mock) — fire-and-forget
+    // fetchOllamaModels 内部双链路自兜底 (本地 → 网关), 全败空态+错误 — fire-and-forget
     void fetchOllamaModels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ========== 变量填写即生效: 系统设置改 Ollama 变量 → 自动重扫 ==========
+  useEffect(() => {
+    let prevBase = env("OLLAMA_BASE_URL");
+    let prevProxy = env("OLLAMA_PROXY_PATH");
+    return subscribeEnvConfig((cfg) => {
+      if (cfg.OLLAMA_BASE_URL !== prevBase || cfg.OLLAMA_PROXY_PATH !== prevProxy) {
+        prevBase = cfg.OLLAMA_BASE_URL;
+        prevProxy = cfg.OLLAMA_PROXY_PATH;
+        void fetchOllamaModels();
+      }
+    });
+    // 首帧闭包的 fetchOllamaModels 足够 (扫描端点只依赖 ollama-url 阶梯 + 网关配置, 不依赖 providers 增量)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
