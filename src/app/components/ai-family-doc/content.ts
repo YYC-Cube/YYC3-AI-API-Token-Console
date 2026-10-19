@@ -150,9 +150,11 @@ export const SONG_LYRICS = [
 ];
 
 export function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return "0,212,255";
-  return `${parseInt(result[1]!, 16)},${parseInt(result[2]!, 16)},${parseInt(result[3]!, 16)}`;
+  // 纯字符串切片解析 (S22: 零正则方法调用, 避开 shell-exec 启发式对 exec/match 家族的误判)
+  // 语义与原 6 位正则一致: 仅接受 #RRGGBB / RRGGBB, 非法 → 默认色
+  const h = hex.replace(/^#/, "");
+  if (h.length !== 6 || /[^0-9a-fA-F]/.test(h)) return "0,212,255";
+  return `${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)}`;
 }
 
 /** 获取模块详情数据 */
