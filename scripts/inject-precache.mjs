@@ -17,12 +17,13 @@
  */
 
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = dirname(fileURLToPath(import.meta.url)) + "/..";
 // R7 双产物: 可选第一参数指定产物目录（默认 dist; build:console 传 dist-console）
-const DIST = join(ROOT, process.argv[2] || "dist");
+// S22 判例: 用 resolve 支持 /tmp 绝对路径 (build:console 输出移出项目树, 避免扫描器扫构建产物)
+const DIST = resolve(ROOT, process.argv[2] || "dist");
 const SW_PATH = join(DIST, "sw.js");
 const PLACEHOLDER = "const PRECACHE_MANIFEST = [];";
 

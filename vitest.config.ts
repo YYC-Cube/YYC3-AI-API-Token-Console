@@ -17,6 +17,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const alias = { "@": path.resolve(__dirname, "./src") };
 
+// S22 测试隔离 (2026-10-19): envPrefix 换非 VITE_ 前缀——项目根 .env (部署联调配置,
+// 70 键含 10 个 VITE_YYC3_*) 不再被 loadEnv 吸入, 测试 import.meta.env / process.env
+// 固定在 env-config DEFAULTS 基线 (探针判例: 根级 envDir/envPrefix/test.env 均无法
+// 阻断注入, 唯 project 级 envPrefix 生效——根级 Vite 选项不下传 projects)。
+// CI 无 .env 本就处于此基线, 本地从此与 CI 同基线; 测试自需变量走 test.env 注入
+// (运行时合并 {...viteEnv, ...test.env} 不受 envPrefix 限制)。
+const TEST_ENV_PREFIX = "__yyc3_test_no_load__";
+
 export default defineConfig({
   test: {
     globals: false,
@@ -36,6 +44,7 @@ export default defineConfig({
           setupFiles: ["src/app/__tests__/setup.ts"],
         },
         resolve: { alias },
+        envPrefix: TEST_ENV_PREFIX,
       },
       {
         test: {
@@ -45,6 +54,7 @@ export default defineConfig({
           environment: "node",
         },
         resolve: { alias },
+        envPrefix: TEST_ENV_PREFIX,
       },
       {
         test: {
@@ -55,6 +65,7 @@ export default defineConfig({
           ...(process.env.YYC3_TEST_INTEGRATION === "1" ? {} : { enabled: false }),
         },
         resolve: { alias },
+        envPrefix: TEST_ENV_PREFIX,
       },
     ],
     // 覆盖率配置
