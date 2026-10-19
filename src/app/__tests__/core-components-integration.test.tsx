@@ -53,6 +53,8 @@ vi.mock("../components/NetworkConfig", () => ({
 }));
 
 vi.mock("../lib/api-config", () => ({
+  getGatewayConfig: () => ({ gatewayBase: "https://api.0379.world/console/gw/v1", gatewayAdminKey: "proxy", gatewayApiKey: "" }),
+  setGatewayConfig: () => ({ gatewayBase: "https://api.0379.world/console/gw/v1", gatewayAdminKey: "proxy", gatewayApiKey: "" }),
   getAPIConfig: () => ({
     enableBackend: false,
     timeout: 15000,

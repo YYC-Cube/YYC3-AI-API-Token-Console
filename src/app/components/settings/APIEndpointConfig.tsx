@@ -8,14 +8,18 @@ import { toast } from "sonner";
 import {
   ENDPOINT_META,
   getAPIConfig,
+  getGatewayConfig,
   onAPIConfigChange,
   resetAPIConfig as resetAPIConfigDefaults,
   setAPIConfig,
+  setGatewayConfig,
   type APIEndpoints,
 } from "../../lib/api-config";
 import { Toggle } from "./shared";
 
 export function APIEndpointConfig() {
+  // S22 统一设置: 网关管理面 (gatewayBase/adminKey) 独立状态 (存储于 GATEWAY_KEY, 非 APIEndpoints)
+  const [gwCfg, setGwCfg] = useState(getGatewayConfig());
   const [apiConfig, setApiConfigState] = useState<APIEndpoints>(getAPIConfig());
 
   // 监听跨标签页变更
@@ -193,6 +197,55 @@ export function APIEndpointConfig() {
           </div>
         </div>
       ))}
+
+      {/* S22 统一设置: 网关管理面 (gatewayBase/adminKey) — 模型管理与密钥页的数据面入口 */}
+      <div className="mb-4 last:mb-0">
+        <p className="text-[rgba(0,212,255,0.5)] mb-2 px-1" style={{ fontSize: "0.7rem" }}>
+          网关管理面
+        </p>
+        <div className="space-y-2">
+          <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all">
+            <div className="flex items-center gap-2 mb-1">
+              <Globe className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+              <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>网关代理基址 (gatewayBase)</p>
+            </div>
+            <p className="text-[rgba(0,212,255,0.35)] mb-2" style={{ fontSize: "0.64rem" }}>
+              模型管理/密钥/审计页的数据面入口（同源 /console/gw 代理或直连网关）
+            </p>
+            <input
+              type="text"
+              value={gwCfg.gatewayBase}
+              onChange={(e) => {
+                setGwCfg(setGatewayConfig({ gatewayBase: e.target.value }));
+                toast.success("已更新: gatewayBase");
+              }}
+              placeholder="https://api.0379.world/console/gw/v1"
+              className="w-full px-3 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#00d4ff] font-mono focus:outline-none focus:border-[rgba(0,212,255,0.4)]"
+              style={{ fontSize: "0.78rem" }}
+            />
+          </div>
+          <div className="p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all">
+            <div className="flex items-center gap-2 mb-1">
+              <Plug className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+              <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>管理面密钥 (X-API-Key)</p>
+            </div>
+            <p className="text-[rgba(0,212,255,0.35)] mb-2" style={{ fontSize: "0.64rem" }}>
+              同源代理模式填任意占位即可（服务端注入真实密钥）；直连网关模式填真实管理密钥
+            </p>
+            <input
+              type="password"
+              value={gwCfg.gatewayAdminKey}
+              onChange={(e) => {
+                setGwCfg(setGatewayConfig({ gatewayAdminKey: e.target.value }));
+                toast.success("已更新: gatewayAdminKey");
+              }}
+              placeholder="proxy 或 sk-admin…"
+              className="w-full px-3 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#00d4ff] font-mono focus:outline-none focus:border-[rgba(0,212,255,0.4)]"
+              style={{ fontSize: "0.78rem" }}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* 当前配置状态概要 */}
       <div className="mt-4 p-3 rounded-lg bg-[rgba(0,20,40,0.6)] border border-[rgba(0,180,255,0.06)]">

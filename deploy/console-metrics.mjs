@@ -24,6 +24,7 @@ export const CONSOLE_SETTINGS_KEYS = [
   "alertEmailAddr",     // 告警通知邮箱
   "webhookUrl",         // 告警 Webhook
   "ollamaNodes",        // Ollama 节点表 { id: origin }（双端联通 R2: B端设备管理可编辑增减）
+  "gatewayBase",        // S22 统一设置: 网关代理基址下发（B端模型管理/密钥页数据面统一入口）
 ];
 
 /** 白名单键类型契约（校验+收敛，未知键丢弃，类型不符置默认并标记） */
@@ -34,6 +35,7 @@ const KEY_TYPES = {
   alertEmailAddr: "string",
   webhookUrl: "string",
   ollamaNodes: "nodes",
+  gatewayBase: "url",
 };
 
 /** 校验单个节点表项: id 非空短字符串, origin 为 http/https URL（scheme 白名单, 无 SSRF 面——目标仍是内网白名单语义由运维把关） */

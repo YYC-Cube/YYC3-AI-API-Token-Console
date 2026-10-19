@@ -74,6 +74,26 @@ export const GATEWAY_DEFAULTS = {
 };
 const GATEWAY_KEY = "yyc3_gateway_config";
 
+/** S22 统一设置 (2026-10-17): 部署侧经 /console/settings 下发 gatewayBase
+ *  (服务端 CONSOLE_SETTINGS_KEYS 白名单)——NAS/ECS 部署时写一次, 全端生效。
+ *  语义: 仅当用户未显式配置 (localStorage 无 GATEWAY_KEY) 时应用部署下发值;
+ *  用户在系统设置页显式修改后以用户值为准。静默失败 (未登录/无该键) 不影响默认。 */
+export function syncGatewayBaseFromDeployment(): void {
+  if (localStorage.getItem(GATEWAY_KEY)) return; // 用户显式值最优先
+  fetch("/console/settings", { method: "GET" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d: { gatewayBase?: unknown } | null) => {
+      const base = d?.gatewayBase;
+      if (typeof base === "string" && /^https?:\/\//.test(base)) {
+        // 部署下发不广播 listeners (_gateway 形状为 GATEWAY_DEFAULTS, 非 APIEndpoints);
+        // 消费方 (面板 refresh) 每次经 getGatewayConfig() 重读, 无需通知
+        _gateway = { ..._gateway, gatewayBase: base };
+        try { localStorage.setItem(GATEWAY_KEY, JSON.stringify(_gateway)); } catch { /* ignore */ }
+      }
+    })
+    .catch(() => { /* 部署下发不可达: 保持默认 */ });
+}
+
 let _gateway: typeof GATEWAY_DEFAULTS = (() => {
   try {
     const raw = localStorage.getItem(GATEWAY_KEY);

@@ -21,6 +21,7 @@ import { GlassCard } from "./GlassCard";
 import { AddModelModal } from "./AddModelModal";
 import { ProviderEditorModal } from "./ProviderEditorModal";
 import { useModelProvider } from "../hooks/useModelProvider";
+import { syncGatewayBaseFromDeployment } from "../lib/api-config";
 import { useI18n } from "../hooks/useI18n";
 import { ViewContext } from "../lib/view-context";
 import { getGatewayConfig } from "../lib/api-config";
@@ -149,6 +150,11 @@ export function ModelProviderPanel() {
     exportConfig,
     importConfig,
   } = useModelProvider();
+
+  // S22 统一设置: 挂载时拉取部署侧下发配置 (console-settings.gatewayBase, 用户显式值最优先)
+  useEffect(() => {
+    syncGatewayBaseFromDeployment();
+  }, []);
 
   // Provider editor modal state
   const [providerEditorOpen, setProviderEditorOpen] = useState(false);
@@ -362,6 +368,15 @@ export function ModelProviderPanel() {
               style={{ fontSize: "0.65rem" }}
             >
               OpenAPI ↗
+            </a>
+            {/* S22 统一操作入口: 密钥签发/管理走网关虚拟密钥页 (真实 CRUD, 勿在此面板重复实现) */}
+            <a
+              href="#/gateway-keys"
+              className="px-2 py-1 rounded bg-[rgba(0,212,255,0.08)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all"
+              style={{ fontSize: "0.62rem" }}
+              title="API 密钥生成 / 启停 / 删除 (网关虚拟密钥)"
+            >
+              管理密钥
             </a>
           </div>
         </div>
