@@ -14,7 +14,7 @@ allowBuilds:
 
 # ── 版本单一事实源（catalog:）— 高频依赖集中治理，子包以 'catalog:' 引用 ──
 catalog:
-  vite: 6.4.3
+  vite: 6.4.4
   vitest: ^4.0.18
   "@vitest/coverage-v8": ^4.0.18
   typescript-eslint: ^8.70.0
