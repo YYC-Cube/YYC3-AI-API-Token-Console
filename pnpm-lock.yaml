@@ -35,7 +35,7 @@ catalogs:
       version: 4.1.11
 
 overrides:
-  vite: 6.4.4
+  vite: 6.4.5
 
 importers:
 
@@ -212,7 +212,7 @@ importers:
         version: 4.1.12
       '@tailwindcss/vite':
         specifier: 'catalog:'
-        version: 4.1.12(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+        version: 4.1.12(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
       '@testing-library/jest-dom':
         specifier: 6.10.0
         version: 6.10.0(@testing-library/dom@10.4.2)
@@ -233,7 +233,7 @@ importers:
         version: 18.3.7(@types/react@18.3.31)
       '@vitejs/plugin-react':
         specifier: 'catalog:'
-        version: 4.7.0(supports-color@7.2.0)(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+        version: 4.7.0(supports-color@7.2.0)(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.11(vitest@4.1.11)
@@ -280,11 +280,11 @@ importers:
         specifier: 'catalog:'
         version: 8.70.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       vite:
-        specifier: 6.4.4
-        version: 6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
+        specifier: 6.4.5
+        version: 6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
       vitest:
         specifier: 'catalog:'
-        version: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+        version: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
       vitest-axe:
         specifier: 0.1.0
         version: 0.1.0(vitest@4.1.11)
@@ -1988,7 +1988,7 @@ packages:
   '@tailwindcss/vite@4.1.12':
     resolution: {integrity: sha512-4pt0AMFDx7gzIrAOIYgYP0KCBuKWqyW8ayrdiLEjoJTT4pKTjrzG/e4uzWtTLDziC+66R9wbUqZBccJalSE5vQ==}
     peerDependencies:
-      vite: 6.4.4
+      vite: 6.4.5
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -2304,7 +2304,7 @@ packages:
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: 6.4.4
+      vite: 6.4.5
 
   '@vitest/coverage-v8@4.1.11':
     resolution: {integrity: sha512-8MVGEFnJIcdGjcbfKmeq8z0pZHH0JlVtoVZH9Q/qwUp6wyFnEJUBMrw9DCaj+ra3vShGmhavjalMIhPNxZAUcw==}
@@ -2322,7 +2322,7 @@ packages:
     resolution: {integrity: sha512-2XJVD55d1o5AZous5CCGKS74g/riOj9odEt2bQpCVZeblHyHdnMeFl4jl0XjU21stf4mbjUkew2eXQZt65g5CQ==}
     peerDependencies:
       msw: ^2.4.9
-      vite: 6.4.4
+      vite: 6.4.5
     peerDependenciesMeta:
       msw:
         optional: true
@@ -4101,8 +4101,8 @@ packages:
   victory-vendor@36.9.2:
     resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
 
-  vite@6.4.4:
-    resolution: {integrity: sha512-xGjU/SyjeNyb0E4KxXBvYz/1C+3JXuujvf2hXNOtnlcE+58o5ajd9N2/n2VhkiJvpCP2qQasnUpx5PXNeI+p1Q==}
+  vite@6.4.5:
+    resolution: {integrity: sha512-4enwjFfi4IwtEh0w+jPzpLVOFQiPHmmzPxcHXQOyEur47o6u0jE573DmGpjA+7irXoMLYRZD5ZaFUEneS3abPg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -4162,7 +4162,7 @@ packages:
       '@vitest/ui': 4.1.11
       happy-dom: '*'
       jsdom: '*'
-      vite: 6.4.4
+      vite: 6.4.5
     peerDependenciesMeta:
       '@edge-runtime/vm':
         optional: true
@@ -5959,12 +5959,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.1.12
       '@tailwindcss/oxide-win32-x64-msvc': 4.1.12
 
-  '@tailwindcss/vite@4.1.12(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
+  '@tailwindcss/vite@4.1.12(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
     dependencies:
       '@tailwindcss/node': 4.1.12
       '@tailwindcss/oxide': 4.1.12
       tailwindcss: 4.1.12
-      vite: 6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
 
   '@testing-library/dom@10.4.2':
     dependencies:
@@ -6274,7 +6274,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vitejs/plugin-react@4.7.0(supports-color@7.2.0)(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
+  '@vitejs/plugin-react@4.7.0(supports-color@7.2.0)(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@babel/plugin-transform-react-jsx-self': 7.29.7(@babel/core@7.29.7(supports-color@7.2.0))
@@ -6282,7 +6282,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -6298,7 +6298,7 @@ snapshots:
       obug: 2.2.1
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+      vitest: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -6309,13 +6309,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
+  '@vitest/mocker@4.1.11(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -8134,7 +8134,7 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
-  vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1):
+  vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.7)
@@ -8157,12 +8157,12 @@ snapshots:
       dom-accessibility-api: 0.5.16
       lodash-es: 4.18.1
       redent: 3.0.0
-      vitest: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+      vitest: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
 
-  vitest@4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)):
+  vitest@4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@28.1.0(supports-color@7.2.0))(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
+      '@vitest/mocker': 4.1.11(vite@6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -8179,7 +8179,7 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 6.4.4(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.20.3)(jiti@2.7.0)(lightningcss@1.30.1)(yaml@2.9.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.20.3
